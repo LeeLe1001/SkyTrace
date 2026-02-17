@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>SkyTrace - 个人航旅管理</title>
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SkyTrace">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/static/css/style.css">
+    
+    <!-- html2canvas for share/export -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    
+    <!-- i18n 多语言 (在 app.js 之前加载) -->
+    <script src="/static/js/i18n.js"></script>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">✈️</span>
+                <span class="logo-text">SkyTrace</span>
+            </div>
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="map" data-i18n="navMap">🗺️ 航线图</button>
+                <button class="nav-tab" data-tab="flights" data-i18n="navFlights">📋 行程</button>
+                <button class="nav-tab" data-tab="calendar" data-i18n="navCalendar">📅 日历</button>
+                <button class="nav-tab" data-tab="stats" data-i18n="navStats">📊 统计</button>
+            </nav>
+            <div class="header-actions">
+                <!-- 语言切换 -->
+                <div class="lang-switcher">
+                    <button class="btn-lang-toggle" onclick="toggleLangDropdown()" title="Language">🌐</button>
+                    <div class="lang-dropdown" id="lang-dropdown">
+                        <div class="lang-option active" data-lang="zh" onclick="switchLang('zh')">中文</div>
+                        <div class="lang-option" data-lang="en" onclick="switchLang('en')">English</div>
+                        <div class="lang-option" data-lang="ja" onclick="switchLang('ja')">日本語</div>
+                        <div class="lang-option" data-lang="ko" onclick="switchLang('ko')">한국어</div>
+                        <div class="lang-option" data-lang="es" onclick="switchLang('es')">Español</div>
+                    </div>
+                </div>
+                <!-- 主题切换 -->
+                <button class="btn-theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn" data-i18n-title="toggleTheme" title="切换主题">🌙</button>
+                <button class="btn-settings" onclick="openSettings()" data-i18n-title="settingsTitle" title="API设置">⚙️</button>
+                <button class="btn-add" onclick="openAddModal()" data-i18n="addTrip">+ 添加行程</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <!-- 地图视图 -->
+        <section id="map-view" class="view active">
+            <div id="map"></div>
+            <!-- 地图上的时间筛选 -->
+            <div class="map-time-filter">
+                <span class="map-filter-label" data-i18n="timeRange">📅 时间范围</span>
+                <input type="date" id="map-filter-start" onchange="applyMapTimeFilter()">
+                <span class="map-filter-separator" data-i18n="to">至</span>
+                <input type="date" id="map-filter-end" onchange="applyMapTimeFilter()">
+                <button class="map-filter-reset" onclick="resetMapTimeFilter()" data-i18n="all">全部</button>
+            </div>
+            
+            <!-- 地图上的统计卡片 -->
+            <div class="map-stats-card">
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-flights">0</span>
+                    <span class="stat-label" data-i18n="flights">航班</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-distance">0</span>
+                    <span class="stat-label" data-i18n="km">公里</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-airports">0</span>
+                    <span class="stat-label" data-i18n="airports">机场</span>
+                </div>
+            </div>
+            
+            <!-- 地图底部待出行快速预览 -->
+            <div class="map-upcoming-preview" id="map-upcoming-preview">
+                <!-- JS动态生成 -->
+            </div>
+        </section>
+
+        <!-- 行程列表视图 -->
+        <section id="flights-view" class="view">
+            <div class="flights-container">
+                <div class="flights-header">
+                    <h2 data-i18n="myTrips">我的行程</h2>
+                    <div class="flights-header-actions">
+                        <button class="btn-connect-flights" onclick="toggleConnectMode()" id="btn-connect" data-i18n-title="connectFlights" title="联程">🔗</button>
+                    </div>
+                    <div class="filter-tabs">
+                        <button class="filter-tab" data-filter="all" data-i18n="filterAll">全部</button>
+                        <button class="filter-tab active" data-filter="upcoming" data-i18n="filterUpcoming">待出行</button>
+                        <button class="filter-tab" data-filter="completed" data-i18n="filterCompleted">已完成</button>
+                    </div>
+                </div>
+                
+                <!-- 时间筛选 -->
+                <div class="time-filter">
+                    <div class="time-filter-row">
+                        <div class="time-filter-group">
+                            <label data-i18n="startDate">开始日期</label>
+                            <input type="date" id="filter-start-date" onchange="applyTimeFilter()">
+                        </div>
+                        <div class="time-filter-group">
+                            <label data-i18n="endDate">结束日期</label>
+                            <input type="date" id="filter-end-date" onchange="applyTimeFilter()">
+                        </div>
+                        <button class="btn-filter-reset" onclick="resetTimeFilter()" data-i18n="reset">重置</button>
+                    </div>
+                </div>
+                <div class="flights-list" id="flights-list">
+                    <!-- 航班卡片将通过 JS 动态生成 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 统计视图 -->
+        <section id="stats-view" class="view">
+            <div class="stats-container">
+                <div class="stats-header-row">
+                    <h2 data-i18n="flightStats">飞行统计</h2>
+                    <div class="stats-header-controls">
+                        <div class="year-selector" id="year-selector">
+                            <!-- JS动态生成年份按钮 -->
+                        </div>
+                        <button class="btn-share-stats" onclick="exportAnnualReport()" data-i18n-title="shareReport">
+                            📤 <span data-i18n="shareReport">生成飞行报告</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stats-card large">
+                        <div class="stats-icon">🛫</div>
+                        <div class="stats-info">
+                            <span class="stats-value" id="total-flights">0</span>
+                            <span class="stats-label" data-i18n="totalFlights">总航班数</span>
+                        </div>
+                    </div>
+                    <div class="stats-card large">
+                        <div class="stats-icon">🌍</div>
+                        <div class="stats-info">
+                            <span class="stats-value" id="total-distance">0</span>
+                            <span class="stats-label" data-i18n="totalDistance">总飞行里程 (km)</span>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-icon">⏱️</div>
+                        <div class="stats-info">
+                            <span class="stats-value" id="total-hours">0</span>
+                            <span class="stats-label" data-i18n="totalHours">飞行时长 (h)</span>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-icon">🏢</div>
+                        <div class="stats-info">
+                            <span class="stats-value" id="visited-airports">0</span>
+                            <span class="stats-label" data-i18n="visitedAirports">到访机场</span>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-icon">🌐</div>
+                        <div class="stats-info">
+                            <span class="stats-value" id="visited-countries">0</span>
+                            <span class="stats-label" data-i18n="visitedCountries">到访国家/地区</span>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stats-icon">🌙</div>
+                        <div class="stats-info">
+                            <span class="stats-value" id="earth-rounds">0</span>
+                            <span class="stats-label" data-i18n="earthRounds">绕地球圈数</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 趣味统计洞察 -->
+                <div class="fun-stats-section" id="fun-stats-section">
+                    <h3 class="fun-stats-title">✨ <span data-i18n="funInsights">趣味洞察</span></h3>
+                    <div class="fun-stats-grid" id="fun-stats-grid">
+                        <!-- 动态生成 -->
+                    </div>
+                </div>
+                
+                <!-- 排行榜 -->
+                <div class="rankings-section" id="rankings-section">
+                    <div class="ranking-card">
+                        <h4 data-i18n="topRoutes">最常飞航线</h4>
+                        <div class="ranking-list" id="top-routes-list"></div>
+                    </div>
+                    <div class="ranking-card">
+                        <h4 data-i18n="topAirlines">常用航空公司</h4>
+                        <div class="ranking-list" id="top-airlines-list"></div>
+                    </div>
+                </div>
+                
+                <!-- 月度飞行图表 -->
+                <div class="chart-section" id="chart-section">
+                    <h3>📊 <span data-i18n="monthlyChart">月度飞行</span></h3>
+                    <div class="monthly-chart" id="monthly-chart"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 日历视图 -->
+        <section id="calendar-view" class="view">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <h2 data-i18n="navCalendar">📅 日历</h2>
+                    <div class="calendar-nav">
+                        <button class="btn-cal-nav" onclick="changeCalendarMonth(-1)">◀</button>
+                        <span class="calendar-month-label" id="calendar-month-label"></span>
+                        <button class="btn-cal-nav" onclick="changeCalendarMonth(1)">▶</button>
+                        <button class="btn-cal-today" onclick="goCalendarToday()" data-i18n="calToday">今天</button>
+                    </div>
+                </div>
+                <div class="calendar-weekdays" id="calendar-weekdays"></div>
+                <div class="calendar-grid" id="calendar-grid"></div>
+                <div class="calendar-flight-detail" id="calendar-flight-detail"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 添加/编辑航班模态框 -->
+    <div class="modal-overlay" id="flight-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <button class="modal-back" onclick="closeModal()">‹</button>
+                <h3 id="modal-title" data-i18n="addTripTitle">添加行程</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="flight-form" onsubmit="saveFlight(event)">
+                <input type="hidden" id="flight-id">
+                
+                <!-- 智能查询区域 -->
+                <div class="smart-lookup">
+                    <div class="smart-lookup-header">
+                        <span class="smart-lookup-icon">✈️</span>
+                        <span data-i18n="smartLookupHint">输入航班号自动识别航线信息</span>
+                        <span class="api-badge" id="api-badge" style="display:none" data-i18n="apiBadgeConnected">API已连接</span>
+                    </div>
+                    <div class="smart-lookup-row">
+                        <div class="form-group">
+                            <label data-i18n="flightNo">航班号 *</label>
+                            <input type="text" id="flight-no" data-i18n-placeholder="flightNoPlaceholder" placeholder="如 CA1301" required autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="departureDate">出发日期 *</label>
+                            <input type="date" id="flight-date" required>
+                        </div>
+                        <button type="button" class="btn-lookup" onclick="lookupFlight()">
+                            <span class="btn-lookup-text" data-i18n="lookup">查询</span>
+                            <span class="btn-lookup-loading" style="display:none;">
+                                <span class="spinner"></span> <span data-i18n="lookupLoading">查询中</span>
+                            </span>
+                        </button>
+                    </div>
+                    <div class="lookup-status" id="lookup-status"></div>
+                </div>
+                
+                <div class="form-divider"></div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label data-i18n="airline">航空公司</label>
+                        <input type="text" id="airline" data-i18n-placeholder="autoDetect" placeholder="自动识别">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="aircraftType">机型</label>
+                        <input type="text" id="aircraft" placeholder="A350-900">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label data-i18n="depAirport">出发机场 *</label>
+                        <input type="text" id="departure" placeholder="PEK" required 
+                               oninput="searchAirport(this, 'dep-suggestions')">
+                        <div class="suggestions" id="dep-suggestions"></div>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="arrAirport">到达机场 *</label>
+                        <input type="text" id="arrival" placeholder="SHA" required
+                               oninput="searchAirport(this, 'arr-suggestions')">
+                        <div class="suggestions" id="arr-suggestions"></div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label data-i18n="depTime">出发时间 *</label>
+                        <input type="time" id="dep-time" required>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="arrTime">到达时间 *</label>
+                        <input type="time" id="arr-time" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label data-i18n="depTerminal">出发航站楼</label>
+                        <input type="text" id="dep-terminal" placeholder="T2">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="arrTerminal">到达航站楼</label>
+                        <input type="text" id="arr-terminal" placeholder="T1">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label data-i18n="depGate">出发登机口</label>
+                        <input type="text" id="dep-gate" placeholder="A12">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="arrGate">到达登机口</label>
+                        <input type="text" id="arr-gate" placeholder="B05">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label data-i18n="seat">座位</label>
+                        <input type="text" id="seat" placeholder="32A">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="cabin">舱位</label>
+                        <select id="cabin-class">
+                            <option value="economy" data-i18n="cabinEconomy">经济舱</option>
+                            <option value="premium_economy" data-i18n="cabinPremiumEconomy">超级经济舱</option>
+                            <option value="business" data-i18n="cabinBusiness">公务舱</option>
+                            <option value="first" data-i18n="cabinFirst">头等舱</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label data-i18n="notes">备注</label>
+                    <textarea id="notes" data-i18n-placeholder="notesPlaceholder" placeholder="添加备注..."></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal()" data-i18n="cancel">取消</button>
+                    <button type="submit" class="btn-primary" data-i18n="save">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 航班详情模态框 -->
+    <div class="modal-overlay" id="detail-modal">
+        <div class="modal modal-detail">
+            <div class="modal-header">
+                <button class="modal-back" onclick="closeDetailModal()">‹</button>
+                <h3 data-i18n="flightDetail">航班详情</h3>
+                <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+            </div>
+            <div class="detail-content" id="detail-content">
+                <!-- 动态生成 -->
+            </div>
+            <div class="detail-actions">
+                <button class="btn-danger" onclick="deleteFlight()" data-i18n="deleteTrip">删除行程</button>
+                <div class="detail-actions-right">
+                    <button class="btn-share" onclick="shareFlightCard()" data-i18n-title="shareCard">📤</button>
+                    <button class="btn-secondary" onclick="editFlight()" data-i18n="edit">编辑</button>
+                    <button class="btn-primary" onclick="closeDetailModal()" data-i18n="close">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置模态框 -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal modal-settings">
+            <div class="modal-header">
+                <button class="modal-back" onclick="closeSettings()">‹</button>
+                <h3 data-i18n="settingsTitle">⚙️ API 设置</h3>
+                <button class="modal-close" onclick="closeSettings()">&times;</button>
+            </div>
+            <div class="settings-content">
+                <div class="settings-intro">
+                    <p data-i18n="settingsIntro">配置航班数据API后，输入航班号即可<strong>自动识别</strong>出发/到达机场、时间、机型等信息。</p>
+                    <p class="settings-hint" data-i18n="settingsHint">支持以下免费API（任选一个即可）：</p>
+                </div>
+                
+                <div class="api-card">
+                    <div class="api-card-header">
+                        <div class="api-info">
+                            <span class="api-name">AviationStack</span>
+                            <span class="api-tier" data-i18n="apiTierAvstack">免费 500次/月</span>
+                        </div>
+                        <span class="api-status" id="avstack-status" data-i18n="apiNotConfigured">未配置</span>
+                    </div>
+                    <div class="api-card-body">
+                        <input type="text" id="aviationstack-key" placeholder="Access Key">
+                        <div class="api-actions">
+                            <a href="https://aviationstack.com/signup/free" target="_blank" class="api-link" data-i18n="getApiKey">获取免费Key →</a>
+                            <button class="btn-test" onclick="testApi('aviationstack')" data-i18n="testConnection">测试连接</button>
+                        </div>
+                    </div>
+                    <div class="api-test-result" id="avstack-result"></div>
+                </div>
+                
+                <div class="api-card">
+                    <div class="api-card-header">
+                        <div class="api-info">
+                            <span class="api-name">AirLabs</span>
+                            <span class="api-tier" data-i18n="apiTierAirlabs">免费 1000次/月</span>
+                        </div>
+                        <span class="api-status" id="airlabs-status" data-i18n="apiNotConfigured">未配置</span>
+                    </div>
+                    <div class="api-card-body">
+                        <input type="text" id="airlabs-key" placeholder="API Key">
+                        <div class="api-actions">
+                            <a href="https://airlabs.co/signup" target="_blank" class="api-link" data-i18n="getApiKey">获取免费Key →</a>
+                            <button class="btn-test" onclick="testApi('airlabs')" data-i18n="testConnection">测试连接</button>
+                        </div>
+                    </div>
+                    <div class="api-test-result" id="airlabs-result"></div>
+                </div>
+                
+                <div class="api-card">
+                    <div class="api-card-header">
+                        <div class="api-info">
+                            <span class="api-name">AeroDataBox</span>
+                            <span class="api-tier" data-i18n="apiTierAerodata">RapidAPI 免费版</span>
+                        </div>
+                        <span class="api-status" id="aerodata-status" data-i18n="apiNotConfigured">未配置</span>
+                    </div>
+                    <div class="api-card-body">
+                        <input type="text" id="aerodata-key" placeholder="RapidAPI Key">
+                        <div class="api-actions">
+                            <a href="https://rapidapi.com/aedbx-aedbx/api/aerodatabox" target="_blank" class="api-link" data-i18n="getApiKey">获取免费Key →</a>
+                            <button class="btn-test" onclick="testApi('aerodata')" data-i18n="testConnection">测试连接</button>
+                        </div>
+                    </div>
+                    <div class="api-test-result" id="aerodata-result"></div>
+                </div>
+                
+                <div class="settings-footer">
+                    <div class="cache-info">
+                        <span><span data-i18n="localCache">📦 本地缓存:</span> <strong id="cache-count">0</strong> <span data-i18n="cacheUnit">条航班数据</span></span>
+                    </div>
+                    <div class="settings-actions">
+                        <button class="btn-secondary" onclick="closeSettings()" data-i18n="cancel">取消</button>
+                        <button class="btn-primary" onclick="saveSettings()" data-i18n="saveSettings">保存设置</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分享卡片模态框 -->
+    <div class="modal-overlay" id="share-modal">
+        <div class="modal modal-share">
+            <div class="modal-header">
+                <button class="modal-back" onclick="closeShareModal()">‹</button>
+                <h3 data-i18n="shareCard">飞行卡片</h3>
+                <button class="modal-close" onclick="closeShareModal()">&times;</button>
+            </div>
+            <div class="share-content" id="share-content">
+                <div class="share-card" id="share-card">
+                    <!-- 动态生成卡片内容 -->
+                </div>
+            </div>
+            <div class="share-actions">
+                <button class="btn-primary" onclick="downloadShareCard()" data-i18n="downloadImage">💾 保存图片</button>
+                <button class="btn-secondary" onclick="closeShareModal()" data-i18n="close">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Arc.js for great circle arcs -->
+    <script src="https://unpkg.com/arc@0.1.1/arc.js"></script>
+    
+    <script src="/static/js/app.js"></script>
+    
+    <!-- Service Worker 注册 -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                    .then(reg => console.log('SW registered:', reg.scope))
+                    .catch(err => console.log('SW registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+{
+  "flights": [
+    {
+      "id": "1",
+      "flight_no": "CA1234",
+      "airline": "中国国航",
+      "departure": "PEK",
+      "arrival": "SHA",
+      "date": "2024-06-15",
+      "dep_time": "08:00",
+      "arr_time": "10:20",
+      "status": "completed",
+      "aircraft": "A350-900",
+      "seat": "32A",
+      "class": "经济舱",
+      "notes": "第一次坐A350"
+    },
+    {
+      "id": "2",
+      "flight_no": "MU5678",
+      "airline": "东方航空",
+      "departure": "SHA",
+      "arrival": "CTU",
+      "date": "2024-07-20",
+      "dep_time": "14:30",
+      "arr_time": "17:45",
+      "status": "completed",
+      "aircraft": "B737-800",
+      "seat": "12F",
+      "class": "经济舱",
+      "notes": ""
+    },
+    {
+      "id": "3",
+      "flight_no": "CZ3099",
+      "airline": "南方航空",
+      "departure": "CAN",
+      "arrival": "PEK",
+      "date": "2024-08-10",
+      "dep_time": "09:15",
+      "arr_time": "12:30",
+      "status": "completed",
+      "aircraft": "A321neo",
+      "seat": "8A",
+      "class": "公务舱",
+      "notes": "升舱体验"
+    },
+    {
+      "flight_no": "MU6650",
+      "airline": "东方航空",
+      "departure": "CTU",
+      "arrival": "PKX",
+      "date": "2026-03-02",
+      "dep_time": "17:15",
+      "arr_time": "20:00",
+      "aircraft": "Airbus A321",
+      "dep_terminal": "2",
+      "arr_terminal": "",
+      "seat": "",
+      "class": "economy",
+      "notes": "",
+      "status": "scheduled",
+      "id": "1dc845fd"
+    }
+  ]
+}

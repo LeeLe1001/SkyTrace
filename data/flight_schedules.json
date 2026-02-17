@@ -1,0 +1,2617 @@
+{
+  "CA1301": {
+    "departure": "PEK",
+    "arrival": "CAN",
+    "dep_time": "07:00",
+    "arr_time": "10:10",
+    "aircraft": "A330"
+  },
+  "CA1302": {
+    "departure": "CAN",
+    "arrival": "PEK",
+    "dep_time": "11:20",
+    "arr_time": "14:30",
+    "aircraft": "A330"
+  },
+  "CA1303": {
+    "departure": "PEK",
+    "arrival": "CAN",
+    "dep_time": "08:30",
+    "arr_time": "11:40",
+    "aircraft": "A321"
+  },
+  "CA1305": {
+    "departure": "PEK",
+    "arrival": "CAN",
+    "dep_time": "14:00",
+    "arr_time": "17:10",
+    "aircraft": "B738"
+  },
+  "CA1307": {
+    "departure": "PEK",
+    "arrival": "CAN",
+    "dep_time": "17:30",
+    "arr_time": "20:40",
+    "aircraft": "A330"
+  },
+  "CA1308": {
+    "departure": "CAN",
+    "arrival": "PEK",
+    "dep_time": "21:30",
+    "arr_time": "00:35",
+    "aircraft": "A330"
+  },
+  "CA1401": {
+    "departure": "PEK",
+    "arrival": "SZX",
+    "dep_time": "07:30",
+    "arr_time": "10:45",
+    "aircraft": "A330"
+  },
+  "CA1402": {
+    "departure": "SZX",
+    "arrival": "PEK",
+    "dep_time": "11:50",
+    "arr_time": "14:55",
+    "aircraft": "A330"
+  },
+  "CA1403": {
+    "departure": "PEK",
+    "arrival": "SZX",
+    "dep_time": "12:00",
+    "arr_time": "15:10",
+    "aircraft": "A321"
+  },
+  "CA1405": {
+    "departure": "PEK",
+    "arrival": "SZX",
+    "dep_time": "17:00",
+    "arr_time": "20:15",
+    "aircraft": "B738"
+  },
+  "CA1501": {
+    "departure": "PEK",
+    "arrival": "CTU",
+    "dep_time": "07:00",
+    "arr_time": "09:50",
+    "aircraft": "A330"
+  },
+  "CA1502": {
+    "departure": "CTU",
+    "arrival": "PEK",
+    "dep_time": "11:00",
+    "arr_time": "13:40",
+    "aircraft": "A330"
+  },
+  "CA1503": {
+    "departure": "PEK",
+    "arrival": "CTU",
+    "dep_time": "13:30",
+    "arr_time": "16:20",
+    "aircraft": "A321"
+  },
+  "CA1505": {
+    "departure": "PEK",
+    "arrival": "CTU",
+    "dep_time": "18:00",
+    "arr_time": "20:50",
+    "aircraft": "A330"
+  },
+  "CA1551": {
+    "departure": "PEK",
+    "arrival": "SHA",
+    "dep_time": "07:00",
+    "arr_time": "09:20",
+    "aircraft": "A330"
+  },
+  "CA1552": {
+    "departure": "SHA",
+    "arrival": "PEK",
+    "dep_time": "10:30",
+    "arr_time": "12:50",
+    "aircraft": "A330"
+  },
+  "CA1553": {
+    "departure": "PEK",
+    "arrival": "SHA",
+    "dep_time": "08:30",
+    "arr_time": "10:50",
+    "aircraft": "A321"
+  },
+  "CA1555": {
+    "departure": "PEK",
+    "arrival": "SHA",
+    "dep_time": "14:00",
+    "arr_time": "16:20",
+    "aircraft": "A330"
+  },
+  "CA1557": {
+    "departure": "PEK",
+    "arrival": "SHA",
+    "dep_time": "19:30",
+    "arr_time": "21:50",
+    "aircraft": "B738"
+  },
+  "CA1601": {
+    "departure": "PEK",
+    "arrival": "CKG",
+    "dep_time": "07:30",
+    "arr_time": "10:10",
+    "aircraft": "A321"
+  },
+  "CA1602": {
+    "departure": "CKG",
+    "arrival": "PEK",
+    "dep_time": "11:20",
+    "arr_time": "14:00",
+    "aircraft": "A321"
+  },
+  "CA1701": {
+    "departure": "PEK",
+    "arrival": "KMG",
+    "dep_time": "07:00",
+    "arr_time": "10:10",
+    "aircraft": "A330"
+  },
+  "CA1702": {
+    "departure": "KMG",
+    "arrival": "PEK",
+    "dep_time": "11:30",
+    "arr_time": "14:30",
+    "aircraft": "A330"
+  },
+  "CA1831": {
+    "departure": "PEK",
+    "arrival": "HGH",
+    "dep_time": "07:30",
+    "arr_time": "09:45",
+    "aircraft": "A320"
+  },
+  "CA1832": {
+    "departure": "HGH",
+    "arrival": "PEK",
+    "dep_time": "11:00",
+    "arr_time": "13:15",
+    "aircraft": "A320"
+  },
+  "CA1835": {
+    "departure": "PEK",
+    "arrival": "HGH",
+    "dep_time": "14:30",
+    "arr_time": "16:45",
+    "aircraft": "B738"
+  },
+  "CA1841": {
+    "departure": "PEK",
+    "arrival": "NKG",
+    "dep_time": "08:00",
+    "arr_time": "10:15",
+    "aircraft": "A320"
+  },
+  "CA1842": {
+    "departure": "NKG",
+    "arrival": "PEK",
+    "dep_time": "11:30",
+    "arr_time": "13:40",
+    "aircraft": "A320"
+  },
+  "CA1883": {
+    "departure": "PEK",
+    "arrival": "WUH",
+    "dep_time": "07:30",
+    "arr_time": "09:40",
+    "aircraft": "B738"
+  },
+  "CA1884": {
+    "departure": "WUH",
+    "arrival": "PEK",
+    "dep_time": "10:50",
+    "arr_time": "13:00",
+    "aircraft": "B738"
+  },
+  "CA1901": {
+    "departure": "PEK",
+    "arrival": "XMN",
+    "dep_time": "07:00",
+    "arr_time": "09:40",
+    "aircraft": "B738"
+  },
+  "CA1902": {
+    "departure": "XMN",
+    "arrival": "PEK",
+    "dep_time": "10:50",
+    "arr_time": "13:30",
+    "aircraft": "B738"
+  },
+  "CA1947": {
+    "departure": "PEK",
+    "arrival": "CSX",
+    "dep_time": "08:00",
+    "arr_time": "10:30",
+    "aircraft": "A320"
+  },
+  "CA1948": {
+    "departure": "CSX",
+    "arrival": "PEK",
+    "dep_time": "11:30",
+    "arr_time": "14:00",
+    "aircraft": "A320"
+  },
+  "CA1201": {
+    "departure": "PEK",
+    "arrival": "PVG",
+    "dep_time": "08:00",
+    "arr_time": "10:20",
+    "aircraft": "A330"
+  },
+  "CA1202": {
+    "departure": "PVG",
+    "arrival": "PEK",
+    "dep_time": "11:30",
+    "arr_time": "13:50",
+    "aircraft": "A330"
+  },
+  "CA4101": {
+    "departure": "CTU",
+    "arrival": "PEK",
+    "dep_time": "06:30",
+    "arr_time": "09:10",
+    "aircraft": "A330"
+  },
+  "CA4102": {
+    "departure": "PEK",
+    "arrival": "CTU",
+    "dep_time": "10:30",
+    "arr_time": "13:20",
+    "aircraft": "A330"
+  },
+  "CA4109": {
+    "departure": "CTU",
+    "arrival": "CAN",
+    "dep_time": "07:30",
+    "arr_time": "09:40",
+    "aircraft": "A321"
+  },
+  "CA4110": {
+    "departure": "CAN",
+    "arrival": "CTU",
+    "dep_time": "10:50",
+    "arr_time": "13:00",
+    "aircraft": "A321"
+  },
+  "CA4193": {
+    "departure": "CTU",
+    "arrival": "SZX",
+    "dep_time": "08:00",
+    "arr_time": "10:30",
+    "aircraft": "B738"
+  },
+  "CA4194": {
+    "departure": "SZX",
+    "arrival": "CTU",
+    "dep_time": "11:40",
+    "arr_time": "14:10",
+    "aircraft": "B738"
+  },
+  "CA2593": {
+    "departure": "PEK",
+    "arrival": "SYX",
+    "dep_time": "07:30",
+    "arr_time": "11:10",
+    "aircraft": "B738"
+  },
+  "CA2594": {
+    "departure": "SYX",
+    "arrival": "PEK",
+    "dep_time": "12:30",
+    "arr_time": "16:00",
+    "aircraft": "B738"
+  },
+  "CA935": {
+    "departure": "PEK",
+    "arrival": "NRT",
+    "dep_time": "08:30",
+    "arr_time": "12:50",
+    "aircraft": "A330"
+  },
+  "CA936": {
+    "departure": "NRT",
+    "arrival": "PEK",
+    "dep_time": "14:20",
+    "arr_time": "17:30",
+    "aircraft": "A330"
+  },
+  "CA981": {
+    "departure": "PEK",
+    "arrival": "JFK",
+    "dep_time": "13:00",
+    "arr_time": "14:30",
+    "aircraft": "B777"
+  },
+  "CA982": {
+    "departure": "JFK",
+    "arrival": "PEK",
+    "dep_time": "16:30",
+    "arr_time": "18:30",
+    "aircraft": "B777"
+  },
+  "CA983": {
+    "departure": "PEK",
+    "arrival": "LAX",
+    "dep_time": "14:00",
+    "arr_time": "11:00",
+    "aircraft": "B777"
+  },
+  "CA984": {
+    "departure": "LAX",
+    "arrival": "PEK",
+    "dep_time": "01:00",
+    "arr_time": "05:30",
+    "aircraft": "B777"
+  },
+  "CA989": {
+    "departure": "PEK",
+    "arrival": "SFO",
+    "dep_time": "13:30",
+    "arr_time": "09:30",
+    "aircraft": "A350"
+  },
+  "CA990": {
+    "departure": "SFO",
+    "arrival": "PEK",
+    "dep_time": "11:50",
+    "arr_time": "15:30",
+    "aircraft": "A350"
+  },
+  "CA947": {
+    "departure": "PEK",
+    "arrival": "CDG",
+    "dep_time": "01:30",
+    "arr_time": "06:30",
+    "aircraft": "A350"
+  },
+  "CA948": {
+    "departure": "CDG",
+    "arrival": "PEK",
+    "dep_time": "11:30",
+    "arr_time": "04:30",
+    "aircraft": "A350"
+  },
+  "CA937": {
+    "departure": "PEK",
+    "arrival": "FRA",
+    "dep_time": "02:00",
+    "arr_time": "06:30",
+    "aircraft": "A330"
+  },
+  "CA938": {
+    "departure": "FRA",
+    "arrival": "PEK",
+    "dep_time": "12:00",
+    "arr_time": "05:00",
+    "aircraft": "A330"
+  },
+  "CA871": {
+    "departure": "PEK",
+    "arrival": "ICN",
+    "dep_time": "09:00",
+    "arr_time": "11:20",
+    "aircraft": "A321"
+  },
+  "CA872": {
+    "departure": "ICN",
+    "arrival": "PEK",
+    "dep_time": "12:30",
+    "arr_time": "13:50",
+    "aircraft": "A321"
+  },
+  "CA857": {
+    "departure": "PEK",
+    "arrival": "SIN",
+    "dep_time": "08:30",
+    "arr_time": "14:50",
+    "aircraft": "B777"
+  },
+  "CA858": {
+    "departure": "SIN",
+    "arrival": "PEK",
+    "dep_time": "16:00",
+    "arr_time": "22:00",
+    "aircraft": "B777"
+  },
+  "CA757": {
+    "departure": "PEK",
+    "arrival": "BKK",
+    "dep_time": "09:00",
+    "arr_time": "13:20",
+    "aircraft": "A330"
+  },
+  "CA758": {
+    "departure": "BKK",
+    "arrival": "PEK",
+    "dep_time": "14:30",
+    "arr_time": "20:00",
+    "aircraft": "A330"
+  },
+  "MU5101": {
+    "departure": "PVG",
+    "arrival": "PEK",
+    "dep_time": "07:00",
+    "arr_time": "09:20",
+    "aircraft": "A330"
+  },
+  "MU5102": {
+    "departure": "PEK",
+    "arrival": "PVG",
+    "dep_time": "08:00",
+    "arr_time": "10:20",
+    "aircraft": "A330"
+  },
+  "MU5103": {
+    "departure": "PVG",
+    "arrival": "PEK",
+    "dep_time": "10:00",
+    "arr_time": "12:20",
+    "aircraft": "A321"
+  },
+  "MU5105": {
+    "departure": "PVG",
+    "arrival": "PEK",
+    "dep_time": "14:00",
+    "arr_time": "16:20",
+    "aircraft": "B738"
+  },
+  "MU5107": {
+    "departure": "PVG",
+    "arrival": "PEK",
+    "dep_time": "18:00",
+    "arr_time": "20:20",
+    "aircraft": "A330"
+  },
+  "MU5108": {
+    "departure": "PEK",
+    "arrival": "PVG",
+    "dep_time": "21:00",
+    "arr_time": "23:20",
+    "aircraft": "A330"
+  },
+  "MU5115": {
+    "departure": "SHA",
+    "arrival": "PEK",
+    "dep_time": "08:00",
+    "arr_time": "10:25",
+    "aircraft": "A320"
+  },
+  "MU5116": {
+    "departure": "PEK",
+    "arrival": "SHA",
+    "dep_time": "11:30",
+    "arr_time": "13:55",
+    "aircraft": "A320"
+  },
+  "MU5137": {
+    "departure": "PVG",
+    "arrival": "CAN",
+    "dep_time": "07:30",
+    "arr_time": "09:55",
+    "aircraft": "A320"
+  },
+  "MU5138": {
+    "departure": "CAN",
+    "arrival": "PVG",
+    "dep_time": "11:00",
+    "arr_time": "13:25",
+    "aircraft": "A320"
+  },
+  "MU5151": {
+    "departure": "PVG",
+    "arrival": "SZX",
+    "dep_time": "07:00",
+    "arr_time": "09:30",
+    "aircraft": "A321"
+  },
+  "MU5152": {
+    "departure": "SZX",
+    "arrival": "PVG",
+    "dep_time": "10:30",
+    "arr_time": "13:00",
+    "aircraft": "A321"
+  },
+  "MU5181": {
+    "departure": "PVG",
+    "arrival": "XIY",
+    "dep_time": "07:30",
+    "arr_time": "10:00",
+    "aircraft": "B738"
+  },
+  "MU5182": {
+    "departure": "XIY",
+    "arrival": "PVG",
+    "dep_time": "11:00",
+    "arr_time": "13:20",
+    "aircraft": "B738"
+  },
+  "MU5201": {
+    "departure": "PVG",
+    "arrival": "CTU",
+    "dep_time": "07:00",
+    "arr_time": "10:00",
+    "aircraft": "A330"
+  },
+  "MU5202": {
+    "departure": "CTU",
+    "arrival": "PVG",
+    "dep_time": "11:00",
+    "arr_time": "13:45",
+    "aircraft": "A330"
+  },
+  "MU5205": {
+    "departure": "PVG",
+    "arrival": "CKG",
+    "dep_time": "08:30",
+    "arr_time": "11:20",
+    "aircraft": "A321"
+  },
+  "MU5206": {
+    "departure": "CKG",
+    "arrival": "PVG",
+    "dep_time": "12:30",
+    "arr_time": "15:10",
+    "aircraft": "A321"
+  },
+  "MU5251": {
+    "departure": "PVG",
+    "arrival": "WUH",
+    "dep_time": "07:30",
+    "arr_time": "09:30",
+    "aircraft": "A320"
+  },
+  "MU5252": {
+    "departure": "WUH",
+    "arrival": "PVG",
+    "dep_time": "10:30",
+    "arr_time": "12:30",
+    "aircraft": "A320"
+  },
+  "MU5301": {
+    "departure": "PVG",
+    "arrival": "KMG",
+    "dep_time": "08:00",
+    "arr_time": "11:20",
+    "aircraft": "A321"
+  },
+  "MU5302": {
+    "departure": "KMG",
+    "arrival": "PVG",
+    "dep_time": "12:30",
+    "arr_time": "15:40",
+    "aircraft": "A321"
+  },
+  "MU5381": {
+    "departure": "PVG",
+    "arrival": "HGH",
+    "dep_time": "21:00",
+    "arr_time": "22:00",
+    "aircraft": "A320"
+  },
+  "MU5461": {
+    "departure": "PVG",
+    "arrival": "CSX",
+    "dep_time": "08:00",
+    "arr_time": "10:15",
+    "aircraft": "A321"
+  },
+  "MU5462": {
+    "departure": "CSX",
+    "arrival": "PVG",
+    "dep_time": "11:20",
+    "arr_time": "13:30",
+    "aircraft": "A321"
+  },
+  "MU5471": {
+    "departure": "SHA",
+    "arrival": "SYX",
+    "dep_time": "07:30",
+    "arr_time": "10:30",
+    "aircraft": "B738"
+  },
+  "MU5472": {
+    "departure": "SYX",
+    "arrival": "SHA",
+    "dep_time": "11:30",
+    "arr_time": "14:30",
+    "aircraft": "B738"
+  },
+  "MU5735": {
+    "departure": "KMG",
+    "arrival": "CAN",
+    "dep_time": "13:15",
+    "arr_time": "15:05",
+    "aircraft": "B738"
+  },
+  "MU587": {
+    "departure": "PVG",
+    "arrival": "NRT",
+    "dep_time": "09:00",
+    "arr_time": "12:30",
+    "aircraft": "A330"
+  },
+  "MU588": {
+    "departure": "NRT",
+    "arrival": "PVG",
+    "dep_time": "14:00",
+    "arr_time": "16:00",
+    "aircraft": "A330"
+  },
+  "MU583": {
+    "departure": "PVG",
+    "arrival": "CDG",
+    "dep_time": "10:30",
+    "arr_time": "16:30",
+    "aircraft": "B777"
+  },
+  "MU584": {
+    "departure": "CDG",
+    "arrival": "PVG",
+    "dep_time": "21:30",
+    "arr_time": "15:30",
+    "aircraft": "B777"
+  },
+  "MU523": {
+    "departure": "PVG",
+    "arrival": "ICN",
+    "dep_time": "09:00",
+    "arr_time": "11:30",
+    "aircraft": "A321"
+  },
+  "MU524": {
+    "departure": "ICN",
+    "arrival": "PVG",
+    "dep_time": "12:30",
+    "arr_time": "13:30",
+    "aircraft": "A321"
+  },
+  "MU551": {
+    "departure": "PVG",
+    "arrival": "BKK",
+    "dep_time": "08:30",
+    "arr_time": "12:30",
+    "aircraft": "A330"
+  },
+  "MU552": {
+    "departure": "BKK",
+    "arrival": "PVG",
+    "dep_time": "13:30",
+    "arr_time": "19:00",
+    "aircraft": "A330"
+  },
+  "MU561": {
+    "departure": "PVG",
+    "arrival": "SIN",
+    "dep_time": "09:00",
+    "arr_time": "14:30",
+    "aircraft": "A330"
+  },
+  "MU562": {
+    "departure": "SIN",
+    "arrival": "PVG",
+    "dep_time": "15:30",
+    "arr_time": "21:30",
+    "aircraft": "A330"
+  },
+  "MU581": {
+    "departure": "PVG",
+    "arrival": "LHR",
+    "dep_time": "11:00",
+    "arr_time": "16:00",
+    "aircraft": "B777"
+  },
+  "MU582": {
+    "departure": "LHR",
+    "arrival": "PVG",
+    "dep_time": "22:00",
+    "arr_time": "16:30",
+    "aircraft": "B777"
+  },
+  "CZ3101": {
+    "departure": "CAN",
+    "arrival": "PEK",
+    "dep_time": "07:00",
+    "arr_time": "10:05",
+    "aircraft": "A330"
+  },
+  "CZ3102": {
+    "departure": "PEK",
+    "arrival": "CAN",
+    "dep_time": "08:00",
+    "arr_time": "11:10",
+    "aircraft": "A330"
+  },
+  "CZ3103": {
+    "departure": "CAN",
+    "arrival": "PEK",
+    "dep_time": "10:00",
+    "arr_time": "13:05",
+    "aircraft": "A321"
+  },
+  "CZ3105": {
+    "departure": "CAN",
+    "arrival": "PEK",
+    "dep_time": "14:30",
+    "arr_time": "17:35",
+    "aircraft": "B738"
+  },
+  "CZ3107": {
+    "departure": "CAN",
+    "arrival": "PEK",
+    "dep_time": "18:00",
+    "arr_time": "21:05",
+    "aircraft": "A330"
+  },
+  "CZ3108": {
+    "departure": "PEK",
+    "arrival": "CAN",
+    "dep_time": "21:30",
+    "arr_time": "00:30",
+    "aircraft": "A330"
+  },
+  "CZ3201": {
+    "departure": "CAN",
+    "arrival": "SHA",
+    "dep_time": "07:30",
+    "arr_time": "09:50",
+    "aircraft": "A320"
+  },
+  "CZ3202": {
+    "departure": "SHA",
+    "arrival": "CAN",
+    "dep_time": "10:50",
+    "arr_time": "13:10",
+    "aircraft": "A320"
+  },
+  "CZ3203": {
+    "departure": "CAN",
+    "arrival": "PVG",
+    "dep_time": "08:00",
+    "arr_time": "10:20",
+    "aircraft": "A321"
+  },
+  "CZ3204": {
+    "departure": "PVG",
+    "arrival": "CAN",
+    "dep_time": "11:30",
+    "arr_time": "13:50",
+    "aircraft": "A321"
+  },
+  "CZ3301": {
+    "departure": "CAN",
+    "arrival": "CTU",
+    "dep_time": "07:00",
+    "arr_time": "09:30",
+    "aircraft": "A321"
+  },
+  "CZ3302": {
+    "departure": "CTU",
+    "arrival": "CAN",
+    "dep_time": "10:30",
+    "arr_time": "13:00",
+    "aircraft": "A321"
+  },
+  "CZ3401": {
+    "departure": "CAN",
+    "arrival": "CKG",
+    "dep_time": "07:30",
+    "arr_time": "09:50",
+    "aircraft": "B738"
+  },
+  "CZ3402": {
+    "departure": "CKG",
+    "arrival": "CAN",
+    "dep_time": "10:50",
+    "arr_time": "13:10",
+    "aircraft": "B738"
+  },
+  "CZ3501": {
+    "departure": "CAN",
+    "arrival": "NKG",
+    "dep_time": "08:00",
+    "arr_time": "10:10",
+    "aircraft": "A320"
+  },
+  "CZ3502": {
+    "departure": "NKG",
+    "arrival": "CAN",
+    "dep_time": "11:20",
+    "arr_time": "13:30",
+    "aircraft": "A320"
+  },
+  "CZ3561": {
+    "departure": "CAN",
+    "arrival": "HGH",
+    "dep_time": "08:30",
+    "arr_time": "10:40",
+    "aircraft": "A320"
+  },
+  "CZ3562": {
+    "departure": "HGH",
+    "arrival": "CAN",
+    "dep_time": "11:40",
+    "arr_time": "13:50",
+    "aircraft": "A320"
+  },
+  "CZ3701": {
+    "departure": "CAN",
+    "arrival": "WUH",
+    "dep_time": "07:30",
+    "arr_time": "09:20",
+    "aircraft": "B738"
+  },
+  "CZ3702": {
+    "departure": "WUH",
+    "arrival": "CAN",
+    "dep_time": "10:30",
+    "arr_time": "12:20",
+    "aircraft": "B738"
+  },
+  "CZ3905": {
+    "departure": "CAN",
+    "arrival": "XMN",
+    "dep_time": "08:00",
+    "arr_time": "09:10",
+    "aircraft": "B738"
+  },
+  "CZ3906": {
+    "departure": "XMN",
+    "arrival": "CAN",
+    "dep_time": "10:20",
+    "arr_time": "11:30",
+    "aircraft": "B738"
+  },
+  "CZ6505": {
+    "departure": "SHE",
+    "arrival": "CAN",
+    "dep_time": "06:50",
+    "arr_time": "11:00",
+    "aircraft": "A321"
+  },
+  "CZ6506": {
+    "departure": "CAN",
+    "arrival": "SHE",
+    "dep_time": "12:00",
+    "arr_time": "15:30",
+    "aircraft": "A321"
+  },
+  "CZ6901": {
+    "departure": "SHE",
+    "arrival": "PEK",
+    "dep_time": "07:00",
+    "arr_time": "08:30",
+    "aircraft": "A320"
+  },
+  "CZ6902": {
+    "departure": "PEK",
+    "arrival": "SHE",
+    "dep_time": "09:30",
+    "arr_time": "11:00",
+    "aircraft": "A320"
+  },
+  "CZ328": {
+    "departure": "CAN",
+    "arrival": "SYD",
+    "dep_time": "21:30",
+    "arr_time": "09:30",
+    "aircraft": "A330"
+  },
+  "CZ329": {
+    "departure": "SYD",
+    "arrival": "CAN",
+    "dep_time": "11:00",
+    "arr_time": "19:00",
+    "aircraft": "A330"
+  },
+  "CZ303": {
+    "departure": "CAN",
+    "arrival": "NRT",
+    "dep_time": "08:30",
+    "arr_time": "13:30",
+    "aircraft": "A330"
+  },
+  "CZ304": {
+    "departure": "NRT",
+    "arrival": "CAN",
+    "dep_time": "14:30",
+    "arr_time": "18:30",
+    "aircraft": "A330"
+  },
+  "CZ385": {
+    "departure": "CAN",
+    "arrival": "MEL",
+    "dep_time": "23:00",
+    "arr_time": "11:30",
+    "aircraft": "B787"
+  },
+  "CZ386": {
+    "departure": "MEL",
+    "arrival": "CAN",
+    "dep_time": "12:30",
+    "arr_time": "20:00",
+    "aircraft": "B787"
+  },
+  "HU7801": {
+    "departure": "HAK",
+    "arrival": "PEK",
+    "dep_time": "07:00",
+    "arr_time": "10:30",
+    "aircraft": "B738"
+  },
+  "HU7802": {
+    "departure": "PEK",
+    "arrival": "HAK",
+    "dep_time": "08:00",
+    "arr_time": "11:30",
+    "aircraft": "B738"
+  },
+  "HU7181": {
+    "departure": "PEK",
+    "arrival": "SZX",
+    "dep_time": "07:30",
+    "arr_time": "10:40",
+    "aircraft": "A330"
+  },
+  "HU7182": {
+    "departure": "SZX",
+    "arrival": "PEK",
+    "dep_time": "11:50",
+    "arr_time": "14:50",
+    "aircraft": "A330"
+  },
+  "HU7607": {
+    "departure": "SYX",
+    "arrival": "PEK",
+    "dep_time": "07:00",
+    "arr_time": "10:40",
+    "aircraft": "B787"
+  },
+  "HU7608": {
+    "departure": "PEK",
+    "arrival": "SYX",
+    "dep_time": "14:00",
+    "arr_time": "17:40",
+    "aircraft": "B787"
+  },
+  "HU7001": {
+    "departure": "HAK",
+    "arrival": "SHA",
+    "dep_time": "07:30",
+    "arr_time": "10:10",
+    "aircraft": "B738"
+  },
+  "HU7002": {
+    "departure": "SHA",
+    "arrival": "HAK",
+    "dep_time": "11:30",
+    "arr_time": "14:10",
+    "aircraft": "B738"
+  },
+  "HU7301": {
+    "departure": "HAK",
+    "arrival": "CAN",
+    "dep_time": "08:00",
+    "arr_time": "09:15",
+    "aircraft": "B738"
+  },
+  "HU7302": {
+    "departure": "CAN",
+    "arrival": "HAK",
+    "dep_time": "10:30",
+    "arr_time": "11:45",
+    "aircraft": "B738"
+  },
+  "HU7795": {
+    "departure": "PEK",
+    "arrival": "CTU",
+    "dep_time": "08:30",
+    "arr_time": "11:20",
+    "aircraft": "A330"
+  },
+  "HU7796": {
+    "departure": "CTU",
+    "arrival": "PEK",
+    "dep_time": "12:30",
+    "arr_time": "15:10",
+    "aircraft": "A330"
+  },
+  "HU7975": {
+    "departure": "PEK",
+    "arrival": "CAN",
+    "dep_time": "14:00",
+    "arr_time": "17:10",
+    "aircraft": "B787"
+  },
+  "HU7976": {
+    "departure": "CAN",
+    "arrival": "PEK",
+    "dep_time": "18:30",
+    "arr_time": "21:30",
+    "aircraft": "B787"
+  },
+  "HU495": {
+    "departure": "PEK",
+    "arrival": "YVR",
+    "dep_time": "15:00",
+    "arr_time": "10:30",
+    "aircraft": "B787"
+  },
+  "HU496": {
+    "departure": "YVR",
+    "arrival": "PEK",
+    "dep_time": "12:30",
+    "arr_time": "15:00",
+    "aircraft": "B787"
+  },
+  "ZH9101": {
+    "departure": "SZX",
+    "arrival": "PEK",
+    "dep_time": "07:00",
+    "arr_time": "10:00",
+    "aircraft": "A320"
+  },
+  "ZH9102": {
+    "departure": "PEK",
+    "arrival": "SZX",
+    "dep_time": "08:00",
+    "arr_time": "11:10",
+    "aircraft": "A320"
+  },
+  "ZH9201": {
+    "departure": "SZX",
+    "arrival": "SHA",
+    "dep_time": "07:30",
+    "arr_time": "09:40",
+    "aircraft": "A320"
+  },
+  "ZH9202": {
+    "departure": "SHA",
+    "arrival": "SZX",
+    "dep_time": "10:40",
+    "arr_time": "12:50",
+    "aircraft": "A320"
+  },
+  "ZH9301": {
+    "departure": "SZX",
+    "arrival": "CTU",
+    "dep_time": "08:00",
+    "arr_time": "10:30",
+    "aircraft": "B738"
+  },
+  "ZH9302": {
+    "departure": "CTU",
+    "arrival": "SZX",
+    "dep_time": "11:30",
+    "arr_time": "14:00",
+    "aircraft": "B738"
+  },
+  "ZH9401": {
+    "departure": "SZX",
+    "arrival": "CKG",
+    "dep_time": "07:30",
+    "arr_time": "09:50",
+    "aircraft": "A321"
+  },
+  "ZH9402": {
+    "departure": "CKG",
+    "arrival": "SZX",
+    "dep_time": "10:50",
+    "arr_time": "13:10",
+    "aircraft": "A321"
+  },
+  "ZH9501": {
+    "departure": "SZX",
+    "arrival": "NKG",
+    "dep_time": "08:00",
+    "arr_time": "10:10",
+    "aircraft": "A320"
+  },
+  "ZH9502": {
+    "departure": "NKG",
+    "arrival": "SZX",
+    "dep_time": "11:20",
+    "arr_time": "13:30",
+    "aircraft": "A320"
+  },
+  "MF8101": {
+    "departure": "XMN",
+    "arrival": "PEK",
+    "dep_time": "07:20",
+    "arr_time": "10:20",
+    "aircraft": "B738"
+  },
+  "MF8102": {
+    "departure": "PEK",
+    "arrival": "XMN",
+    "dep_time": "08:30",
+    "arr_time": "11:30",
+    "aircraft": "B738"
+  },
+  "MF8201": {
+    "departure": "XMN",
+    "arrival": "SHA",
+    "dep_time": "07:30",
+    "arr_time": "09:15",
+    "aircraft": "B738"
+  },
+  "MF8202": {
+    "departure": "SHA",
+    "arrival": "XMN",
+    "dep_time": "10:15",
+    "arr_time": "12:00",
+    "aircraft": "B738"
+  },
+  "MF8301": {
+    "departure": "XMN",
+    "arrival": "CAN",
+    "dep_time": "08:00",
+    "arr_time": "09:10",
+    "aircraft": "B738"
+  },
+  "MF8302": {
+    "departure": "CAN",
+    "arrival": "XMN",
+    "dep_time": "10:20",
+    "arr_time": "11:30",
+    "aircraft": "B738"
+  },
+  "MF8501": {
+    "departure": "FOC",
+    "arrival": "PEK",
+    "dep_time": "07:00",
+    "arr_time": "09:40",
+    "aircraft": "B738"
+  },
+  "MF8502": {
+    "departure": "PEK",
+    "arrival": "FOC",
+    "dep_time": "10:50",
+    "arr_time": "13:30",
+    "aircraft": "B738"
+  },
+  "MF855": {
+    "departure": "XMN",
+    "arrival": "NRT",
+    "dep_time": "09:00",
+    "arr_time": "13:30",
+    "aircraft": "B787"
+  },
+  "MF856": {
+    "departure": "NRT",
+    "arrival": "XMN",
+    "dep_time": "14:30",
+    "arr_time": "17:30",
+    "aircraft": "B787"
+  },
+  "FM9101": {
+    "departure": "SHA",
+    "arrival": "CAN",
+    "dep_time": "07:30",
+    "arr_time": "09:50",
+    "aircraft": "B738"
+  },
+  "FM9102": {
+    "departure": "CAN",
+    "arrival": "SHA",
+    "dep_time": "10:50",
+    "arr_time": "13:10",
+    "aircraft": "B738"
+  },
+  "FM9201": {
+    "departure": "SHA",
+    "arrival": "SZX",
+    "dep_time": "08:00",
+    "arr_time": "10:20",
+    "aircraft": "A320"
+  },
+  "FM9202": {
+    "departure": "SZX",
+    "arrival": "SHA",
+    "dep_time": "11:20",
+    "arr_time": "13:40",
+    "aircraft": "A320"
+  },
+  "FM9301": {
+    "departure": "SHA",
+    "arrival": "CTU",
+    "dep_time": "07:30",
+    "arr_time": "10:20",
+    "aircraft": "B738"
+  },
+  "FM9302": {
+    "departure": "CTU",
+    "arrival": "SHA",
+    "dep_time": "11:30",
+    "arr_time": "14:10",
+    "aircraft": "B738"
+  },
+  "FM9185": {
+    "departure": "SHA",
+    "arrival": "KMG",
+    "dep_time": "08:00",
+    "arr_time": "11:10",
+    "aircraft": "B738"
+  },
+  "FM9186": {
+    "departure": "KMG",
+    "arrival": "SHA",
+    "dep_time": "12:30",
+    "arr_time": "15:30",
+    "aircraft": "B738"
+  },
+  "3U8501": {
+    "departure": "CTU",
+    "arrival": "PEK",
+    "dep_time": "07:00",
+    "arr_time": "09:50",
+    "aircraft": "A320"
+  },
+  "3U8502": {
+    "departure": "PEK",
+    "arrival": "CTU",
+    "dep_time": "08:30",
+    "arr_time": "11:20",
+    "aircraft": "A320"
+  },
+  "3U8503": {
+    "departure": "CTU",
+    "arrival": "PEK",
+    "dep_time": "14:00",
+    "arr_time": "16:50",
+    "aircraft": "A321"
+  },
+  "3U8601": {
+    "departure": "CTU",
+    "arrival": "SHA",
+    "dep_time": "07:30",
+    "arr_time": "10:10",
+    "aircraft": "A321"
+  },
+  "3U8602": {
+    "departure": "SHA",
+    "arrival": "CTU",
+    "dep_time": "11:20",
+    "arr_time": "14:00",
+    "aircraft": "A321"
+  },
+  "3U8701": {
+    "departure": "CTU",
+    "arrival": "CAN",
+    "dep_time": "08:00",
+    "arr_time": "10:20",
+    "aircraft": "A320"
+  },
+  "3U8702": {
+    "departure": "CAN",
+    "arrival": "CTU",
+    "dep_time": "11:30",
+    "arr_time": "13:50",
+    "aircraft": "A320"
+  },
+  "3U8881": {
+    "departure": "CTU",
+    "arrival": "SYX",
+    "dep_time": "08:00",
+    "arr_time": "10:40",
+    "aircraft": "A321"
+  },
+  "3U8882": {
+    "departure": "SYX",
+    "arrival": "CTU",
+    "dep_time": "11:40",
+    "arr_time": "14:30",
+    "aircraft": "A321"
+  },
+  "3U8511": {
+    "departure": "CKG",
+    "arrival": "PEK",
+    "dep_time": "07:00",
+    "arr_time": "09:30",
+    "aircraft": "A320"
+  },
+  "3U8512": {
+    "departure": "PEK",
+    "arrival": "CKG",
+    "dep_time": "10:30",
+    "arr_time": "13:10",
+    "aircraft": "A320"
+  },
+  "9C8501": {
+    "departure": "PVG",
+    "arrival": "PEK",
+    "dep_time": "06:30",
+    "arr_time": "08:50",
+    "aircraft": "A320"
+  },
+  "9C8502": {
+    "departure": "PEK",
+    "arrival": "PVG",
+    "dep_time": "07:30",
+    "arr_time": "09:50",
+    "aircraft": "A320"
+  },
+  "9C8801": {
+    "departure": "PVG",
+    "arrival": "CAN",
+    "dep_time": "06:30",
+    "arr_time": "09:00",
+    "aircraft": "A320"
+  },
+  "9C8802": {
+    "departure": "CAN",
+    "arrival": "PVG",
+    "dep_time": "10:00",
+    "arr_time": "12:30",
+    "aircraft": "A320"
+  },
+  "9C8901": {
+    "departure": "PVG",
+    "arrival": "SZX",
+    "dep_time": "07:00",
+    "arr_time": "09:30",
+    "aircraft": "A320"
+  },
+  "9C8902": {
+    "departure": "SZX",
+    "arrival": "PVG",
+    "dep_time": "10:30",
+    "arr_time": "13:00",
+    "aircraft": "A320"
+  },
+  "9C8511": {
+    "departure": "PVG",
+    "arrival": "CTU",
+    "dep_time": "06:30",
+    "arr_time": "09:30",
+    "aircraft": "A320"
+  },
+  "9C8512": {
+    "departure": "CTU",
+    "arrival": "PVG",
+    "dep_time": "10:30",
+    "arr_time": "13:20",
+    "aircraft": "A320"
+  },
+  "9C8987": {
+    "departure": "PVG",
+    "arrival": "KIX",
+    "dep_time": "08:00",
+    "arr_time": "11:00",
+    "aircraft": "A320"
+  },
+  "9C8988": {
+    "departure": "KIX",
+    "arrival": "PVG",
+    "dep_time": "12:00",
+    "arr_time": "14:00",
+    "aircraft": "A320"
+  },
+  "GJ8888": {
+    "departure": "HGH",
+    "arrival": "PEK",
+    "dep_time": "07:00",
+    "arr_time": "09:15",
+    "aircraft": "A320"
+  },
+  "GJ8889": {
+    "departure": "PEK",
+    "arrival": "HGH",
+    "dep_time": "10:15",
+    "arr_time": "12:30",
+    "aircraft": "A320"
+  },
+  "GJ8801": {
+    "departure": "HGH",
+    "arrival": "CAN",
+    "dep_time": "07:30",
+    "arr_time": "09:40",
+    "aircraft": "A320"
+  },
+  "GJ8802": {
+    "departure": "CAN",
+    "arrival": "HGH",
+    "dep_time": "10:40",
+    "arr_time": "12:50",
+    "aircraft": "A320"
+  },
+  "HO1001": {
+    "departure": "PVG",
+    "arrival": "PEK",
+    "dep_time": "07:00",
+    "arr_time": "09:20",
+    "aircraft": "A320"
+  },
+  "HO1002": {
+    "departure": "PEK",
+    "arrival": "PVG",
+    "dep_time": "10:20",
+    "arr_time": "12:40",
+    "aircraft": "A320"
+  },
+  "HO1111": {
+    "departure": "PVG",
+    "arrival": "SZX",
+    "dep_time": "07:30",
+    "arr_time": "10:00",
+    "aircraft": "A321"
+  },
+  "HO1112": {
+    "departure": "SZX",
+    "arrival": "PVG",
+    "dep_time": "11:00",
+    "arr_time": "13:30",
+    "aircraft": "A321"
+  },
+  "HO1201": {
+    "departure": "PVG",
+    "arrival": "CTU",
+    "dep_time": "08:00",
+    "arr_time": "11:00",
+    "aircraft": "A320"
+  },
+  "HO1202": {
+    "departure": "CTU",
+    "arrival": "PVG",
+    "dep_time": "12:00",
+    "arr_time": "14:50",
+    "aircraft": "A320"
+  },
+  "KN5901": {
+    "departure": "NAY",
+    "arrival": "CAN",
+    "dep_time": "07:00",
+    "arr_time": "09:40",
+    "aircraft": "B738"
+  },
+  "KN5902": {
+    "departure": "CAN",
+    "arrival": "NAY",
+    "dep_time": "10:50",
+    "arr_time": "13:30",
+    "aircraft": "B738"
+  },
+  "KN5951": {
+    "departure": "NAY",
+    "arrival": "SHA",
+    "dep_time": "07:30",
+    "arr_time": "09:40",
+    "aircraft": "B738"
+  },
+  "KN5952": {
+    "departure": "SHA",
+    "arrival": "NAY",
+    "dep_time": "10:40",
+    "arr_time": "12:50",
+    "aircraft": "B738"
+  },
+  "JD5101": {
+    "departure": "PEK",
+    "arrival": "HGH",
+    "dep_time": "07:30",
+    "arr_time": "09:45",
+    "aircraft": "A320"
+  },
+  "JD5102": {
+    "departure": "HGH",
+    "arrival": "PEK",
+    "dep_time": "10:45",
+    "arr_time": "13:00",
+    "aircraft": "A320"
+  },
+  "JD5201": {
+    "departure": "PEK",
+    "arrival": "CTU",
+    "dep_time": "08:00",
+    "arr_time": "10:50",
+    "aircraft": "A321"
+  },
+  "JD5202": {
+    "departure": "CTU",
+    "arrival": "PEK",
+    "dep_time": "12:00",
+    "arr_time": "14:40",
+    "aircraft": "A321"
+  },
+  "TV6001": {
+    "departure": "LXA",
+    "arrival": "CTU",
+    "dep_time": "07:00",
+    "arr_time": "09:10",
+    "aircraft": "A319"
+  },
+  "TV6002": {
+    "departure": "CTU",
+    "arrival": "LXA",
+    "dep_time": "10:30",
+    "arr_time": "13:30",
+    "aircraft": "A319"
+  },
+  "TV9801": {
+    "departure": "KMG",
+    "arrival": "LXA",
+    "dep_time": "07:30",
+    "arr_time": "09:50",
+    "aircraft": "A319"
+  },
+  "TV9802": {
+    "departure": "LXA",
+    "arrival": "KMG",
+    "dep_time": "11:00",
+    "arr_time": "13:00",
+    "aircraft": "A319"
+  },
+  "8L9901": {
+    "departure": "KMG",
+    "arrival": "PEK",
+    "dep_time": "07:00",
+    "arr_time": "10:10",
+    "aircraft": "B738"
+  },
+  "8L9902": {
+    "departure": "PEK",
+    "arrival": "KMG",
+    "dep_time": "11:20",
+    "arr_time": "14:30",
+    "aircraft": "B738"
+  },
+  "G54001": {
+    "departure": "SZX",
+    "arrival": "PEK",
+    "dep_time": "07:00",
+    "arr_time": "09:50",
+    "aircraft": "B738"
+  },
+  "G54002": {
+    "departure": "PEK",
+    "arrival": "SZX",
+    "dep_time": "11:00",
+    "arr_time": "14:00",
+    "aircraft": "B738"
+  },
+  "CX888": {
+    "departure": "HKG",
+    "arrival": "PEK",
+    "dep_time": "08:30",
+    "arr_time": "11:50",
+    "aircraft": "A350"
+  },
+  "CX889": {
+    "departure": "PEK",
+    "arrival": "HKG",
+    "dep_time": "13:00",
+    "arr_time": "16:20",
+    "aircraft": "A350"
+  },
+  "CX831": {
+    "departure": "HKG",
+    "arrival": "PVG",
+    "dep_time": "08:00",
+    "arr_time": "10:30",
+    "aircraft": "A330"
+  },
+  "CX832": {
+    "departure": "PVG",
+    "arrival": "HKG",
+    "dep_time": "11:30",
+    "arr_time": "14:00",
+    "aircraft": "A330"
+  },
+  "CX501": {
+    "departure": "HKG",
+    "arrival": "TPE",
+    "dep_time": "07:30",
+    "arr_time": "09:20",
+    "aircraft": "A330"
+  },
+  "CX502": {
+    "departure": "TPE",
+    "arrival": "HKG",
+    "dep_time": "10:20",
+    "arr_time": "12:10",
+    "aircraft": "A330"
+  },
+  "CX100": {
+    "departure": "HKG",
+    "arrival": "LHR",
+    "dep_time": "23:30",
+    "arr_time": "05:30",
+    "aircraft": "A350"
+  },
+  "CX101": {
+    "departure": "LHR",
+    "arrival": "HKG",
+    "dep_time": "19:00",
+    "arr_time": "14:30",
+    "aircraft": "A350"
+  },
+  "CX840": {
+    "departure": "HKG",
+    "arrival": "NRT",
+    "dep_time": "08:00",
+    "arr_time": "12:50",
+    "aircraft": "A350"
+  },
+  "CX841": {
+    "departure": "NRT",
+    "arrival": "HKG",
+    "dep_time": "14:00",
+    "arr_time": "18:10",
+    "aircraft": "A350"
+  },
+  "KA900": {
+    "departure": "HKG",
+    "arrival": "SHA",
+    "dep_time": "08:00",
+    "arr_time": "10:20",
+    "aircraft": "A320"
+  },
+  "KA901": {
+    "departure": "SHA",
+    "arrival": "HKG",
+    "dep_time": "11:20",
+    "arr_time": "13:50",
+    "aircraft": "A320"
+  },
+  "BR715": {
+    "departure": "TPE",
+    "arrival": "PVG",
+    "dep_time": "09:00",
+    "arr_time": "11:00",
+    "aircraft": "A321"
+  },
+  "BR716": {
+    "departure": "PVG",
+    "arrival": "TPE",
+    "dep_time": "12:30",
+    "arr_time": "14:30",
+    "aircraft": "A321"
+  },
+  "BR871": {
+    "departure": "TPE",
+    "arrival": "CAN",
+    "dep_time": "08:30",
+    "arr_time": "10:30",
+    "aircraft": "A321"
+  },
+  "BR872": {
+    "departure": "CAN",
+    "arrival": "TPE",
+    "dep_time": "11:30",
+    "arr_time": "13:30",
+    "aircraft": "A321"
+  },
+  "CI501": {
+    "departure": "TPE",
+    "arrival": "HKG",
+    "dep_time": "08:30",
+    "arr_time": "10:20",
+    "aircraft": "A330"
+  },
+  "CI502": {
+    "departure": "HKG",
+    "arrival": "TPE",
+    "dep_time": "11:20",
+    "arr_time": "13:10",
+    "aircraft": "A330"
+  },
+  "CI511": {
+    "departure": "TPE",
+    "arrival": "PVG",
+    "dep_time": "09:00",
+    "arr_time": "10:50",
+    "aircraft": "A330"
+  },
+  "CI512": {
+    "departure": "PVG",
+    "arrival": "TPE",
+    "dep_time": "12:00",
+    "arr_time": "14:00",
+    "aircraft": "A330"
+  },
+  "NH919": {
+    "departure": "NRT",
+    "arrival": "PEK",
+    "dep_time": "09:55",
+    "arr_time": "13:05",
+    "aircraft": "B787"
+  },
+  "NH920": {
+    "departure": "PEK",
+    "arrival": "NRT",
+    "dep_time": "14:30",
+    "arr_time": "18:55",
+    "aircraft": "B787"
+  },
+  "NH967": {
+    "departure": "NRT",
+    "arrival": "PVG",
+    "dep_time": "10:30",
+    "arr_time": "13:00",
+    "aircraft": "B787"
+  },
+  "NH968": {
+    "departure": "PVG",
+    "arrival": "NRT",
+    "dep_time": "14:00",
+    "arr_time": "17:50",
+    "aircraft": "B787"
+  },
+  "NH951": {
+    "departure": "HND",
+    "arrival": "PEK",
+    "dep_time": "10:00",
+    "arr_time": "13:00",
+    "aircraft": "B787"
+  },
+  "NH952": {
+    "departure": "PEK",
+    "arrival": "HND",
+    "dep_time": "14:30",
+    "arr_time": "18:50",
+    "aircraft": "B787"
+  },
+  "NH975": {
+    "departure": "NRT",
+    "arrival": "CAN",
+    "dep_time": "09:30",
+    "arr_time": "13:30",
+    "aircraft": "B787"
+  },
+  "NH976": {
+    "departure": "CAN",
+    "arrival": "NRT",
+    "dep_time": "14:30",
+    "arr_time": "19:30",
+    "aircraft": "B787"
+  },
+  "NH211": {
+    "departure": "NRT",
+    "arrival": "LAX",
+    "dep_time": "17:00",
+    "arr_time": "10:30",
+    "aircraft": "B777"
+  },
+  "NH212": {
+    "departure": "LAX",
+    "arrival": "NRT",
+    "dep_time": "13:00",
+    "arr_time": "17:00",
+    "aircraft": "B777"
+  },
+  "JL021": {
+    "departure": "NRT",
+    "arrival": "PVG",
+    "dep_time": "10:25",
+    "arr_time": "12:50",
+    "aircraft": "B787"
+  },
+  "JL022": {
+    "departure": "PVG",
+    "arrival": "NRT",
+    "dep_time": "14:00",
+    "arr_time": "17:55",
+    "aircraft": "B787"
+  },
+  "JL025": {
+    "departure": "HND",
+    "arrival": "PEK",
+    "dep_time": "10:00",
+    "arr_time": "13:00",
+    "aircraft": "B787"
+  },
+  "JL026": {
+    "departure": "PEK",
+    "arrival": "HND",
+    "dep_time": "14:30",
+    "arr_time": "18:50",
+    "aircraft": "B787"
+  },
+  "JL087": {
+    "departure": "NRT",
+    "arrival": "CAN",
+    "dep_time": "09:30",
+    "arr_time": "13:30",
+    "aircraft": "B787"
+  },
+  "JL088": {
+    "departure": "CAN",
+    "arrival": "NRT",
+    "dep_time": "14:30",
+    "arr_time": "19:30",
+    "aircraft": "B787"
+  },
+  "JL003": {
+    "departure": "HND",
+    "arrival": "SFO",
+    "dep_time": "21:30",
+    "arr_time": "14:30",
+    "aircraft": "B777"
+  },
+  "JL004": {
+    "departure": "SFO",
+    "arrival": "HND",
+    "dep_time": "11:00",
+    "arr_time": "15:00",
+    "aircraft": "B777"
+  },
+  "KE831": {
+    "departure": "ICN",
+    "arrival": "PEK",
+    "dep_time": "09:05",
+    "arr_time": "10:15",
+    "aircraft": "A330"
+  },
+  "KE832": {
+    "departure": "PEK",
+    "arrival": "ICN",
+    "dep_time": "11:30",
+    "arr_time": "14:30",
+    "aircraft": "A330"
+  },
+  "KE893": {
+    "departure": "ICN",
+    "arrival": "PVG",
+    "dep_time": "09:00",
+    "arr_time": "10:10",
+    "aircraft": "A330"
+  },
+  "KE894": {
+    "departure": "PVG",
+    "arrival": "ICN",
+    "dep_time": "11:30",
+    "arr_time": "14:30",
+    "aircraft": "A330"
+  },
+  "KE897": {
+    "departure": "ICN",
+    "arrival": "CAN",
+    "dep_time": "09:00",
+    "arr_time": "11:30",
+    "aircraft": "B777"
+  },
+  "KE898": {
+    "departure": "CAN",
+    "arrival": "ICN",
+    "dep_time": "12:30",
+    "arr_time": "17:00",
+    "aircraft": "B777"
+  },
+  "KE001": {
+    "departure": "ICN",
+    "arrival": "JFK",
+    "dep_time": "10:00",
+    "arr_time": "11:00",
+    "aircraft": "B777"
+  },
+  "KE002": {
+    "departure": "JFK",
+    "arrival": "ICN",
+    "dep_time": "01:00",
+    "arr_time": "05:00",
+    "aircraft": "B777"
+  },
+  "OZ331": {
+    "departure": "ICN",
+    "arrival": "PVG",
+    "dep_time": "09:00",
+    "arr_time": "10:10",
+    "aircraft": "A321"
+  },
+  "OZ332": {
+    "departure": "PVG",
+    "arrival": "ICN",
+    "dep_time": "11:30",
+    "arr_time": "14:30",
+    "aircraft": "A321"
+  },
+  "OZ333": {
+    "departure": "ICN",
+    "arrival": "PEK",
+    "dep_time": "09:00",
+    "arr_time": "10:20",
+    "aircraft": "A330"
+  },
+  "OZ334": {
+    "departure": "PEK",
+    "arrival": "ICN",
+    "dep_time": "11:30",
+    "arr_time": "14:30",
+    "aircraft": "A330"
+  },
+  "OZ369": {
+    "departure": "ICN",
+    "arrival": "CAN",
+    "dep_time": "09:30",
+    "arr_time": "12:00",
+    "aircraft": "A321"
+  },
+  "OZ370": {
+    "departure": "CAN",
+    "arrival": "ICN",
+    "dep_time": "13:00",
+    "arr_time": "17:30",
+    "aircraft": "A321"
+  },
+  "SQ800": {
+    "departure": "SIN",
+    "arrival": "PEK",
+    "dep_time": "01:00",
+    "arr_time": "07:00",
+    "aircraft": "A350"
+  },
+  "SQ801": {
+    "departure": "PEK",
+    "arrival": "SIN",
+    "dep_time": "08:30",
+    "arr_time": "14:50",
+    "aircraft": "A350"
+  },
+  "SQ826": {
+    "departure": "SIN",
+    "arrival": "PVG",
+    "dep_time": "08:30",
+    "arr_time": "14:00",
+    "aircraft": "A350"
+  },
+  "SQ827": {
+    "departure": "PVG",
+    "arrival": "SIN",
+    "dep_time": "15:00",
+    "arr_time": "20:30",
+    "aircraft": "A350"
+  },
+  "SQ001": {
+    "departure": "SIN",
+    "arrival": "SFO",
+    "dep_time": "09:00",
+    "arr_time": "09:00",
+    "aircraft": "A350"
+  },
+  "SQ002": {
+    "departure": "SFO",
+    "arrival": "SIN",
+    "dep_time": "22:40",
+    "arr_time": "07:10",
+    "aircraft": "A350"
+  },
+  "SQ22": {
+    "departure": "SIN",
+    "arrival": "JFK",
+    "dep_time": "23:50",
+    "arr_time": "06:00",
+    "aircraft": "A350"
+  },
+  "SQ23": {
+    "departure": "JFK",
+    "arrival": "SIN",
+    "dep_time": "10:45",
+    "arr_time": "16:55",
+    "aircraft": "A350"
+  },
+  "TG614": {
+    "departure": "BKK",
+    "arrival": "PEK",
+    "dep_time": "08:00",
+    "arr_time": "13:50",
+    "aircraft": "B777"
+  },
+  "TG615": {
+    "departure": "PEK",
+    "arrival": "BKK",
+    "dep_time": "15:00",
+    "arr_time": "19:10",
+    "aircraft": "B777"
+  },
+  "TG664": {
+    "departure": "BKK",
+    "arrival": "PVG",
+    "dep_time": "07:30",
+    "arr_time": "12:30",
+    "aircraft": "A330"
+  },
+  "TG665": {
+    "departure": "PVG",
+    "arrival": "BKK",
+    "dep_time": "13:30",
+    "arr_time": "17:30",
+    "aircraft": "A330"
+  },
+  "TG600": {
+    "departure": "BKK",
+    "arrival": "HKG",
+    "dep_time": "07:30",
+    "arr_time": "11:30",
+    "aircraft": "A330"
+  },
+  "TG601": {
+    "departure": "HKG",
+    "arrival": "BKK",
+    "dep_time": "12:30",
+    "arr_time": "14:30",
+    "aircraft": "A330"
+  },
+  "VN500": {
+    "departure": "HAN",
+    "arrival": "PEK",
+    "dep_time": "09:00",
+    "arr_time": "13:00",
+    "aircraft": "A321"
+  },
+  "VN501": {
+    "departure": "PEK",
+    "arrival": "HAN",
+    "dep_time": "14:00",
+    "arr_time": "17:00",
+    "aircraft": "A321"
+  },
+  "VN524": {
+    "departure": "HAN",
+    "arrival": "PVG",
+    "dep_time": "08:00",
+    "arr_time": "12:00",
+    "aircraft": "A321"
+  },
+  "VN525": {
+    "departure": "PVG",
+    "arrival": "HAN",
+    "dep_time": "13:00",
+    "arr_time": "16:00",
+    "aircraft": "A321"
+  },
+  "MH370": {
+    "departure": "KUL",
+    "arrival": "PEK",
+    "dep_time": "00:35",
+    "arr_time": "06:30",
+    "aircraft": "B777"
+  },
+  "MH360": {
+    "departure": "KUL",
+    "arrival": "PVG",
+    "dep_time": "08:00",
+    "arr_time": "13:30",
+    "aircraft": "A330"
+  },
+  "MH361": {
+    "departure": "PVG",
+    "arrival": "KUL",
+    "dep_time": "14:30",
+    "arr_time": "20:00",
+    "aircraft": "A330"
+  },
+  "GA898": {
+    "departure": "CGK",
+    "arrival": "CAN",
+    "dep_time": "07:30",
+    "arr_time": "13:00",
+    "aircraft": "B777"
+  },
+  "GA899": {
+    "departure": "CAN",
+    "arrival": "CGK",
+    "dep_time": "14:00",
+    "arr_time": "19:00",
+    "aircraft": "B777"
+  },
+  "PR336": {
+    "departure": "MNL",
+    "arrival": "PVG",
+    "dep_time": "08:00",
+    "arr_time": "12:00",
+    "aircraft": "A321"
+  },
+  "PR337": {
+    "departure": "PVG",
+    "arrival": "MNL",
+    "dep_time": "13:00",
+    "arr_time": "16:00",
+    "aircraft": "A321"
+  },
+  "EK306": {
+    "departure": "DXB",
+    "arrival": "PEK",
+    "dep_time": "03:45",
+    "arr_time": "15:15",
+    "aircraft": "B777"
+  },
+  "EK307": {
+    "departure": "PEK",
+    "arrival": "DXB",
+    "dep_time": "23:30",
+    "arr_time": "04:35",
+    "aircraft": "B777"
+  },
+  "EK302": {
+    "departure": "DXB",
+    "arrival": "PVG",
+    "dep_time": "03:00",
+    "arr_time": "14:50",
+    "aircraft": "A380"
+  },
+  "EK303": {
+    "departure": "PVG",
+    "arrival": "DXB",
+    "dep_time": "23:30",
+    "arr_time": "05:00",
+    "aircraft": "A380"
+  },
+  "EK384": {
+    "departure": "DXB",
+    "arrival": "CAN",
+    "dep_time": "04:00",
+    "arr_time": "15:30",
+    "aircraft": "B777"
+  },
+  "EK385": {
+    "departure": "CAN",
+    "arrival": "DXB",
+    "dep_time": "00:30",
+    "arr_time": "05:00",
+    "aircraft": "B777"
+  },
+  "QR894": {
+    "departure": "DOH",
+    "arrival": "PEK",
+    "dep_time": "01:30",
+    "arr_time": "14:45",
+    "aircraft": "A350"
+  },
+  "QR895": {
+    "departure": "PEK",
+    "arrival": "DOH",
+    "dep_time": "23:55",
+    "arr_time": "04:55",
+    "aircraft": "A350"
+  },
+  "QR870": {
+    "departure": "DOH",
+    "arrival": "CAN",
+    "dep_time": "02:00",
+    "arr_time": "15:00",
+    "aircraft": "B777"
+  },
+  "QR871": {
+    "departure": "CAN",
+    "arrival": "DOH",
+    "dep_time": "01:00",
+    "arr_time": "06:00",
+    "aircraft": "B777"
+  },
+  "EY888": {
+    "departure": "AUH",
+    "arrival": "PEK",
+    "dep_time": "03:30",
+    "arr_time": "15:30",
+    "aircraft": "B787"
+  },
+  "EY889": {
+    "departure": "PEK",
+    "arrival": "AUH",
+    "dep_time": "23:00",
+    "arr_time": "04:00",
+    "aircraft": "B787"
+  },
+  "TK020": {
+    "departure": "IST",
+    "arrival": "PEK",
+    "dep_time": "23:45",
+    "arr_time": "14:45",
+    "aircraft": "B777"
+  },
+  "TK021": {
+    "departure": "PEK",
+    "arrival": "IST",
+    "dep_time": "01:00",
+    "arr_time": "07:30",
+    "aircraft": "B777"
+  },
+  "TK26": {
+    "departure": "IST",
+    "arrival": "PVG",
+    "dep_time": "23:30",
+    "arr_time": "15:00",
+    "aircraft": "B777"
+  },
+  "TK27": {
+    "departure": "PVG",
+    "arrival": "IST",
+    "dep_time": "01:30",
+    "arr_time": "08:30",
+    "aircraft": "B777"
+  },
+  "BA039": {
+    "departure": "LHR",
+    "arrival": "HKG",
+    "dep_time": "21:00",
+    "arr_time": "16:00",
+    "aircraft": "B777"
+  },
+  "BA038": {
+    "departure": "HKG",
+    "arrival": "LHR",
+    "dep_time": "23:30",
+    "arr_time": "05:30",
+    "aircraft": "B777"
+  },
+  "BA011": {
+    "departure": "LHR",
+    "arrival": "PVG",
+    "dep_time": "16:00",
+    "arr_time": "10:30",
+    "aircraft": "B777"
+  },
+  "BA012": {
+    "departure": "PVG",
+    "arrival": "LHR",
+    "dep_time": "11:30",
+    "arr_time": "17:00",
+    "aircraft": "B777"
+  },
+  "AF128": {
+    "departure": "CDG",
+    "arrival": "PEK",
+    "dep_time": "20:45",
+    "arr_time": "13:35",
+    "aircraft": "B777"
+  },
+  "AF129": {
+    "departure": "PEK",
+    "arrival": "CDG",
+    "dep_time": "10:20",
+    "arr_time": "15:25",
+    "aircraft": "B777"
+  },
+  "AF198": {
+    "departure": "CDG",
+    "arrival": "PVG",
+    "dep_time": "20:30",
+    "arr_time": "14:30",
+    "aircraft": "B777"
+  },
+  "AF199": {
+    "departure": "PVG",
+    "arrival": "CDG",
+    "dep_time": "10:30",
+    "arr_time": "17:00",
+    "aircraft": "B777"
+  },
+  "LH720": {
+    "departure": "FRA",
+    "arrival": "PVG",
+    "dep_time": "17:30",
+    "arr_time": "10:30",
+    "aircraft": "A340"
+  },
+  "LH721": {
+    "departure": "PVG",
+    "arrival": "FRA",
+    "dep_time": "12:30",
+    "arr_time": "18:20",
+    "aircraft": "A340"
+  },
+  "LH722": {
+    "departure": "FRA",
+    "arrival": "PEK",
+    "dep_time": "17:00",
+    "arr_time": "09:00",
+    "aircraft": "A340"
+  },
+  "LH723": {
+    "departure": "PEK",
+    "arrival": "FRA",
+    "dep_time": "11:00",
+    "arr_time": "16:00",
+    "aircraft": "A340"
+  },
+  "KL897": {
+    "departure": "AMS",
+    "arrival": "PEK",
+    "dep_time": "17:05",
+    "arr_time": "08:30",
+    "aircraft": "B787"
+  },
+  "KL898": {
+    "departure": "PEK",
+    "arrival": "AMS",
+    "dep_time": "10:05",
+    "arr_time": "14:35",
+    "aircraft": "B787"
+  },
+  "KL895": {
+    "departure": "AMS",
+    "arrival": "PVG",
+    "dep_time": "16:30",
+    "arr_time": "09:00",
+    "aircraft": "B777"
+  },
+  "KL896": {
+    "departure": "PVG",
+    "arrival": "AMS",
+    "dep_time": "10:30",
+    "arr_time": "16:00",
+    "aircraft": "B777"
+  },
+  "SK995": {
+    "departure": "CPH",
+    "arrival": "PEK",
+    "dep_time": "16:30",
+    "arr_time": "07:30",
+    "aircraft": "A350"
+  },
+  "SK996": {
+    "departure": "PEK",
+    "arrival": "CPH",
+    "dep_time": "09:00",
+    "arr_time": "13:00",
+    "aircraft": "A350"
+  },
+  "AY087": {
+    "departure": "HEL",
+    "arrival": "PEK",
+    "dep_time": "17:00",
+    "arr_time": "07:00",
+    "aircraft": "A350"
+  },
+  "AY088": {
+    "departure": "PEK",
+    "arrival": "HEL",
+    "dep_time": "09:00",
+    "arr_time": "13:00",
+    "aircraft": "A350"
+  },
+  "AY089": {
+    "departure": "HEL",
+    "arrival": "PVG",
+    "dep_time": "17:30",
+    "arr_time": "08:30",
+    "aircraft": "A350"
+  },
+  "AY090": {
+    "departure": "PVG",
+    "arrival": "HEL",
+    "dep_time": "10:00",
+    "arr_time": "15:00",
+    "aircraft": "A350"
+  },
+  "IB6888": {
+    "departure": "MAD",
+    "arrival": "PVG",
+    "dep_time": "12:00",
+    "arr_time": "06:30",
+    "aircraft": "A350"
+  },
+  "IB6889": {
+    "departure": "PVG",
+    "arrival": "MAD",
+    "dep_time": "10:00",
+    "arr_time": "17:00",
+    "aircraft": "A350"
+  },
+  "SU200": {
+    "departure": "SVO",
+    "arrival": "PEK",
+    "dep_time": "19:30",
+    "arr_time": "08:30",
+    "aircraft": "A330"
+  },
+  "SU201": {
+    "departure": "PEK",
+    "arrival": "SVO",
+    "dep_time": "10:00",
+    "arr_time": "14:00",
+    "aircraft": "A330"
+  },
+  "LX188": {
+    "departure": "ZRH",
+    "arrival": "PVG",
+    "dep_time": "13:00",
+    "arr_time": "07:00",
+    "aircraft": "A340"
+  },
+  "LX189": {
+    "departure": "PVG",
+    "arrival": "ZRH",
+    "dep_time": "11:00",
+    "arr_time": "17:30",
+    "aircraft": "A340"
+  },
+  "OS063": {
+    "departure": "VIE",
+    "arrival": "PEK",
+    "dep_time": "17:30",
+    "arr_time": "09:00",
+    "aircraft": "B777"
+  },
+  "OS064": {
+    "departure": "PEK",
+    "arrival": "VIE",
+    "dep_time": "11:00",
+    "arr_time": "15:30",
+    "aircraft": "B777"
+  },
+  "AA181": {
+    "departure": "JFK",
+    "arrival": "PVG",
+    "dep_time": "00:30",
+    "arr_time": "04:35",
+    "aircraft": "B777"
+  },
+  "AA182": {
+    "departure": "PVG",
+    "arrival": "JFK",
+    "dep_time": "17:30",
+    "arr_time": "19:45",
+    "aircraft": "B777"
+  },
+  "AA183": {
+    "departure": "DFW",
+    "arrival": "PVG",
+    "dep_time": "10:30",
+    "arr_time": "15:00",
+    "aircraft": "B787"
+  },
+  "AA184": {
+    "departure": "PVG",
+    "arrival": "DFW",
+    "dep_time": "17:00",
+    "arr_time": "17:30",
+    "aircraft": "B787"
+  },
+  "UA857": {
+    "departure": "SFO",
+    "arrival": "PVG",
+    "dep_time": "14:00",
+    "arr_time": "18:30",
+    "aircraft": "B777"
+  },
+  "UA858": {
+    "departure": "PVG",
+    "arrival": "SFO",
+    "dep_time": "13:00",
+    "arr_time": "08:30",
+    "aircraft": "B777"
+  },
+  "UA835": {
+    "departure": "EWR",
+    "arrival": "PEK",
+    "dep_time": "01:00",
+    "arr_time": "04:00",
+    "aircraft": "B777"
+  },
+  "UA836": {
+    "departure": "PEK",
+    "arrival": "EWR",
+    "dep_time": "16:00",
+    "arr_time": "17:30",
+    "aircraft": "B777"
+  },
+  "DL587": {
+    "departure": "LAX",
+    "arrival": "PVG",
+    "dep_time": "11:20",
+    "arr_time": "17:05",
+    "aircraft": "A350"
+  },
+  "DL588": {
+    "departure": "PVG",
+    "arrival": "LAX",
+    "dep_time": "12:40",
+    "arr_time": "09:50",
+    "aircraft": "A350"
+  },
+  "DL581": {
+    "departure": "DTW",
+    "arrival": "PVG",
+    "dep_time": "12:00",
+    "arr_time": "15:00",
+    "aircraft": "A350"
+  },
+  "DL582": {
+    "departure": "PVG",
+    "arrival": "DTW",
+    "dep_time": "17:00",
+    "arr_time": "17:30",
+    "aircraft": "A350"
+  },
+  "DL283": {
+    "departure": "SEA",
+    "arrival": "PVG",
+    "dep_time": "13:30",
+    "arr_time": "17:00",
+    "aircraft": "A330"
+  },
+  "DL284": {
+    "departure": "PVG",
+    "arrival": "SEA",
+    "dep_time": "11:00",
+    "arr_time": "07:30",
+    "aircraft": "A330"
+  },
+  "AC29": {
+    "departure": "YYZ",
+    "arrival": "PEK",
+    "dep_time": "01:35",
+    "arr_time": "04:35",
+    "aircraft": "B777"
+  },
+  "AC30": {
+    "departure": "PEK",
+    "arrival": "YYZ",
+    "dep_time": "17:10",
+    "arr_time": "17:15",
+    "aircraft": "B777"
+  },
+  "AC25": {
+    "departure": "YYZ",
+    "arrival": "PVG",
+    "dep_time": "01:00",
+    "arr_time": "05:00",
+    "aircraft": "B787"
+  },
+  "AC26": {
+    "departure": "PVG",
+    "arrival": "YYZ",
+    "dep_time": "18:00",
+    "arr_time": "19:00",
+    "aircraft": "B787"
+  },
+  "QF129": {
+    "departure": "SYD",
+    "arrival": "PVG",
+    "dep_time": "09:05",
+    "arr_time": "17:40",
+    "aircraft": "A330"
+  },
+  "QF128": {
+    "departure": "PVG",
+    "arrival": "SYD",
+    "dep_time": "19:00",
+    "arr_time": "07:35",
+    "aircraft": "A330"
+  },
+  "QF001": {
+    "departure": "SYD",
+    "arrival": "SIN",
+    "dep_time": "16:00",
+    "arr_time": "21:00",
+    "aircraft": "A380"
+  },
+  "QF002": {
+    "departure": "SIN",
+    "arrival": "SYD",
+    "dep_time": "01:00",
+    "arr_time": "10:30",
+    "aircraft": "A380"
+  },
+  "NZ289": {
+    "departure": "AKL",
+    "arrival": "PVG",
+    "dep_time": "09:10",
+    "arr_time": "17:40",
+    "aircraft": "B787"
+  },
+  "NZ288": {
+    "departure": "PVG",
+    "arrival": "AKL",
+    "dep_time": "19:30",
+    "arr_time": "10:30",
+    "aircraft": "B787"
+  },
+  "MU6650": {
+    "departure": "CTU",
+    "arrival": "PKX",
+    "dep_time": "17:15",
+    "arr_time": "20:00",
+    "aircraft": "Airbus A321",
+    "dep_terminal": "2",
+    "arr_terminal": "",
+    "cached_at": "2026-02-17 14:13",
+    "source": "AeroDataBox"
+  }
+}

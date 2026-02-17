@@ -1,0 +1,1142 @@
+{
+  "CA": {
+    "name": "中国国航",
+    "name_en": "Air China",
+    "country": "中国"
+  },
+  "MU": {
+    "name": "东方航空",
+    "name_en": "China Eastern Airlines",
+    "country": "中国"
+  },
+  "CZ": {
+    "name": "南方航空",
+    "name_en": "China Southern Airlines",
+    "country": "中国"
+  },
+  "HU": {
+    "name": "海南航空",
+    "name_en": "Hainan Airlines",
+    "country": "中国"
+  },
+  "ZH": {
+    "name": "深圳航空",
+    "name_en": "Shenzhen Airlines",
+    "country": "中国"
+  },
+  "MF": {
+    "name": "厦门航空",
+    "name_en": "Xiamen Airlines",
+    "country": "中国"
+  },
+  "FM": {
+    "name": "上海航空",
+    "name_en": "Shanghai Airlines",
+    "country": "中国"
+  },
+  "SC": {
+    "name": "山东航空",
+    "name_en": "Shandong Airlines",
+    "country": "中国"
+  },
+  "3U": {
+    "name": "四川航空",
+    "name_en": "Sichuan Airlines",
+    "country": "中国"
+  },
+  "GS": {
+    "name": "天津航空",
+    "name_en": "Tianjin Airlines",
+    "country": "中国"
+  },
+  "KN": {
+    "name": "联合航空",
+    "name_en": "China United Airlines",
+    "country": "中国"
+  },
+  "9C": {
+    "name": "春秋航空",
+    "name_en": "Spring Airlines",
+    "country": "中国"
+  },
+  "G5": {
+    "name": "华夏航空",
+    "name_en": "China Express Airlines",
+    "country": "中国"
+  },
+  "TV": {
+    "name": "西藏航空",
+    "name_en": "Tibet Airlines",
+    "country": "中国"
+  },
+  "PN": {
+    "name": "西部航空",
+    "name_en": "West Air",
+    "country": "中国"
+  },
+  "EU": {
+    "name": "成都航空",
+    "name_en": "Chengdu Airlines",
+    "country": "中国"
+  },
+  "KY": {
+    "name": "昆明航空",
+    "name_en": "Kunming Airlines",
+    "country": "中国"
+  },
+  "JD": {
+    "name": "首都航空",
+    "name_en": "Capital Airlines",
+    "country": "中国"
+  },
+  "DZ": {
+    "name": "东海航空",
+    "name_en": "Donghai Airlines",
+    "country": "中国"
+  },
+  "GJ": {
+    "name": "长龙航空",
+    "name_en": "Loong Air",
+    "country": "中国"
+  },
+  "QW": {
+    "name": "青岛航空",
+    "name_en": "Qingdao Airlines",
+    "country": "中国"
+  },
+  "CN": {
+    "name": "大新华航空",
+    "name_en": "Grand China Air",
+    "country": "中国"
+  },
+  "8L": {
+    "name": "祥鹏航空",
+    "name_en": "Lucky Air",
+    "country": "中国"
+  },
+  "GT": {
+    "name": "桂林航空",
+    "name_en": "Guilin Airlines",
+    "country": "中国"
+  },
+  "Y8": {
+    "name": "扬子江航空",
+    "name_en": "Yangtze River Airlines",
+    "country": "中国"
+  },
+  "NS": {
+    "name": "河北航空",
+    "name_en": "Hebei Airlines",
+    "country": "中国"
+  },
+  "BK": {
+    "name": "奥凯航空",
+    "name_en": "Okay Airways",
+    "country": "中国"
+  },
+  "UQ": {
+    "name": "乌鲁木齐航空",
+    "name_en": "Urumqi Air",
+    "country": "中国"
+  },
+  "AQ": {
+    "name": "九元航空",
+    "name_en": "9 Air",
+    "country": "中国"
+  },
+  "HO": {
+    "name": "吉祥航空",
+    "name_en": "Juneyao Airlines",
+    "country": "中国"
+  },
+  "GX": {
+    "name": "广西北部湾航空",
+    "name_en": "GX Airlines",
+    "country": "中国"
+  },
+  "DR": {
+    "name": "瑞丽航空",
+    "name_en": "Ruili Airlines",
+    "country": "中国"
+  },
+  "RY": {
+    "name": "江西航空",
+    "name_en": "Jiangxi Air",
+    "country": "中国"
+  },
+  "JR": {
+    "name": "幸福航空",
+    "name_en": "Joy Air",
+    "country": "中国"
+  },
+  "GY": {
+    "name": "多彩贵州航空",
+    "name_en": "Colorful Guizhou Airlines",
+    "country": "中国"
+  },
+  "QD": {
+    "name": "海航旗下航司",
+    "name_en": "HNA Group",
+    "country": "中国"
+  },
+  "FU": {
+    "name": "福州航空",
+    "name_en": "Fuzhou Airlines",
+    "country": "中国"
+  },
+  "A6": {
+    "name": "天骄航空",
+    "name_en": "Air Travel",
+    "country": "中国"
+  },
+  "2Z": {
+    "name": "东北航空",
+    "name_en": "Dongbei Airlines",
+    "country": "中国"
+  },
+  "CX": {
+    "name": "国泰航空",
+    "name_en": "Cathay Pacific",
+    "country": "中国"
+  },
+  "KA": {
+    "name": "港龙航空",
+    "name_en": "Cathay Dragon",
+    "country": "中国"
+  },
+  "HX": {
+    "name": "香港航空",
+    "name_en": "Hong Kong Airlines",
+    "country": "中国"
+  },
+  "UO": {
+    "name": "香港快运",
+    "name_en": "HK Express",
+    "country": "中国"
+  },
+  "NX": {
+    "name": "澳门航空",
+    "name_en": "Air Macau",
+    "country": "中国"
+  },
+  "BR": {
+    "name": "长荣航空",
+    "name_en": "EVA Air",
+    "country": "中国"
+  },
+  "CI": {
+    "name": "中华航空",
+    "name_en": "China Airlines",
+    "country": "中国"
+  },
+  "IT": {
+    "name": "台湾虎航",
+    "name_en": "Tigerair Taiwan",
+    "country": "中国"
+  },
+  "BX": {
+    "name": "立荣航空",
+    "name_en": "Uni Air",
+    "country": "中国"
+  },
+  "AE": {
+    "name": "华信航空",
+    "name_en": "Mandarin Airlines",
+    "country": "中国"
+  },
+  "B7": {
+    "name": "立荣航空",
+    "name_en": "Uni Air",
+    "country": "中国"
+  },
+  "NH": {
+    "name": "全日空",
+    "name_en": "All Nippon Airways",
+    "country": "日本"
+  },
+  "JL": {
+    "name": "日本航空",
+    "name_en": "Japan Airlines",
+    "country": "日本"
+  },
+  "BC": {
+    "name": "天马航空",
+    "name_en": "Skymark Airlines",
+    "country": "日本"
+  },
+  "MM": {
+    "name": "乐桃航空",
+    "name_en": "Peach Aviation",
+    "country": "日本"
+  },
+  "GK": {
+    "name": "捷星日本",
+    "name_en": "Jetstar Japan",
+    "country": "日本"
+  },
+  "JW": {
+    "name": "香草航空",
+    "name_en": "Vanilla Air",
+    "country": "日本"
+  },
+  "HD": {
+    "name": "北海道国际航空",
+    "name_en": "AIRDO",
+    "country": "日本"
+  },
+  "SJ": {
+    "name": "Solaseed Air",
+    "name_en": "Solaseed Air",
+    "country": "日本"
+  },
+  "7G": {
+    "name": "星悦航空",
+    "name_en": "StarFlyer",
+    "country": "日本"
+  },
+  "NU": {
+    "name": "日本越洋航空",
+    "name_en": "Japan Transocean Air",
+    "country": "日本"
+  },
+  "IJ": {
+    "name": "春秋航空日本",
+    "name_en": "Spring Airlines Japan",
+    "country": "日本"
+  },
+  "DJ": {
+    "name": "ZIP AIR",
+    "name_en": "ZIPAIR Tokyo",
+    "country": "日本"
+  },
+  "KE": {
+    "name": "大韩航空",
+    "name_en": "Korean Air",
+    "country": "韩国"
+  },
+  "OZ": {
+    "name": "韩亚航空",
+    "name_en": "Asiana Airlines",
+    "country": "韩国"
+  },
+  "LJ": {
+    "name": "真航空",
+    "name_en": "Jin Air",
+    "country": "韩国"
+  },
+  "ZE": {
+    "name": "易斯达航空",
+    "name_en": "Eastar Jet",
+    "country": "韩国"
+  },
+  "TW": {
+    "name": "德威航空",
+    "name_en": "T'way Air",
+    "country": "韩国"
+  },
+  "7C": {
+    "name": "济州航空",
+    "name_en": "Jeju Air",
+    "country": "韩国"
+  },
+  "BX2": {
+    "name": "釜山航空",
+    "name_en": "Air Busan",
+    "country": "韩国"
+  },
+  "RS": {
+    "name": "首尔航空",
+    "name_en": "Air Seoul",
+    "country": "韩国"
+  },
+  "4V": {
+    "name": "飞蛙航空",
+    "name_en": "Fly Gangwon",
+    "country": "韩国"
+  },
+  "SQ": {
+    "name": "新加坡航空",
+    "name_en": "Singapore Airlines",
+    "country": "新加坡"
+  },
+  "TR": {
+    "name": "酷航",
+    "name_en": "Scoot",
+    "country": "新加坡"
+  },
+  "MI": {
+    "name": "胜安航空",
+    "name_en": "SilkAir",
+    "country": "新加坡"
+  },
+  "TG": {
+    "name": "泰国国际航空",
+    "name_en": "Thai Airways",
+    "country": "泰国"
+  },
+  "FD": {
+    "name": "泰国亚洲航空",
+    "name_en": "Thai AirAsia",
+    "country": "泰国"
+  },
+  "WE": {
+    "name": "泰国微笑航空",
+    "name_en": "Thai Smile",
+    "country": "泰国"
+  },
+  "DD": {
+    "name": "鸟航",
+    "name_en": "Nok Air",
+    "country": "泰国"
+  },
+  "SL": {
+    "name": "泰国狮航",
+    "name_en": "Thai Lion Air",
+    "country": "泰国"
+  },
+  "VZ": {
+    "name": "泰国越捷",
+    "name_en": "Thai VietJet Air",
+    "country": "泰国"
+  },
+  "MH": {
+    "name": "马来西亚航空",
+    "name_en": "Malaysia Airlines",
+    "country": "马来西亚"
+  },
+  "AK": {
+    "name": "亚洲航空",
+    "name_en": "AirAsia",
+    "country": "马来西亚"
+  },
+  "D7": {
+    "name": "亚洲航空X",
+    "name_en": "AirAsia X",
+    "country": "马来西亚"
+  },
+  "OD": {
+    "name": "马印航空",
+    "name_en": "Batik Air Malaysia",
+    "country": "马来西亚"
+  },
+  "VN": {
+    "name": "越南航空",
+    "name_en": "Vietnam Airlines",
+    "country": "越南"
+  },
+  "VJ": {
+    "name": "越捷航空",
+    "name_en": "VietJet Air",
+    "country": "越南"
+  },
+  "BL": {
+    "name": "越竹航空",
+    "name_en": "Bamboo Airways",
+    "country": "越南"
+  },
+  "GA": {
+    "name": "印尼鹰航",
+    "name_en": "Garuda Indonesia",
+    "country": "印度尼西亚"
+  },
+  "ID": {
+    "name": "巴泽航空",
+    "name_en": "Batik Air",
+    "country": "印度尼西亚"
+  },
+  "JT": {
+    "name": "狮子航空",
+    "name_en": "Lion Air",
+    "country": "印度尼西亚"
+  },
+  "QZ": {
+    "name": "亚航印尼",
+    "name_en": "Indonesia AirAsia",
+    "country": "印度尼西亚"
+  },
+  "QG": {
+    "name": "城市连接航空",
+    "name_en": "Citilink",
+    "country": "印度尼西亚"
+  },
+  "PR": {
+    "name": "菲律宾航空",
+    "name_en": "Philippine Airlines",
+    "country": "菲律宾"
+  },
+  "5J": {
+    "name": "宿务太平洋",
+    "name_en": "Cebu Pacific",
+    "country": "菲律宾"
+  },
+  "Z2": {
+    "name": "亚航菲律宾",
+    "name_en": "AirAsia Philippines",
+    "country": "菲律宾"
+  },
+  "K6": {
+    "name": "柬埔寨吴哥航空",
+    "name_en": "Cambodia Angkor Air",
+    "country": "柬埔寨"
+  },
+  "QV": {
+    "name": "老挝航空",
+    "name_en": "Lao Airlines",
+    "country": "老挝"
+  },
+  "8M": {
+    "name": "缅甸国际航空",
+    "name_en": "Myanmar Airways International",
+    "country": "缅甸"
+  },
+  "BI": {
+    "name": "文莱皇家航空",
+    "name_en": "Royal Brunei Airlines",
+    "country": "文莱"
+  },
+  "AI": {
+    "name": "印度航空",
+    "name_en": "Air India",
+    "country": "印度"
+  },
+  "6E": {
+    "name": "靛蓝航空",
+    "name_en": "IndiGo",
+    "country": "印度"
+  },
+  "UK": {
+    "name": "维斯塔拉航空",
+    "name_en": "Vistara",
+    "country": "印度"
+  },
+  "SG": {
+    "name": "香料航空",
+    "name_en": "SpiceJet",
+    "country": "印度"
+  },
+  "G8": {
+    "name": "走吧航空",
+    "name_en": "Go First",
+    "country": "印度"
+  },
+  "IX": {
+    "name": "印度航空快运",
+    "name_en": "Air India Express",
+    "country": "印度"
+  },
+  "UL": {
+    "name": "斯里兰卡航空",
+    "name_en": "SriLankan Airlines",
+    "country": "斯里兰卡"
+  },
+  "RA": {
+    "name": "尼泊尔航空",
+    "name_en": "Nepal Airlines",
+    "country": "尼泊尔"
+  },
+  "BG": {
+    "name": "比曼航空",
+    "name_en": "Biman Bangladesh Airlines",
+    "country": "孟加拉"
+  },
+  "Q2": {
+    "name": "马尔代夫航空",
+    "name_en": "Maldivian",
+    "country": "马尔代夫"
+  },
+  "PK": {
+    "name": "巴基斯坦航空",
+    "name_en": "Pakistan International Airlines",
+    "country": "巴基斯坦"
+  },
+  "EK": {
+    "name": "阿联酋航空",
+    "name_en": "Emirates",
+    "country": "阿联酋"
+  },
+  "EY": {
+    "name": "阿提哈德航空",
+    "name_en": "Etihad Airways",
+    "country": "阿联酋"
+  },
+  "FZ": {
+    "name": "迪拜航空",
+    "name_en": "Flydubai",
+    "country": "阿联酋"
+  },
+  "G9": {
+    "name": "阿拉伯航空",
+    "name_en": "Air Arabia",
+    "country": "阿联酋"
+  },
+  "QR": {
+    "name": "卡塔尔航空",
+    "name_en": "Qatar Airways",
+    "country": "卡塔尔"
+  },
+  "GF": {
+    "name": "海湾航空",
+    "name_en": "Gulf Air",
+    "country": "巴林"
+  },
+  "WY": {
+    "name": "阿曼航空",
+    "name_en": "Oman Air",
+    "country": "阿曼"
+  },
+  "KU": {
+    "name": "科威特航空",
+    "name_en": "Kuwait Airways",
+    "country": "科威特"
+  },
+  "SV": {
+    "name": "沙特航空",
+    "name_en": "Saudia",
+    "country": "沙特阿拉伯"
+  },
+  "XY": {
+    "name": "flynas",
+    "name_en": "flynas",
+    "country": "沙特阿拉伯"
+  },
+  "TK": {
+    "name": "土耳其航空",
+    "name_en": "Turkish Airlines",
+    "country": "土耳其"
+  },
+  "PC": {
+    "name": "飞马航空",
+    "name_en": "Pegasus Airlines",
+    "country": "土耳其"
+  },
+  "XQ": {
+    "name": "太阳快运",
+    "name_en": "SunExpress",
+    "country": "土耳其"
+  },
+  "LY": {
+    "name": "以色列航空",
+    "name_en": "El Al",
+    "country": "以色列"
+  },
+  "RJ": {
+    "name": "约旦皇家航空",
+    "name_en": "Royal Jordanian",
+    "country": "约旦"
+  },
+  "ME": {
+    "name": "中东航空",
+    "name_en": "Middle East Airlines",
+    "country": "黎巴嫩"
+  },
+  "IR": {
+    "name": "伊朗航空",
+    "name_en": "Iran Air",
+    "country": "伊朗"
+  },
+  "W5": {
+    "name": "马汉航空",
+    "name_en": "Mahan Air",
+    "country": "伊朗"
+  },
+  "BA": {
+    "name": "英国航空",
+    "name_en": "British Airways",
+    "country": "英国"
+  },
+  "VS": {
+    "name": "维珍大西洋",
+    "name_en": "Virgin Atlantic",
+    "country": "英国"
+  },
+  "U2": {
+    "name": "易捷航空",
+    "name_en": "easyJet",
+    "country": "英国"
+  },
+  "BE": {
+    "name": "Flybe",
+    "name_en": "Flybe",
+    "country": "英国"
+  },
+  "AF": {
+    "name": "法国航空",
+    "name_en": "Air France",
+    "country": "法国"
+  },
+  "TO": {
+    "name": "法国途易飞",
+    "name_en": "Transavia France",
+    "country": "法国"
+  },
+  "LH": {
+    "name": "汉莎航空",
+    "name_en": "Lufthansa",
+    "country": "德国"
+  },
+  "4Y": {
+    "name": "欧洲之翼",
+    "name_en": "Eurowings",
+    "country": "德国"
+  },
+  "DE": {
+    "name": "神鹰航空",
+    "name_en": "Condor",
+    "country": "德国"
+  },
+  "KL": {
+    "name": "荷兰皇家航空",
+    "name_en": "KLM Royal Dutch Airlines",
+    "country": "荷兰"
+  },
+  "HV": {
+    "name": "泛航航空",
+    "name_en": "Transavia",
+    "country": "荷兰"
+  },
+  "SN": {
+    "name": "布鲁塞尔航空",
+    "name_en": "Brussels Airlines",
+    "country": "比利时"
+  },
+  "LX": {
+    "name": "瑞士国际航空",
+    "name_en": "Swiss International Air Lines",
+    "country": "瑞士"
+  },
+  "OS": {
+    "name": "奥地利航空",
+    "name_en": "Austrian Airlines",
+    "country": "奥地利"
+  },
+  "IB": {
+    "name": "伊比利亚航空",
+    "name_en": "Iberia",
+    "country": "西班牙"
+  },
+  "VY": {
+    "name": "伏林航空",
+    "name_en": "Vueling",
+    "country": "西班牙"
+  },
+  "I2": {
+    "name": "Iberia Express",
+    "name_en": "Iberia Express",
+    "country": "西班牙"
+  },
+  "UX": {
+    "name": "欧罗巴航空",
+    "name_en": "Air Europa",
+    "country": "西班牙"
+  },
+  "TP": {
+    "name": "葡萄牙航空",
+    "name_en": "TAP Air Portugal",
+    "country": "葡萄牙"
+  },
+  "AZ": {
+    "name": "ITA航空",
+    "name_en": "ITA Airways",
+    "country": "意大利"
+  },
+  "FR": {
+    "name": "瑞安航空",
+    "name_en": "Ryanair",
+    "country": "爱尔兰"
+  },
+  "EI": {
+    "name": "爱尔兰航空",
+    "name_en": "Aer Lingus",
+    "country": "爱尔兰"
+  },
+  "A3": {
+    "name": "爱琴海航空",
+    "name_en": "Aegean Airlines",
+    "country": "希腊"
+  },
+  "SK": {
+    "name": "北欧航空",
+    "name_en": "Scandinavian Airlines",
+    "country": "瑞典/丹麦/挪威"
+  },
+  "DY": {
+    "name": "挪威航空",
+    "name_en": "Norwegian Air Shuttle",
+    "country": "挪威"
+  },
+  "AY": {
+    "name": "芬兰航空",
+    "name_en": "Finnair",
+    "country": "芬兰"
+  },
+  "FI": {
+    "name": "冰岛航空",
+    "name_en": "Icelandair",
+    "country": "冰岛"
+  },
+  "WW": {
+    "name": "WOW航空",
+    "name_en": "WOW Air",
+    "country": "冰岛"
+  },
+  "LO": {
+    "name": "波兰航空",
+    "name_en": "LOT Polish Airlines",
+    "country": "波兰"
+  },
+  "OK": {
+    "name": "捷克航空",
+    "name_en": "Czech Airlines",
+    "country": "捷克"
+  },
+  "MA": {
+    "name": "匈牙利航空",
+    "name_en": "MALÉV",
+    "country": "匈牙利"
+  },
+  "W6": {
+    "name": "维兹航空",
+    "name_en": "Wizz Air",
+    "country": "匈牙利"
+  },
+  "RO": {
+    "name": "罗马尼亚航空",
+    "name_en": "TAROM",
+    "country": "罗马尼亚"
+  },
+  "FB": {
+    "name": "保加利亚航空",
+    "name_en": "Bulgaria Air",
+    "country": "保加利亚"
+  },
+  "JU": {
+    "name": "塞尔维亚航空",
+    "name_en": "Air Serbia",
+    "country": "塞尔维亚"
+  },
+  "OU": {
+    "name": "克罗地亚航空",
+    "name_en": "Croatia Airlines",
+    "country": "克罗地亚"
+  },
+  "JP": {
+    "name": "亚德里亚航空",
+    "name_en": "Adria Airways",
+    "country": "斯洛文尼亚"
+  },
+  "SU": {
+    "name": "俄罗斯航空",
+    "name_en": "Aeroflot",
+    "country": "俄罗斯"
+  },
+  "S7": {
+    "name": "西伯利亚航空",
+    "name_en": "S7 Airlines",
+    "country": "俄罗斯"
+  },
+  "UT": {
+    "name": "乌塔航空",
+    "name_en": "UTair",
+    "country": "俄罗斯"
+  },
+  "UN": {
+    "name": "全禄航空",
+    "name_en": "Transaero",
+    "country": "俄罗斯"
+  },
+  "BT": {
+    "name": "波罗的海航空",
+    "name_en": "airBaltic",
+    "country": "拉脱维亚"
+  },
+  "OV": {
+    "name": "爱沙尼亚航空",
+    "name_en": "Estonian Air",
+    "country": "爱沙尼亚"
+  },
+  "B2": {
+    "name": "白俄罗斯航空",
+    "name_en": "Belavia",
+    "country": "白俄罗斯"
+  },
+  "PS": {
+    "name": "乌克兰航空",
+    "name_en": "Ukraine International Airlines",
+    "country": "乌克兰"
+  },
+  "AA": {
+    "name": "美国航空",
+    "name_en": "American Airlines",
+    "country": "美国"
+  },
+  "UA": {
+    "name": "美国联合航空",
+    "name_en": "United Airlines",
+    "country": "美国"
+  },
+  "DL": {
+    "name": "达美航空",
+    "name_en": "Delta Air Lines",
+    "country": "美国"
+  },
+  "WN": {
+    "name": "西南航空",
+    "name_en": "Southwest Airlines",
+    "country": "美国"
+  },
+  "B6": {
+    "name": "捷蓝航空",
+    "name_en": "JetBlue Airways",
+    "country": "美国"
+  },
+  "AS": {
+    "name": "阿拉斯加航空",
+    "name_en": "Alaska Airlines",
+    "country": "美国"
+  },
+  "NK": {
+    "name": "精神航空",
+    "name_en": "Spirit Airlines",
+    "country": "美国"
+  },
+  "F9": {
+    "name": "边疆航空",
+    "name_en": "Frontier Airlines",
+    "country": "美国"
+  },
+  "HA": {
+    "name": "夏威夷航空",
+    "name_en": "Hawaiian Airlines",
+    "country": "美国"
+  },
+  "SY": {
+    "name": "太阳城航空",
+    "name_en": "Sun Country Airlines",
+    "country": "美国"
+  },
+  "G4": {
+    "name": "忠实航空",
+    "name_en": "Allegiant Air",
+    "country": "美国"
+  },
+  "AC": {
+    "name": "加拿大航空",
+    "name_en": "Air Canada",
+    "country": "加拿大"
+  },
+  "WS": {
+    "name": "西捷航空",
+    "name_en": "WestJet",
+    "country": "加拿大"
+  },
+  "PD": {
+    "name": "波特航空",
+    "name_en": "Porter Airlines",
+    "country": "加拿大"
+  },
+  "TS": {
+    "name": "越洋航空",
+    "name_en": "Air Transat",
+    "country": "加拿大"
+  },
+  "AM": {
+    "name": "墨西哥航空",
+    "name_en": "Aeroméxico",
+    "country": "墨西哥"
+  },
+  "Y4": {
+    "name": "沃拉里斯",
+    "name_en": "Volaris",
+    "country": "墨西哥"
+  },
+  "4O": {
+    "name": "维瓦航空",
+    "name_en": "VivaAerobus",
+    "country": "墨西哥"
+  },
+  "CM": {
+    "name": "巴拿马航空",
+    "name_en": "Copa Airlines",
+    "country": "巴拿马"
+  },
+  "LR": {
+    "name": "哥斯达黎加航空",
+    "name_en": "LACSA",
+    "country": "哥斯达黎加"
+  },
+  "LA": {
+    "name": "南美航空",
+    "name_en": "LATAM Airlines",
+    "country": "智利"
+  },
+  "JJ": {
+    "name": "巴西天马航空",
+    "name_en": "LATAM Brasil",
+    "country": "巴西"
+  },
+  "G3": {
+    "name": "高尔航空",
+    "name_en": "GOL Linhas Aéreas",
+    "country": "巴西"
+  },
+  "AD": {
+    "name": "阿祖尔航空",
+    "name_en": "Azul Brazilian Airlines",
+    "country": "巴西"
+  },
+  "AR": {
+    "name": "阿根廷航空",
+    "name_en": "Aerolíneas Argentinas",
+    "country": "阿根廷"
+  },
+  "AV": {
+    "name": "哥伦比亚航空",
+    "name_en": "Avianca",
+    "country": "哥伦比亚"
+  },
+  "PZ": {
+    "name": "苏里南TAM",
+    "name_en": "LATAM Paraguay",
+    "country": "巴拉圭"
+  },
+  "SA": {
+    "name": "南非航空",
+    "name_en": "South African Airways",
+    "country": "南非"
+  },
+  "MS": {
+    "name": "埃及航空",
+    "name_en": "EgyptAir",
+    "country": "埃及"
+  },
+  "ET": {
+    "name": "埃塞俄比亚航空",
+    "name_en": "Ethiopian Airlines",
+    "country": "埃塞俄比亚"
+  },
+  "KQ": {
+    "name": "肯尼亚航空",
+    "name_en": "Kenya Airways",
+    "country": "肯尼亚"
+  },
+  "AT": {
+    "name": "摩洛哥皇家航空",
+    "name_en": "Royal Air Maroc",
+    "country": "摩洛哥"
+  },
+  "WB": {
+    "name": "卢旺达航空",
+    "name_en": "RwandAir",
+    "country": "卢旺达"
+  },
+  "TC": {
+    "name": "坦桑尼亚航空",
+    "name_en": "Air Tanzania",
+    "country": "坦桑尼亚"
+  },
+  "5Z": {
+    "name": "赞比亚航空",
+    "name_en": "Zambia Airways",
+    "country": "赞比亚"
+  },
+  "MK": {
+    "name": "毛里求斯航空",
+    "name_en": "Air Mauritius",
+    "country": "毛里求斯"
+  },
+  "HM": {
+    "name": "塞舌尔航空",
+    "name_en": "Air Seychelles",
+    "country": "塞舌尔"
+  },
+  "MD": {
+    "name": "马达加斯加航空",
+    "name_en": "Air Madagascar",
+    "country": "马达加斯加"
+  },
+  "QF": {
+    "name": "澳洲航空",
+    "name_en": "Qantas",
+    "country": "澳大利亚"
+  },
+  "VA": {
+    "name": "维珍澳洲",
+    "name_en": "Virgin Australia",
+    "country": "澳大利亚"
+  },
+  "JQ": {
+    "name": "捷星航空",
+    "name_en": "Jetstar Airways",
+    "country": "澳大利亚"
+  },
+  "TT": {
+    "name": "虎航澳洲",
+    "name_en": "Tigerair Australia",
+    "country": "澳大利亚"
+  },
+  "NZ": {
+    "name": "新西兰航空",
+    "name_en": "Air New Zealand",
+    "country": "新西兰"
+  },
+  "FJ": {
+    "name": "斐济航空",
+    "name_en": "Fiji Airways",
+    "country": "斐济"
+  },
+  "PX": {
+    "name": "新几内亚航空",
+    "name_en": "Air Niugini",
+    "country": "巴布亚新几内亚"
+  },
+  "SB": {
+    "name": "喀里多尼亚国际航空",
+    "name_en": "Aircalin",
+    "country": "新喀里多尼亚"
+  },
+  "KC": {
+    "name": "阿斯塔纳航空",
+    "name_en": "Air Astana",
+    "country": "哈萨克斯坦"
+  },
+  "HY": {
+    "name": "乌兹别克航空",
+    "name_en": "Uzbekistan Airways",
+    "country": "乌兹别克斯坦"
+  },
+  "A9": {
+    "name": "格鲁吉亚航空",
+    "name_en": "Georgian Airways",
+    "country": "格鲁吉亚"
+  },
+  "J2": {
+    "name": "阿塞拜疆航空",
+    "name_en": "Azerbaijan Airlines",
+    "country": "阿塞拜疆"
+  },
+  "OM": {
+    "name": "蒙古航空",
+    "name_en": "MIAT Mongolian Airlines",
+    "country": "蒙古"
+  },
+  "IQ": {
+    "name": "伊拉克航空",
+    "name_en": "Iraqi Airways",
+    "country": "伊拉克"
+  },
+  "EP": {
+    "name": "伊朗阿塞曼",
+    "name_en": "Iran Aseman Airlines",
+    "country": "伊朗"
+  },
+  "RB": {
+    "name": "叙利亚航空",
+    "name_en": "Syrian Arab Airlines",
+    "country": "叙利亚"
+  },
+  "5N": {
+    "name": "诺德温航空",
+    "name_en": "Nordwind Airlines",
+    "country": "俄罗斯"
+  }
+}

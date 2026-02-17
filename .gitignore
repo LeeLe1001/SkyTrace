@@ -1,0 +1,25 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# User data (private)
+data/settings.json
+
+# IDE
+.vscode/
+.idea/
+
+# Temp/test files
+verify.py
+test_api.py
+gen_icon.py
+
+# Large binary files
+*.apk
+
+# OS
+.DS_Store
+Thumbs.db
+backUpData-all.csv
