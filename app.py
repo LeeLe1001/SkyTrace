@@ -28,6 +28,7 @@ AIRPORTS_FILE = os.path.join(DATA_DIR, 'airports.json')
 AIRLINES_FILE = os.path.join(DATA_DIR, 'airlines.json')
 SCHEDULES_FILE = os.path.join(DATA_DIR, 'flight_schedules.json')
 SETTINGS_FILE = os.path.join(DATA_DIR, 'settings.json')
+LOGO_CACHE_DIR = os.path.join('static', 'img', 'airlines', 'cache')
 
 DEFAULT_SETTINGS = {
     'aviationstack_key': '',
@@ -36,6 +37,151 @@ DEFAULT_SETTINGS = {
     'preferred_api': 'auto',
     'auto_cache': True,
 }
+
+# ==================== 航站楼自动补全 ====================
+# 已知航司在各机场的常用航站楼映射 (API返回空时兜底)
+# 格式: { 机场IATA: { 航司IATA: 航站楼编号 } }
+AIRLINE_TERMINAL_MAP = {
+    # ====== 中国大陆 ======
+    'PEK': {'CA': '3', 'ZH': '3', 'MU': '2', 'FM': '2', 'CZ': '2', 'MF': '2',
+            'SC': '2', 'NH': '3', 'SQ': '3', 'LH': '3', 'BA': '3', 'AF': '2',
+            'HU': '1', 'GS': '1', 'JD': '2', 'CX': '3', '3U': '2', 'SU': '2'},
+    'PVG': {'MU': '1', 'FM': '1', 'CZ': '1', 'CA': '2', 'NH': '2', 'SQ': '2',
+            'AF': '2', 'LH': '2', 'BA': '2', 'KE': '1', 'OZ': '1'},
+    'SHA': {'MU': '1', 'FM': '1', 'CZ': '1', 'CA': '2', 'HU': '2', 'SC': '2',
+            '9C': '2', '3U': '2', 'HO': '1'},
+    'CTU': {'MU': '2', 'CA': '1', 'CZ': '1', '3U': '1', 'ZH': '1', 'EU': '2',
+            'HU': '1', 'SC': '1', '9C': '1', 'GJ': '1', 'HO': '1', 'MI': '2',
+            'NS': '2', 'TV': '2'},
+    'TFU': {# T1: 国际航线 + 川航/成都航空
+            '3U': '1', 'EU': '1', 'QR': '1', 'KE': '1', 'CX': '1', 'TG': '1',
+            'SQ': '1', 'MU': '1',
+            # T2: 大部分国内航线
+            'CA': '2', 'CZ': '2', 'ZH': '2', 'HU': '2', 'SC': '2',
+            'GJ': '2', 'TV': '2', 'MF': '2', 'GS': '2', '9C': '2', 'HO': '2'},
+    'CAN': {'CZ': '2', 'MU': '2', 'CA': '1', 'ZH': '1', 'HU': '1', 'SC': '1',
+            '9C': '1'},
+    'SZX': {'CA': '3', 'CZ': '3', 'MU': '3', 'ZH': '3', '3U': '3', 'HU': '3'},
+    'XMN': {'MF': '3', 'MU': '3', 'CZ': '3', 'CA': '3'},
+    'FOC': {'MF': '1', 'CZ': '1', 'MU': '1'},
+    'HGH': {'MF': '4', 'GJ': '1', 'CA': '1', 'MU': '1', 'CZ': '3', 'HU': '3'},
+    'HFE': {'CA': '1', 'MU': '1'},
+    'KMG': {'CA': '2', 'MU': '2', 'CZ': '2', 'HU': '2', '3U': '2'},
+    'HRB': {'HU': '2', 'SC': '2', 'CZ': '2', 'CA': '2', 'MU': '2'},
+    'TSN': {'HU': '2', 'SC': '2', 'CA': '2', 'CZ': '2', 'MU': '2'},
+    'TYN': {'MU': '2', 'Y7': '2', 'CA': '2', 'CZ': '2', 'HU': '2'},
+    'XNN': {'CA': '2', 'MU': '2', 'TV': '2', 'CZ': '2'},
+    'YNT': {'CZ': '2', 'MU': '2', 'SC': '2'},
+    'SHE': {'3U': '3', 'CZ': '3', 'MU': '3', 'CA': '3', 'SC': '3'},
+    # ====== 东亚 ======
+    'HKG': {'CX': '1', 'KA': '1', 'HX': '1', 'CA': '1', 'MU': '1', 'CZ': '1',
+            'SQ': '1', 'QR': '1', 'NH': '1', 'JL': '1', 'BA': '1'},
+    'NRT': {'NH': '1', 'CA': '1', 'MU': '1', 'CZ': '1', 'JL': '2', 'ZH': '1'},
+    'HND': {'NH': '3', 'CA': '3', 'MU': '3', 'CZ': '3'},
+    'ICN': {'KE': '2', 'OZ': '1', 'CA': '1', 'MU': '1', 'CZ': '1', 'AA': '1',
+            'AS': '1', 'MF': '1', 'SQ': '1', 'DL': '1', 'MH': '1'},
+    'TPE': {'JX': '1', 'CI': '1', 'BR': '2', 'MU': '1', 'CA': '2', 'CZ': '1'},
+    # ====== 东南亚 ======
+    'SIN': {'SQ': '3', 'NH': '1', 'CA': '2', 'MU': '1', 'CZ': '1', 'CX': '4',
+            'MI': '2', 'MH': '1', 'TG': '1'},
+    # ====== 中东/非洲 ======
+    'CAI': {'MS': '3', 'QR': '2', 'VF': '2', 'NP': '2', 'AF': '2', 'BA': '2'},
+    'CMN': {'AT': '1', 'AF': '1'},
+    # ====== 欧洲 ======
+    'CDG': {'AF': '2E', 'MU': '2E', 'CA': '2E', 'CZ': '2E', 'AZ': '1'},
+    'ORY': {'AT': '4'},
+    'FCO': {'AZ': '1', 'AT': '3'},
+    'MAD': {'IB': '4', 'QR': '1', 'AT': '1', 'BA': '4', 'AA': '4'},
+    'BCN': {'QR': '1', 'IB': '1', 'BA': '1'},
+    'SVO': {'SU': 'D', 'S7': 'D', 'AF': 'E', 'KE': 'D'},
+    # ====== 澳洲 ======
+    'SYD': {'CA': '1', 'MF': '1', 'MH': '1', 'CZ': '1', 'SQ': '1',
+            'VA': '2', 'JQ': '2', 'QF': '3'},
+    'MEL': {'CZ': '2', 'MF': '2', 'MH': '2', 'SQ': '2', 'CA': '2',
+            'VA': '3', 'JQ': '4', 'QF': '1'},
+    # ====== 北美 ======
+    'DFW': {'AA': 'C', 'KE': 'D', 'AS': 'E', 'QR': 'D'},
+    'JFK': {'AA': '8', 'DL': '4', 'BA': '7', 'CX': '8'},
+    'LAX': {'MU': 'B', 'DL': '3', 'AA': '4', 'CX': 'B', 'SQ': 'B'},
+    'IAH': {'UA': 'C', 'AA': 'A'},
+    'LGA': {'AA': 'C', 'DL': 'C', 'UA': 'A'},
+}
+
+# 已知的单航站楼机场（无航站楼编号或仅有一个航站楼）
+# 这些机场的航站楼显示为 MAIN
+SINGLE_TERMINAL_AIRPORTS = {
+    # ====== 中国大陆 ======
+    'PKX',   # 北京大兴
+    'DZH',   # 达州
+    'XFN',   # 襄阳
+    'HUZ',   # 惠州
+    'KWE',   # 贵阳龙洞堡
+    'SJW',   # 石家庄正定
+    'SYX',   # 三亚凤凰
+    # ====== 东亚 ======
+    'NGO',   # 名古屋中部
+    'ITM',   # 大阪伊丹
+    'KMJ',   # 熊本
+    'GMP',   # 首尔金浦 (国际航站楼)
+    'MFM',   # 澳门
+    # ====== 东南亚 ======
+    'KBV',   # 甲米
+    'HKT',   # 普吉
+    'BKK',   # 曼谷素万那普 (单航站楼大楼)
+    'KUL',   # 吉隆坡KLIA (主楼)
+    # ====== 中东 ======
+    'DOH',   # 多哈哈马德国际 (单航站楼)
+    'IST',   # 伊斯坦布尔新机场 (单航站楼)
+    'SAW',   # 伊斯坦布尔萨比哈格克琴
+    # ====== 非洲 ======
+    'LXR',   # 卢克索
+    'HRG',   # 赫尔格达
+    # ====== 俄罗斯/中亚 ======
+    'VVO',   # 海参崴
+    'KJA',   # 克拉斯诺亚尔斯克
+    'DME',   # 莫斯科多莫杰多沃
+    'LED',   # 圣彼得堡普尔科沃
+    'TAS',   # 塔什干
+    # ====== 澳洲 ======
+    'OOL',   # 黄金海岸
+    'HBA',   # 霍巴特
+    'ADL',   # 阿德莱德
+    'BNE',   # 布里斯班
+    # ====== 欧洲 ======
+    'OPO',   # 波尔图
+    # ====== 北美 ======
+    'LAS',   # 拉斯维加斯
+    'AUS',   # 奥斯汀
+    'SEA',   # 西雅图-塔科马
+    'DTW',   # 底特律
+    'PHX',   # 凤凰城
+}
+
+
+def fill_terminal(flight_data):
+    """为缺失航站楼信息的航班补充已知数据"""
+    airline_code = extract_airline_code(flight_data.get('flight_no', ''))
+    dep = flight_data.get('departure', '')
+    arr = flight_data.get('arrival', '')
+
+    # 1. 单航站楼机场: 填充 MAIN
+    if not flight_data.get('dep_terminal') and dep in SINGLE_TERMINAL_AIRPORTS:
+        flight_data['dep_terminal'] = 'MAIN'
+    if not flight_data.get('arr_terminal') and arr in SINGLE_TERMINAL_AIRPORTS:
+        flight_data['arr_terminal'] = 'MAIN'
+
+    # 2. 多航站楼机场: 按航司映射补全
+    if not flight_data.get('dep_terminal') and dep in AIRLINE_TERMINAL_MAP:
+        terminal = AIRLINE_TERMINAL_MAP[dep].get(airline_code, '')
+        if terminal:
+            flight_data['dep_terminal'] = terminal
+
+    if not flight_data.get('arr_terminal') and arr in AIRLINE_TERMINAL_MAP:
+        terminal = AIRLINE_TERMINAL_MAP[arr].get(airline_code, '')
+        if terminal:
+            flight_data['arr_terminal'] = terminal
+
+    return flight_data
 
 
 # ==================== 工具函数 ====================
@@ -346,9 +492,37 @@ def find_in_local_data(flight_no):
     return None
 
 
+# ==================== Logo 代理缓存 ====================
+
+@app.route('/api/logo-proxy')
+def logo_proxy():
+    """Proxy and cache remote airline logos to local disk"""
+    import hashlib
+    url = request.args.get('url', '')
+    if not url or not url.startswith('http'):
+        return '', 400
+    ext = '.svg' if '.svg' in url else '.png'
+    filename = hashlib.md5(url.encode()).hexdigest() + ext
+    cache_path = os.path.join(LOGO_CACHE_DIR, filename)
+    mimetype = 'image/svg+xml' if ext == '.svg' else 'image/png'
+    if os.path.exists(cache_path):
+        return send_from_directory(LOGO_CACHE_DIR, filename, mimetype=mimetype)
+    try:
+        os.makedirs(LOGO_CACHE_DIR, exist_ok=True)
+        req = urllib.request.Request(url)
+        req.add_header('User-Agent', 'SkyTrace/2.0')
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = resp.read()
+            with open(cache_path, 'wb') as f:
+                f.write(data)
+        return send_from_directory(LOGO_CACHE_DIR, filename, mimetype=mimetype)
+    except Exception:
+        return '', 404
+
+
 # ==================== 页面路由 ====================
 
-APP_VERSION = 12
+APP_VERSION = 16
 
 @app.route('/api/version')
 def get_app_version():
@@ -553,6 +727,8 @@ def lookup_flight():
                 if v:
                     result[k] = v
             result['source'] = 'api'
+            # 自动补全缺失的航站楼
+            fill_terminal(result)
             return jsonify(result)
 
     # --- Level 2 & 3: 本地数据 ---
@@ -563,6 +739,8 @@ def lookup_flight():
             if local.get(k):
                 result[k] = local[k]
         result['source'] = local.get('source', 'local')
+        # 自动补全缺失的航站楼
+        fill_terminal(result)
         return jsonify(result)
 
     return jsonify(result)
@@ -664,6 +842,15 @@ def get_flights():
     enhanced = []
     for flight in flights:
         f = flight.copy()
+        # 自动补全缺失的航站楼信息
+        fill_terminal(f)
+
+        # 经停信息: 查找经停机场名称
+        if f.get('stopover'):
+            stop_code = f['stopover']
+            stop_airport = airports.get(stop_code, {})
+            f['stopover_airport'] = stop_airport
+
         dep_airport = airports.get(flight.get('departure', ''), {})
         arr_airport = airports.get(flight.get('arrival', ''), {})
         f['dep_airport'] = dep_airport
@@ -815,7 +1002,10 @@ def get_stats():
             dt = datetime.strptime(flight['dep_time'], '%H:%M')
             at = datetime.strptime(flight['arr_time'], '%H:%M')
             diff = (at - dt).total_seconds() / 3600
-            if diff < 0:
+            day_offset = flight.get('arr_day_offset', 1 if flight.get('arr_next_day') else 0)
+            if day_offset:
+                diff += 24 * day_offset
+            elif diff < 0:
                 diff += 24
             total_hours += diff
             durations.append(round(diff, 1))
@@ -1018,14 +1208,14 @@ if __name__ == '__main__':
                    settings.get('aerodata_key'))
 
     print("=" * 50)
-    print("✈️  SkyTrace - 个人航旅管理系统 v2.0")
+    print("  SkyTrace - Personal Flight Manager v2.0")
     print("=" * 50)
-    print("🌐 访问地址: http://localhost:5000")
+    print("  URL: http://localhost:5000")
     if has_api:
-        print("✅ API已配置 - 支持实时航班查询")
+        print("  [OK] API configured")
     else:
-        print("⚠️  未配置API - 点击页面右上角⚙️设置")
-        print("   支持: AviationStack / AirLabs / AeroDataBox")
+        print("  [!] No API key - click Settings in top-right")
+        print("      Supports: AviationStack / AirLabs / AeroDataBox")
     print("=" * 50)
 
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=False, host='0.0.0.0', port=5000)

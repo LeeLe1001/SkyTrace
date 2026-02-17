@@ -1,4 +1,4 @@
-# Python
+﻿# Python
 .venv/
 __pycache__/
 *.pyc
@@ -23,3 +23,5 @@ gen_icon.py
 .DS_Store
 Thumbs.db
 backUpData-all.csv
+server_err.txt
+server_out.txt

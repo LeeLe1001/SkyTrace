@@ -27,53 +27,238 @@ let currentStatsYear = 'all';
 let cachedStatsData = null;
 let homeRoutesByFlight = {};
 let _currentCenterSlide = null;
-const SKYTRACE_VERSION = 12;
+let _isOffline = false;
+let _hoState = 'peek'; // 'hidden' | 'peek' | 'expanded'
+let _allSortOrder = 'newest'; // 'newest' | 'oldest'
+const SKYTRACE_VERSION = 16;
 
-// ==================== 航空公司 Logo 映射 (IATA → soaring-symbols slug) ====================
-const AIRLINE_LOGO_MAP = {
-    'A3':'aegean-airlines','EI':'aer-lingus','AR':'aerolineas-argentinas','AM':'aeromexico',
-    'CA':'air-china','ZB':'air-albania','AH':'air-algerie','KC':'air-astana','AC':'air-canada',
-    'EN':'air-dolomiti','UX':'air-europa','AF':'air-france','AI':'air-india',
-    'MK':'air-mauritius','NZ':'air-new-zealand','JU':'air-serbia','TS':'air-transat',
-    'BX':'air-busan','AK':'airasia','KT':'airasia','FD':'airasia','QZ':'airasia','Z2':'airasia',
-    'BT':'airbaltic','QP':'akasa-air','AS':'alaska-airlines','NH':'all-nippon-airways',
-    'AA':'american-airlines','OZ':'asiana-airlines',
-    'RC':'atlantic-airways','AV':'avianca','LR':'avianca','2K':'avianca','TA':'avianca',
-    'J2':'azerbaijan-airlines','QH':'bamboo-airways','PG':'bangkok-airways',
-    'BA':'british-airways','SN':'brussels-airlines',
-    'CI':'china-airlines-taiwan','MU':'china-eastern','CZ':'china-southern','KN':'china-united-airlines',
-    'CX':'cathay-pacific','CM':'copa-airlines','DL':'delta-air-lines',
-    'ZE':'eastar-jet','EK':'emirates','ET':'ethiopian-airlines','EY':'etihad-airways',
-    'EW':'eurowings','BR':'eva-air','ZD':'ewa-air','FJ':'fiji-airways','FY':'firefly','XY':'flynas',
-    'GA':'garuda-indonesia','UO':'hk-express','HU':'hainan-airlines','IB':'iberia','FI':'icelandair',
-    '6E':'indigo','JL':'japan-airlines','7C':'jeju-air','JQ':'jetstar','GK':'jetstar',
-    'LJ':'jin-air','HO':'juneyao-airlines',
-    'KQ':'kenya-airways','KL':'klm','KE':'korean-air','KU':'kuwait-airways',
-    'LA':'latam-airlines','JJ':'latam-airlines','4C':'latam-airlines','XL':'latam-airlines',
-    'LP':'latam-airlines','PZ':'latam-airlines','LO':'lot-polish-airlines','GJ':'loong-air','LH':'lufthansa',
-    'MH':'malaysia-airlines','UB':'myanmar-national-airlines','WY':'oman-air',
-    'ZP':'paranair','MM':'peach-aviation','PR':'philippine-airlines','QF':'qantas',
-    'QR':'qatar-airways','RX':'riyadh-air','AT':'royal-air-maroc','BI':'royal-brunei-airlines',
-    'FR':'ryanair','SV':'saudia','SK':'scandinavian-airlines','SL':'scandinavian-airlines',
-    'SC':'shandong-airlines','FM':'shanghai-airlines','ZH':'shenzhen-airlines',
-    '3U':'sichuan-airlines','9C':'spring-airlines',
-    'TR':'scoot','SQ':'singapore-airlines','WN':'southwest-airlines','JX':'starlux-airlines',
-    '9G':'sun-phuquoc-airways','LX':'swiss','TW':'tway-air','TP':'tap-air-portugal',
-    'RO':'tarom','TG':'thai-airways','TV':'tibet-airlines','GS':'tianjin-airlines',
-    'IT':'tigerair-taiwan','HV':'transavia','TK':'turkish-airlines',
-    'UA':'united-airlines','VJ':'vietjet-air','VN':'vietnam-airlines',
-    'VS':'virgin-atlantic','VA':'virgin-australia','PN':'west-air','WS':'westjet',
-    'W6':'wizz-air','5W':'wizz-air','W9':'wizz-air','MF':'xiamenair',
+// ==================== 通用格式化工具函数 ====================
+/** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
+function formatTerminal(terminal) {
+    if (!terminal) return '';
+    if (terminal === 'MAIN') return 'MAIN';
+    return /^\d+$/.test(terminal) ? `T${terminal}` : terminal;
+}
+
+/** 格式化到达时间: 跨日到达加 +1/-1/+2 标识 */
+function formatArrTime(flight) {
+    if (!flight.arr_time) return '';
+    const offset = _getDayOffset(flight);
+    if (offset && offset !== 0) {
+        const sign = offset > 0 ? '+' : '';
+        return `${flight.arr_time}<sup class="next-day-sup">${sign}${offset}</sup>`;
+    }
+    return flight.arr_time;
+}
+
+/** 格式化到达时间(纯文本, 用于分享卡等) */
+function formatArrTimeText(flight) {
+    if (!flight.arr_time) return '';
+    const offset = _getDayOffset(flight);
+    if (offset && offset !== 0) {
+        const sign = offset > 0 ? '+' : '';
+        const sup = `${sign}${offset}`.split('').map(c => '\u207A\u00B9\u00B2\u207B'['+-12'.indexOf(c)] || c).join('');
+        // Simpler: just use unicode superscripts
+        return `${flight.arr_time}${sign === '+' ? '\u207A' : '\u207B'}${Math.abs(offset) === 1 ? '\u00B9' : '\u00B2'}`;
+    }
+    return flight.arr_time;
+}
+
+/** 获取航班到达日期偏移量 (兼容旧版 arr_next_day) */
+function _getDayOffset(flight) {
+    if (flight.arr_day_offset !== undefined && flight.arr_day_offset !== null) return parseInt(flight.arr_day_offset) || 0;
+    if (flight.arr_next_day) return 1;
+    return 0;
+}
+
+/** 计算飞行时长, 自动处理跨日 */
+function calcDuration(flight) {
+    if (!flight.dep_time || !flight.arr_time) return '';
+    const d1 = new Date(`2000-01-01 ${flight.dep_time}`);
+    let d2 = new Date(`2000-01-01 ${flight.arr_time}`);
+    const offset = _getDayOffset(flight);
+    if (offset) d2.setDate(d2.getDate() + offset);
+    else if (d2 < d1) d2.setDate(d2.getDate() + 1);
+    const diff = (d2 - d1) / 1000 / 60;
+    if (diff <= 0) return '';
+    return `${Math.floor(diff / 60)}h ${Math.round(diff % 60)}m`;
+}
+
+/** 经停信息HTML (用于航线箭头区域) */
+function renderStopoverHtml(flight) {
+    if (!flight.stopover) return '';
+    const stopAirport = flight.stopover_airport || {};
+    const city = getAirportCity(stopAirport) || flight.stopover;
+    return `<div class="stopover-indicator"><span class="stopover-dot"></span><span class="stopover-text">${t('stopoverVia')} ${flight.stopover}</span></div>`;
+}
+
+// ==================== 航空公司 Logo 映射 (IATA 2-letter → ICAO 3-letter) ====================
+// Logo source: https://github.com/Jxck-S/airline-logos (1629 ICAO codes available)
+// Format: logos/{ICAO}.png  — verified 223 airlines against repo (2026-01)
+const IATA_TO_ICAO = {
+    // — 中国大陆航空公司 —
+    'CA':'CCA','MU':'CES','CZ':'CSN','HU':'CHH','ZH':'CSZ','MF':'CXA','FM':'CSH',
+    'SC':'CDG','3U':'CSC','GS':'GCR','KN':'CUA','9C':'CQH','G5':'HXA','TV':'TVQ',
+    'PN':'CHB','EU':'UEA','KY':'KNA','JD':'CBJ','DZ':'EPA','GJ':'CDC','QW':'CSQ',
+    'CN':'GDC','8L':'LKE','GT':'CGH','Y8':'YZR','NS':'HBH','BK':'OKA','UQ':'CUH',
+    'AQ':'JYH','HO':'DKH','GX':'CBG','GY':'CGZ','FU':'FZA','RY':'RJD','JR':'JOY',
+    'O3':'CSS','OQ':'CQN','YI':'CYZ',
+    // — 港澳台航空公司 —
+    'CX':'CPA','KA':'HDA','HX':'CRK','UO':'HKE','NX':'AMU',
+    'BR':'EVA','CI':'CAL','IT':'TTW','AE':'MDA','B7':'UIA',
+    // — 日本航空公司 —
+    'NH':'ANA','JL':'JAL','BC':'SKY','MM':'APJ','GK':'JJP','HD':'ADO',
+    'SJ':'SJO','7G':'SFJ','NU':'JTA','IJ':'JIA','DJ':'TZP',
+    // — 韩国航空公司 —
+    'KE':'KAL','OZ':'AAR','LJ':'JNA','ZE':'ESR','TW':'TWB','7C':'JJA','RS':'RSI',
+    // — 东南亚航空公司 —
+    'SQ':'SIA','TR':'TGW','MI':'SLK','TG':'THA','FD':'AIQ','WE':'THD','DD':'NOK',
+    'SL':'TLM','VZ':'TVJ','MH':'MAS','AK':'AXM','D7':'XAK','OD':'MXD',
+    'VN':'HVN','VJ':'VJC','BL':'BAV','GA':'GIA','ID':'BTK','JT':'LNI',
+    'QZ':'AWQ','QG':'CTV','PR':'PAL','5J':'CEB','Z2':'APG','QV':'LAO',
+    '8M':'MMA','BI':'RBA','PG':'BKP','LQ':'LAQ',
+    // — 南亚航空公司 —
+    'AI':'AIC','6E':'IGO','UK':'VTI','SG':'SEJ','IX':'AXB',
+    'UL':'ALK','RA':'RNA','BG':'BBC','PK':'PIA',
+    // — 中东航空公司 —
+    'EK':'UAE','EY':'ETD','FZ':'FDB','G9':'ABY','QR':'QTR','GF':'GFA',
+    'WY':'OMA','KU':'KAC','SV':'SVA','XY':'KNE','RX':'RXI',
+    'TK':'THY','PC':'PGT','XQ':'SXS','LY':'ELY','RJ':'RJA',
+    'ME':'MEA','IR':'IRA','W5':'IRM','IQ':'IAW','EP':'IRC',
+    // — 欧洲航空公司 —
+    'BA':'BAW','VS':'VIR','U2':'EZY','BE':'BEE',
+    'AF':'AFR','TO':'TVF','LH':'DLH','EW':'EWG','4Y':'EWG','DE':'CFG',
+    'KL':'KLM','HV':'TRA','SN':'BEL','LX':'SWR','OS':'AUA','EN':'DLA',
+    'IB':'IBE','VY':'VLG','I2':'IBS','UX':'AEA',
+    'TP':'TAP','AZ':'ITY','FR':'RYR','EI':'EIN','A3':'AEE',
+    'SK':'SAS','DY':'NAX','AY':'FIN','FI':'ICE','WW':'WOW','OG':'CEY',
+    'LO':'LOT','OK':'CSA','W6':'WZZ','RO':'ROT','FB':'LZB',
+    'JU':'ASL','OU':'CTN','BT':'BTI','PS':'AUI','B2':'BRU',
+    'SU':'AFL','S7':'SBI','UT':'UTA',
+    // — 北美航空公司 —
+    'AA':'AAL','UA':'UAL','DL':'DAL','WN':'SWA','B6':'JBU','AS':'ASA',
+    'NK':'NKS','F9':'FFT','HA':'HAL','SY':'SCX','G4':'AAY',
+    'AC':'ACA','WS':'WJA','PD':'POE','TS':'TSC',
+    'AM':'AMX','Y4':'VOI','4O':'VBW','CM':'CMP',
+    // — 南美航空公司 —
+    'LA':'LAN','JJ':'TAM','G3':'GLO','AD':'AZU','AR':'ARG','AV':'AVA','LR':'LRC',
+    // — 非洲航空公司 —
+    'SA':'SAA','MS':'MSR','ET':'ETH','KQ':'KQA','AT':'RAM',
+    'WB':'RWD','MK':'MAU','TC':'TCW',
+    // — 大洋洲航空公司 —
+    'QF':'QFA','VA':'VOZ','JQ':'JST','NZ':'ANZ','FJ':'FJI',
+    // — 中亚航空公司 —
+    'KC':'KZR','HY':'UZB','J2':'AHY','OM':'MGL',
+    // — 补充映射 —
+    'VF':'AJT','MZ':'AHX','NP':'NIA','Y7':'TYA','HH':'QNT',
+    // — 其他/货运 —
+    'RC':'FLI','JX':'SRQ','FX':'FDX','5X':'UPS','UP':'UPS',
+    'CV':'CLX','PO':'PAC','5Y':'GTI','FY':'FFM','ZD':'EWR',
 };
+const LOGO_JXCK = 'https://raw.githubusercontent.com/Jxck-S/airline-logos/main/flightaware_logos/';
+const LOGO_JXCK_RB = 'https://raw.githubusercontent.com/Jxck-S/airline-logos/main/radarbox_logos/';
 const LOGO_LOCAL = '/static/img/airlines/';
-const LOGO_REMOTE = 'https://raw.githubusercontent.com/anhthang/soaring-symbols/main/assets/';
+
+// ==================== 航空联盟映射 (2026-01) ====================
+const AIRLINE_ALLIANCE = {
+    // Star Alliance 星空联盟
+    'CA':'star','ZH':'star','NH':'star','SQ':'star','UA':'star','AC':'star',
+    'LH':'star','TK':'star','OS':'star','LX':'star','LO':'star',
+    'ET':'star','TP':'star','MS':'star','NZ':'star','OZ':'star','SA':'star',
+    'TG':'star','BR':'star','A3':'star','AI':'star','AV':'star','SN':'star',
+    'HO':'star','OU':'star','CM':'star',
+    // SkyTeam 天合联盟 (SAS于2024底从星空联盟转入)
+    'MU':'skyteam','FM':'skyteam','MF':'skyteam','KE':'skyteam','DL':'skyteam',
+    'AF':'skyteam','KL':'skyteam','AZ':'skyteam','AR':'skyteam','AM':'skyteam',
+    'VN':'skyteam','CI':'skyteam','RO':'skyteam','ME':'skyteam','KQ':'skyteam',
+    'SK':'skyteam','SV':'skyteam','GA':'skyteam','OK':'skyteam','UX':'skyteam',
+    'VS':'skyteam',
+    // Oneworld 寰宇一家
+    'BA':'oneworld','AA':'oneworld','CX':'oneworld','JL':'oneworld','QF':'oneworld',
+    'IB':'oneworld','AY':'oneworld','RJ':'oneworld','MH':'oneworld','QR':'oneworld',
+    'AS':'oneworld','AT':'oneworld','UL':'oneworld','FJ':'oneworld','WY':'oneworld',
+    'EI':'oneworld',
+};
+function getAllianceBadgeHtml(flightNo) {
+    const iata = (flightNo || '').match(/^([A-Z0-9]{2})/i)?.[1]?.toUpperCase();
+    if (!iata) return '';
+    const alliance = AIRLINE_ALLIANCE[iata];
+    if (!alliance) return '';
+    const labels = { star: '星空联盟', skyteam: '天合联盟', oneworld: '寰宇一家' };
+    const labelsEn = { star: 'Star Alliance', skyteam: 'SkyTeam', oneworld: 'Oneworld' };
+    const label = currentLang === 'zh' ? labels[alliance] : (labelsEn[alliance] || labels[alliance]);
+    return `<span class="alliance-badge alliance-${alliance}">${label}</span>`;
+}
+// 旧 slug 映射 (本地 SVG/PNG 缓存)
+const AIRLINE_SLUG_MAP = {
+    'CA':'air-china','MU':'china-eastern','CZ':'china-southern','HU':'hainan-airlines',
+    'FM':'shanghai-airlines','ZH':'shenzhen-airlines','SC':'shandong-airlines',
+    '3U':'sichuan-airlines','MF':'xiamenair','HO':'juneyao-airlines','9C':'spring-airlines',
+    'GJ':'loong-air','KN':'china-united-airlines','TV':'tibet-airlines','GS':'tianjin-airlines',
+    'PN':'west-air','CX':'cathay-pacific','UO':'hk-express',
+    'CI':'china-airlines-taiwan','BR':'eva-air','IT':'tigerair-taiwan',
+    'NH':'all-nippon-airways','JL':'japan-airlines','MM':'peach-aviation',
+    'KE':'korean-air','OZ':'asiana-airlines','LJ':'jin-air','7C':'jeju-air','TW':'tway-air',
+    'ZE':'eastar-jet','BX':'air-busan',
+    'SQ':'singapore-airlines','TR':'scoot','VN':'vietnam-airlines','VJ':'vietjet-air',
+    'TG':'thai-airways','PG':'bangkok-airways','GA':'garuda-indonesia',
+    'MH':'malaysia-airlines','AK':'airasia','PR':'philippine-airlines',
+    'AI':'air-india','6E':'indigo',
+    'EK':'emirates','QR':'qatar-airways','EY':'etihad-airways','SV':'saudia','WY':'oman-air',
+    'ET':'ethiopian-airlines','KQ':'kenya-airways','AT':'royal-air-maroc',
+    'BA':'british-airways','LH':'lufthansa','AF':'air-france','KL':'klm','LX':'swiss',
+    'IB':'iberia','FR':'ryanair','SK':'scandinavian-airlines','TP':'tap-air-portugal',
+    'SN':'brussels-airlines','LO':'lot-polish-airlines','TK':'turkish-airlines',
+    'EI':'aer-lingus','VS':'virgin-atlantic','FI':'icelandair','RO':'tarom',
+    'EW':'eurowings','HV':'transavia','A3':'aegean-airlines','BT':'airbaltic',
+    'AA':'american-airlines','DL':'delta-air-lines','UA':'united-airlines',
+    'WN':'southwest-airlines','AS':'alaska-airlines','AC':'air-canada','WS':'westjet',
+    'AM':'aeromexico','AR':'aerolineas-argentinas','AV':'avianca','CM':'copa-airlines',
+    'LA':'latam-airlines','JJ':'latam-airlines',
+    'QF':'qantas','VA':'virgin-australia','NZ':'air-new-zealand','FJ':'fiji-airways',
+    'JX':'starlux-airlines','QH':'bamboo-airways','BI':'royal-brunei-airlines',
+    'KC':'air-astana','JU':'air-serbia','W6':'wizz-air','PC':'pegasus-airlines',
+    'VF':'ajet',
+};
+function _logoFallback(img) {
+    var t = parseInt(img.dataset.tried || '0') + 1;
+    img.dataset.tried = t;
+    var chain = (img.dataset.chain || '').split('|').filter(Boolean);
+    if (t <= chain.length) { img.src = chain[t - 1]; }
+    else { img.style.display = 'none'; var fb = img.nextElementSibling; if (fb) fb.style.display = 'flex'; }
+}
 function getAirlineLogoHtml(flightNo) {
     const iata = (flightNo || '').match(/^([A-Z0-9]{2})/i)?.[1]?.toUpperCase();
-    const slug = iata ? AIRLINE_LOGO_MAP[iata] : null;
-    if (slug) {
-        return `<img class="airline-logo" src="${LOGO_LOCAL}${slug}.svg" alt="${iata}" onerror="if(!this.dataset.tried){this.dataset.tried='1';this.src='${LOGO_LOCAL}${slug}.png'}else if(this.dataset.tried==='1'){this.dataset.tried='2';this.src='${LOGO_REMOTE}${slug}/icon.svg'}else{this.style.display='none';this.nextElementSibling.style.display='flex'}"><span class="airline-logo-fallback" style="display:none">${iata}</span>`;
+    if (!iata) return '';
+    const slug = AIRLINE_SLUG_MAP[iata];
+    const icao = IATA_TO_ICAO[iata];
+    if (slug || icao) {
+        const localSvg = slug ? `${LOGO_LOCAL}${slug}.svg` : '';
+        const localPng = slug ? `${LOGO_LOCAL}${slug}.png` : '';
+        // Route remote logos through proxy for local caching
+        const jxckFa = icao ? `/api/logo-proxy?url=${encodeURIComponent(LOGO_JXCK + icao + '.png')}` : '';
+        const jxckRb = icao ? `/api/logo-proxy?url=${encodeURIComponent(LOGO_JXCK_RB + icao + '.png')}` : '';
+        const firstSrc = localSvg || jxckFa;
+        const chain = [localPng, jxckFa, jxckRb].filter(Boolean).join('|');
+        return `<img class="airline-logo" src="${firstSrc}" alt="${iata}" data-chain="${chain}" onerror="_logoFallback(this)"><span class="airline-logo-fallback" style="display:none">${iata}</span>`;
     }
-    return iata ? `<span class="airline-logo-fallback">${iata}</span>` : '';
+    return `<span class="airline-logo-fallback">${iata}</span>`;
+}
+
+// ==================== 离线模式检测 ====================
+function _initOfflineDetection() {
+    _isOffline = !navigator.onLine;
+    _updateOfflineBanner();
+    window.addEventListener('online', () => { _isOffline = false; _updateOfflineBanner(); });
+    window.addEventListener('offline', () => { _isOffline = true; _updateOfflineBanner(); });
+}
+function _updateOfflineBanner() {
+    document.body.classList.toggle('is-offline', _isOffline);
+    const lookupBtn = document.querySelector('.btn-lookup');
+    if (lookupBtn) {
+        lookupBtn.disabled = _isOffline;
+        lookupBtn.style.opacity = _isOffline ? '0.5' : '1';
+    }
 }
 
 // ==================== 主题系统 ====================
@@ -147,6 +332,7 @@ function _skytraceInit() {
     console.log('[SkyTrace] Starting init...');
     // 第一步: 同步初始化 — UI 必须立即可交互
     try { initTheme(); console.log('[SkyTrace] initTheme OK'); } catch(e) { console.error('[SkyTrace] initTheme:', e); }
+    try { _initOfflineDetection(); console.log('[SkyTrace] offline detect OK'); } catch(e) { console.error('[SkyTrace] offline:', e); }
     try { initTabs(); console.log('[SkyTrace] initTabs OK'); } catch(e) { console.error('[SkyTrace] initTabs:', e); }
     try { applyI18n(); console.log('[SkyTrace] applyI18n OK'); } catch(e) { console.error('[SkyTrace] applyI18n:', e); }
 
@@ -189,7 +375,8 @@ function initHomeMap() {
         zoom: 4,
         minZoom: 2,
         maxZoom: 18,
-        zoomControl: false
+        zoomControl: false,
+        worldCopyJump: true
     });
     const theme = localStorage.getItem('skytrace-theme') || 'dark';
     const tileUrl = theme === 'light' ? TILE_LIGHT : TILE_DARK;
@@ -228,7 +415,7 @@ function renderHomeRoutes() {
 
         const flightLayers = [];
         const generator = new arc.GreatCircle({ x: dep.lon, y: dep.lat }, { x: arr.lon, y: arr.lat });
-        const arcLine = generator.Arc(50, { offset: 10 });
+        const arcLine = generator.Arc(50);
         arcLine.geometries.forEach(geo => {
             const coords = geo.coords.map(c => [c[1], c[0]]);
             const glow = L.polyline(coords, { color: '#3b82f6', weight: 4, opacity: 0.3 }).addTo(homeMap);
@@ -242,7 +429,7 @@ function renderHomeRoutes() {
     visitedAirports.forEach(code => {
         const airport = airports[code];
         if (!airport) return;
-        const terminalHtml = airportTerminals[code] ? `<div style="font-size:11px;color:#3b82f6;margin-top:3px;">T${airportTerminals[code]}</div>` : '';
+        const terminalHtml = airportTerminals[code] ? `<div style="font-size:11px;color:#3b82f6;margin-top:3px;">${formatTerminal(airportTerminals[code])}</div>` : '';
         const marker = L.circleMarker([airport.lat, airport.lon], {
             radius: 6, fillColor: '#3b82f6', color: '#fff', weight: 2, fillOpacity: 1
         }).addTo(homeMap);
@@ -275,12 +462,14 @@ function initHomeOverlayDrag() {
     const handle = el.querySelector('.home-overlay-handle');
     const header = el.querySelector('.home-overlay-header');
 
-    // Click header or handle to toggle expand
+    // Click header or handle to cycle: peek → expanded → hidden → peek
     const toggleClick = () => {
-        if (_hoExpanded) {
-            peekHomeOverlay();
-        } else {
+        if (_hoState === 'peek') {
             expandHomeOverlay();
+        } else if (_hoState === 'expanded') {
+            minimizeHomeOverlay();
+        } else {
+            peekHomeOverlay();
         }
     };
     if (header) header.addEventListener('click', toggleClick);
@@ -302,8 +491,10 @@ function initHomeOverlayDrag() {
             const h = el.offsetHeight;
             if (h > window.innerHeight * 0.35) {
                 expandHomeOverlay();
-            } else {
+            } else if (h > 100) {
                 peekHomeOverlay();
+            } else {
+                minimizeHomeOverlay();
             }
         });
     }
@@ -311,67 +502,109 @@ function initHomeOverlayDrag() {
     peekHomeOverlay();
 }
 
+function _getMobileNavH() {
+    const mobileNav = document.querySelector('.mobile-nav');
+    return (mobileNav && mobileNav.offsetParent !== null) ? mobileNav.offsetHeight : 0;
+}
+
 function expandHomeOverlay() {
+    _hoState = 'expanded';
     _hoExpanded = true;
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
     el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
-    // 计算底部导航高度
-    const mobileNav = document.querySelector('.mobile-nav');
-    const navH = mobileNav ? mobileNav.offsetHeight : 0;
-    el.style.maxHeight = `calc(75vh - ${navH}px)`;
+    const navH = _getMobileNavH();
+    el.style.maxHeight = navH > 0 ? `calc(75vh)` : `calc(75vh)`;
     el.classList.add('expanded');
+    el.classList.remove('minimized');
+    // 标题切换为"全部待出行"
+    const titleEl = el.querySelector('.home-overlay-title');
+    if (titleEl) titleEl.textContent = t('allUpcoming') || t('filterUpcoming') || '全部待出行';
+    // 隐藏最近出行大卡片，显示完整列表（最近航班平滑过渡到列表中）
     const nearest = el.querySelector('.home-nearest-card');
     const list = el.querySelector('.home-overlay-list');
-    if (nearest) { nearest.style.opacity = '0'; nearest.style.height = '0'; nearest.style.overflow = 'hidden'; nearest.style.padding = '0'; }
-    if (list) { list.style.opacity = '1'; list.style.pointerEvents = 'auto'; }
-    const hint = document.getElementById('ho-expand-hint');
+    if (nearest) { nearest.style.maxHeight = '0'; nearest.style.opacity = '0'; nearest.style.overflow = 'hidden'; nearest.style.padding = '0'; nearest.style.margin = '0'; }
+    if (list) { list.style.opacity = '1'; list.style.pointerEvents = 'auto'; list.style.height = 'auto'; }
+    // 展开箭头向下
+    const hint = el.querySelector('.home-overlay-expand-hint');
     if (hint) hint.textContent = '▼';
+    _updateHomeZoomPosition();
 }
 
 function collapseHomeOverlay() {
-    _hoExpanded = false;
-    const el = document.getElementById('home-flights-overlay');
-    if (!el) return;
-    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
-    el.style.maxHeight = '220px';
-    el.classList.remove('expanded');
-    const nearest = el.querySelector('.home-nearest-card');
-    const list = el.querySelector('.home-overlay-list');
-    if (nearest) { nearest.style.opacity = '1'; nearest.style.height = ''; nearest.style.overflow = ''; nearest.style.padding = ''; }
-    if (list) { list.style.opacity = '0.3'; list.style.pointerEvents = 'none'; }
-    const hint = document.getElementById('ho-expand-hint');
-    if (hint) hint.textContent = '▲';
+    peekHomeOverlay();
 }
 
 function peekHomeOverlay() {
+    _hoState = 'peek';
     _hoExpanded = false;
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
     el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
-    el.style.maxHeight = '220px';
+    const navH = _getMobileNavH();
+    el.style.maxHeight = '280px';
     el.classList.remove('expanded');
+    el.classList.remove('minimized');
+    // 标题切换为"最近出行"
+    const titleEl = el.querySelector('.home-overlay-title');
+    if (titleEl) titleEl.textContent = t('nearestTrip') || '最近出行';
     const nearest = el.querySelector('.home-nearest-card');
     const list = el.querySelector('.home-overlay-list');
-    if (nearest) { nearest.style.opacity = '1'; nearest.style.height = ''; nearest.style.overflow = ''; nearest.style.padding = ''; }
-    if (list) { list.style.opacity = '0.3'; list.style.pointerEvents = 'none'; }
-    const hint = document.getElementById('ho-expand-hint');
+    if (nearest) { nearest.style.maxHeight = ''; nearest.style.opacity = '1'; nearest.style.overflow = ''; nearest.style.padding = ''; nearest.style.margin = ''; }
+    if (list) { list.style.opacity = '0'; list.style.pointerEvents = 'none'; list.style.height = '0'; }
+    // 箭头向上
+    const hint = el.querySelector('.home-overlay-expand-hint');
     if (hint) hint.textContent = '▲';
+    _updateHomeZoomPosition();
 }
 
 function minimizeHomeOverlay() {
+    _hoState = 'hidden';
     _hoExpanded = false;
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
     el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
+    const navH = _getMobileNavH();
     el.style.maxHeight = '56px';
     el.classList.remove('expanded');
+    el.classList.add('minimized');
+    const titleEl = el.querySelector('.home-overlay-title');
+    if (titleEl) titleEl.textContent = t('filterUpcoming') || '待出行';
     const nearest = el.querySelector('.home-nearest-card');
     const list = el.querySelector('.home-overlay-list');
-    if (nearest) nearest.style.opacity = '0';
-    if (list) { list.style.opacity = '0'; list.style.pointerEvents = 'none'; }
-    const hint = document.getElementById('ho-expand-hint');
+    if (nearest) { nearest.style.maxHeight = '0'; nearest.style.opacity = '0'; nearest.style.overflow = 'hidden'; nearest.style.padding = '0'; nearest.style.margin = '0'; }
+    if (list) { list.style.opacity = '0'; list.style.pointerEvents = 'none'; list.style.height = '0'; }
+    // 箭头向上（提示可以展开）
+    const hint = el.querySelector('.home-overlay-expand-hint');
     if (hint) hint.textContent = '▲';
+    // 高亮所有航线让用户看到完整地图
+    _highlightAllRoutes();
+    _updateHomeZoomPosition();
+}
+
+function _updateHomeZoomPosition() {
+    const zoomContainer = document.querySelector('#home-map .leaflet-bottom.leaflet-right');
+    if (!zoomContainer) return;
+    zoomContainer.style.transition = 'bottom 0.35s cubic-bezier(.4,0,.2,1)';
+    if (_hoState === 'expanded') {
+        zoomContainer.style.bottom = '76vh';
+    } else if (_hoState === 'peek') {
+        zoomContainer.style.bottom = '290px';
+    } else {
+        zoomContainer.style.bottom = '66px';
+    }
+}
+
+function _highlightAllRoutes() {
+    if (!homeMap || Object.keys(homeRoutesByFlight).length === 0) return;
+    Object.entries(homeRoutesByFlight).forEach(([id, layers]) => {
+        layers.forEach((l, i) => {
+            if (l.setStyle) {
+                if (i % 2 === 0) l.setStyle({ color: '#3b82f6', weight: 4, opacity: 0.4 });
+                else l.setStyle({ color: '#60a5fa', weight: 2, opacity: 0.8 });
+            }
+        });
+    });
 }
 
 function renderHomeFlightOverlay(upcoming) {
@@ -391,26 +624,44 @@ function renderHomeFlightOverlay(upcoming) {
         return;
     }
 
-    // Build carousel cards: only the nearest single flight or connected group
-    let carouselFlights;
-    if (sorted[0].connected_group) {
-        carouselFlights = sorted.filter(f => f.connected_group === sorted[0].connected_group);
+    // 最近出行: 单个航班用详细大卡片，联程航班用可滑动轮播
+    const first = sorted[0];
+    let nearestFlights;
+    if (first.connected_group) {
+        nearestFlights = sorted.filter(f => f.connected_group === first.connected_group);
     } else {
-        carouselFlights = [sorted[0]];
+        nearestFlights = [first];
     }
-    nearestEl.innerHTML = `<div class="home-carousel">${carouselFlights.map(f => renderHomeCarouselCard(f)).join('')}</div>`;
+
+    if (nearestFlights.length === 1) {
+        // 单个航班: 详细全宽大卡片 (含倒计时、登机口等)
+        nearestEl.innerHTML = renderNearestDetailCard(nearestFlights[0]);
+    } else {
+        // 联程航班: 可滑动轮播 + 指示器
+        nearestEl.innerHTML = `
+            <div class="nearest-connected-label">🔗 ${t('connectedFlight') || '联程航班'} · ${nearestFlights.length}${t('flights') || '段'}</div>
+            <div class="home-carousel" id="nearest-carousel">${nearestFlights.map((f, i) => renderNearestSwipeCard(f, i, nearestFlights.length)).join('')}</div>
+            <div class="carousel-dots">${nearestFlights.map((_, i) => `<span class="carousel-dot${i === 0 ? ' active' : ''}" data-idx="${i}"></span>`).join('')}</div>`;
+        // 轮播指示器联动
+        setTimeout(() => {
+            const carousel = document.getElementById('nearest-carousel');
+            if (carousel) {
+                carousel.addEventListener('scroll', () => {
+                    const idx = Math.round(carousel.scrollLeft / carousel.offsetWidth);
+                    document.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+                    // 高亮对应航线
+                    if (nearestFlights[idx]) highlightRouteForSlide([nearestFlights[idx].id]);
+                });
+            }
+        }, 50);
+    }
 
     // Highlight nearest route on map
-    const first = sorted[0];
-    let nearestIds;
-    if (first.connected_group) {
-        nearestIds = sorted.filter(f => f.connected_group === first.connected_group).map(f => f.id);
-    } else {
-        nearestIds = [first.id];
-    }
+    let nearestIds = nearestFlights.map(f => f.id);
     highlightRouteForSlide(nearestIds);
 
-    // Render full list (grouped by date, no status capsule)
+    // Render full list (grouped by date), with nearest flight(s) pinned at top
+    const nearestIdSet = new Set(nearestFlights.map(f => f.id));
     const grouped = groupConnectedFlights(sorted);
     const dateGroups = {};
     grouped.forEach(item => {
@@ -420,9 +671,21 @@ function renderHomeFlightOverlay(upcoming) {
     });
     const sortedDates = Object.keys(dateGroups).sort((a, b) => a.localeCompare(b));
     let html = '';
+    // Pin nearest flight(s) at top with a highlight label
+    const nearestDate = nearestFlights[0].date;
+    html += `<div class="flights-date-header">${formatDate(nearestDate)}</div>`;
+    nearestFlights.forEach(f => {
+        html += `<div class="home-list-pinned">${renderHomeCard(f)}</div>`;
+    });
+    // Render remaining (skip nearest flights already pinned)
     sortedDates.forEach(date => {
+        const items = dateGroups[date].filter(item => {
+            if (item.isGroup) return !item.flights.some(f => nearestIdSet.has(f.id));
+            return !nearestIdSet.has(item.id);
+        });
+        if (items.length === 0) return;
         html += `<div class="flights-date-header">${formatDate(date)}</div>`;
-        html += dateGroups[date].map(item => {
+        html += items.map(item => {
             if (item.isGroup) {
                 return `<div class="connected-group"><div class="connected-group-header"><span class="connected-badge">🔗 ${t('connectedFlight')}</span></div>${item.flights.map(f => renderHomeCard(f)).join('')}</div>`;
             }
@@ -434,51 +697,146 @@ function renderHomeFlightOverlay(upcoming) {
     initHomeOverlayDrag();
 }
 
-/** Carousel card: compact with date, no status capsule */
-function renderHomeCarouselCard(flight) {
-    const depAirport = flight.dep_airport || {};
-    const arrAirport = flight.arr_airport || {};
+/** 最近出行: 单航班详细大卡片 (含倒计时、登机口、Terminal) */
+function renderNearestDetailCard(flight) {
+    const dep = flight.dep_airport || {};
+    const arr = flight.arr_airport || {};
+    const statusInfo = flight.status_info || {};
     const logo = getAirlineLogoHtml(flight.flight_no);
-    const dateStr = formatDate(flight.date);
 
-    return `<div class="home-carousel-card" onclick="showFlightDetail('${flight.id}')">
-        <div class="carousel-card-date">${dateStr}</div>
-        <div class="carousel-card-route">
-            <div class="carousel-card-point"><span class="carousel-code">${flight.departure}</span><span class="carousel-city">${getAirportCity(depAirport)}</span></div>
-            <div class="carousel-card-arrow">✈</div>
-            <div class="carousel-card-point"><span class="carousel-code">${flight.arrival}</span><span class="carousel-city">${getAirportCity(arrAirport)}</span></div>
+    const duration = calcDuration(flight);
+
+    const depTerminal = formatTerminal(flight.dep_terminal);
+    const arrTerminal = formatTerminal(flight.arr_terminal);
+    const gate = flight.dep_gate ? `Gate ${flight.dep_gate}` : '';
+    const countdownHtml = statusInfo.countdown ? `<div class="nearest-countdown">${renderCountdown(statusInfo.countdown)}</div>` : '';
+    const stopoverHtml = renderStopoverHtml(flight);
+
+    return `<div class="nearest-detail-card" onclick="showFlightDetail('${flight.id}')">
+        ${countdownHtml}
+        <div class="nearest-route">
+            <div class="nearest-point dep">
+                <div class="nearest-code">${flight.departure}</div>
+                ${depTerminal ? `<div class="nearest-terminal">${depTerminal}</div>` : ''}
+                <div class="nearest-city">${getAirportCity(dep)}</div>
+                <div class="nearest-time">${flight.dep_time || ''}</div>
+            </div>
+            <div class="nearest-arrow">
+                <div class="nearest-line"></div>
+                <span class="nearest-plane">✈</span>
+                <div class="nearest-line"></div>
+                ${stopoverHtml}
+                ${duration ? `<div class="nearest-duration">${duration}</div>` : ''}
+            </div>
+            <div class="nearest-point arr">
+                <div class="nearest-code">${flight.arrival}</div>
+                ${arrTerminal ? `<div class="nearest-terminal">${arrTerminal}</div>` : ''}
+                <div class="nearest-city">${getAirportCity(arr)}</div>
+                <div class="nearest-time">${formatArrTime(flight)}</div>
+            </div>
         </div>
-        <div class="carousel-card-footer">${logo}<span class="carousel-flight-no">${flight.flight_no}</span><span class="carousel-time">${flight.dep_time || ''}</span></div>
-    </div>`; 
+        <div class="nearest-footer">
+            <div class="nearest-airline">${logo}<span class="nearest-flight-no">${flight.flight_no}</span></div>
+            <div class="nearest-meta">
+                ${gate ? `<span class="nearest-gate">${gate}</span>` : ''}
+                <span class="nearest-date">${formatDate(flight.date)}</span>
+            </div>
+        </div>
+    </div>`;
 }
 
-/** Home card: reuses flight-card styling, no status capsule (all upcoming) */
-function renderHomeCard(flight) {
-    const depAirport = flight.dep_airport || {};
-    const arrAirport = flight.arr_airport || {};
-    const statusInfo = flight.status_info || {};
-
-    let duration = '';
-    if (flight.dep_time && flight.arr_time) {
-        const dep = new Date(`2000-01-01 ${flight.dep_time}`);
-        let arr = new Date(`2000-01-01 ${flight.arr_time}`);
-        if (arr < dep) arr.setDate(arr.getDate() + 1);
-        const diff = (arr - dep) / 1000 / 60;
-        duration = `${Math.floor(diff / 60)}h ${Math.round(diff % 60)}m`;
-    }
-
-    const depTerminal = flight.dep_terminal ? `<span class="terminal-tag">T${flight.dep_terminal}</span>` : '';
-    const arrTerminal = flight.arr_terminal ? `<span class="terminal-tag">T${flight.arr_terminal}</span>` : '';
+/** 联程航班轮播卡片: 可滑动切换，每张全宽 */
+function renderNearestSwipeCard(flight, idx, total) {
+    const dep = flight.dep_airport || {};
+    const arr = flight.arr_airport || {};
     const logo = getAirlineLogoHtml(flight.flight_no);
+    const depTerminal = formatTerminal(flight.dep_terminal);
+    const arrTerminal = formatTerminal(flight.arr_terminal);
+    const gate = flight.dep_gate ? `Gate ${flight.dep_gate}` : '';
+    const statusInfo = flight.status_info || {};
+    const countdownHtml = idx === 0 && statusInfo.countdown ? `<div class="nearest-countdown">${renderCountdown(statusInfo.countdown)}</div>` : '';
 
-    return `<div class="flight-card" onclick="showFlightDetail('${flight.id}')">
-        <div class="flight-card-header"><div class="flight-info">${logo}<span class="flight-no">${flight.flight_no}</span></div></div>
-        <div class="flight-route">
-            <div class="route-point departure"><div class="airport-code">${flight.departure} ${depTerminal}</div><div class="airport-city">${getAirportCity(depAirport)}</div><div class="route-time">${flight.dep_time}</div></div>
-            <div class="route-line"><div class="route-line-graphic"></div><div class="route-duration">${duration}</div><div class="route-distance">${(flight.distance || 0).toLocaleString()} km</div></div>
-            <div class="route-point arrival"><div class="airport-code">${flight.arrival} ${arrTerminal}</div><div class="airport-city">${getAirportCity(arrAirport)}</div><div class="route-time">${flight.arr_time}</div></div>
+    const duration = calcDuration(flight);
+    const stopoverHtml = renderStopoverHtml(flight);
+
+    return `<div class="nearest-swipe-card" onclick="showFlightDetail('${flight.id}')">
+        ${countdownHtml}
+        <div class="nearest-route">
+            <div class="nearest-point dep">
+                <div class="nearest-code">${flight.departure}</div>
+                ${depTerminal ? `<div class="nearest-terminal">${depTerminal}</div>` : ''}
+                <div class="nearest-city">${getAirportCity(dep)}</div>
+                <div class="nearest-time">${flight.dep_time || ''}</div>
+            </div>
+            <div class="nearest-arrow">
+                <div class="nearest-line"></div>
+                <span class="nearest-plane">✈</span>
+                <div class="nearest-line"></div>
+                ${stopoverHtml}
+                ${duration ? `<div class="nearest-duration">${duration}</div>` : ''}
+            </div>
+            <div class="nearest-point arr">
+                <div class="nearest-code">${flight.arrival}</div>
+                ${arrTerminal ? `<div class="nearest-terminal">${arrTerminal}</div>` : ''}
+                <div class="nearest-city">${getAirportCity(arr)}</div>
+                <div class="nearest-time">${formatArrTime(flight)}</div>
+            </div>
         </div>
-        ${statusInfo.countdown ? `<div class="flight-countdown">${renderCountdown(statusInfo.countdown)}</div>` : ''}
+        <div class="nearest-footer">
+            <div class="nearest-airline">${logo}<span class="nearest-flight-no">${flight.flight_no}</span></div>
+            <div class="nearest-meta">
+                ${gate ? `<span class="nearest-gate">${gate}</span>` : ''}
+                <span class="nearest-date">${formatDate(flight.date)}</span>
+            </div>
+        </div>
+    </div>`;
+}
+
+/** Home card: uses nearest-style card for unified look */
+function renderHomeCard(flight) {
+    const dep = flight.dep_airport || {};
+    const arr = flight.arr_airport || {};
+    const statusInfo = flight.status_info || {};
+    const logo = getAirlineLogoHtml(flight.flight_no);
+    const depTerminal = formatTerminal(flight.dep_terminal);
+    const arrTerminal = formatTerminal(flight.arr_terminal);
+    const gate = flight.dep_gate ? `Gate ${flight.dep_gate}` : '';
+
+    const duration = calcDuration(flight);
+    const stopoverHtml = renderStopoverHtml(flight);
+
+    const countdownHtml = statusInfo.countdown ? `<div class="home-card-countdown">${renderCountdown(statusInfo.countdown)}</div>` : '';
+
+    return `<div class="nearest-swipe-card home-list-card" onclick="showFlightDetail('${flight.id}')">
+        ${countdownHtml}
+        <div class="nearest-route">
+            <div class="nearest-point dep">
+                <div class="nearest-code">${flight.departure}</div>
+                ${depTerminal ? `<div class="nearest-terminal">${depTerminal}</div>` : ''}
+                <div class="nearest-city">${getAirportCity(dep)}</div>
+                <div class="nearest-time">${flight.dep_time || ''}</div>
+            </div>
+            <div class="nearest-arrow">
+                <div class="nearest-line"></div>
+                <span class="nearest-plane">✈</span>
+                <div class="nearest-line"></div>
+                ${stopoverHtml}
+                ${duration ? `<div class="nearest-duration">${duration}</div>` : ''}
+            </div>
+            <div class="nearest-point arr">
+                <div class="nearest-code">${flight.arrival}</div>
+                ${arrTerminal ? `<div class="nearest-terminal">${arrTerminal}</div>` : ''}
+                <div class="nearest-city">${getAirportCity(arr)}</div>
+                <div class="nearest-time">${formatArrTime(flight)}</div>
+            </div>
+        </div>
+        <div class="nearest-footer">
+            <div class="nearest-airline">${logo}<span class="nearest-flight-no">${flight.flight_no}</span></div>
+            <div class="nearest-meta">
+                ${gate ? `<span class="nearest-gate">${gate}</span>` : ''}
+                <span class="nearest-date">${formatDate(flight.date)}</span>
+            </div>
+        </div>
     </div>`;
 }
 
@@ -519,7 +877,8 @@ function initFlightsMap() {
         zoom: 4,
         minZoom: 2,
         maxZoom: 18,
-        zoomControl: false
+        zoomControl: false,
+        worldCopyJump: true
     });
     const theme = localStorage.getItem('skytrace-theme') || 'dark';
     const tileUrl = theme === 'light' ? TILE_LIGHT : TILE_DARK;
@@ -628,7 +987,7 @@ function renderFlightsMapRoutes() {
         const glowColor = isCompleted ? '#475569' : '#3b82f6';
 
         const generator = new arc.GreatCircle({ x: dep.lon, y: dep.lat }, { x: arr.lon, y: arr.lat });
-        const arcLine = generator.Arc(50, { offset: 10 });
+        const arcLine = generator.Arc(50);
         arcLine.geometries.forEach(geo => {
             const coords = geo.coords.map(c => [c[1], c[0]]);
             fmapArcLayers.push(L.polyline(coords, { color: glowColor, weight: 4, opacity: 0.3 }).addTo(fmap));
@@ -872,23 +1231,30 @@ function renderMonthlyChart(monthData) {
     const monNum = parseInt(ym.substring(5));
     const daysInMonth = new Date(yearNum, monNum, 0).getDate();
 
-    // Build day counts
+    // Build day counts - only days with flights
     const dayCounts = [];
     for (let d = 1; d <= daysInMonth; d++) {
         const dayKey = `${ym}-${String(d).padStart(2, '0')}`;
         const flightsArr = dayFlights[dayKey] || [];
-        dayCounts.push({ day: d, count: flightsArr.length, flights: flightsArr, key: dayKey });
+        if (flightsArr.length > 0) {
+            dayCounts.push({ day: d, count: flightsArr.length, flights: flightsArr, key: dayKey });
+        }
+    }
+
+    if (dayCounts.length === 0) {
+        container.innerHTML = `<div class="month-chart-empty">${t('emptyTrips') || '暂无飞行记录'}</div>`;
+        return;
     }
 
     const max = Math.max(...dayCounts.map(d => d.count), 1);
 
     container.innerHTML = dayCounts.map(d => {
         const val = d.count;
-        return `<div class="month-bar-col${val > 0 ? ' month-bar-clickable' : ''}" ${val > 0 ? `onclick="toggleMonthDetail(this, '${d.key}')"` : ''}>
-            <div class="month-bar-value">${val || ''}</div>
+        return `<div class="month-bar-col month-bar-clickable" onclick="toggleMonthDetail(this, '${d.key}')">
+            <div class="month-bar-value">${val}</div>
             <div class="month-bar" style="height:${max ? Math.round(val / max * 100) : 0}px"></div>
-            <div class="month-bar-label">${d.day}</div>
-            ${val > 0 ? `<div class="month-detail-popup" style="display:none">${d.flights.slice(0, 8).map(f => `<div class="month-detail-item">${f.flight_no} ${f.route} <small>${f.date}</small></div>`).join('')}</div>` : ''}
+            <div class="month-bar-label">${monNum}/${d.day}</div>
+            <div class="month-detail-popup" style="display:none">${d.flights.slice(0, 8).map(f => `<div class="month-detail-item">${f.flight_no} ${f.route} <small>${f.date}</small></div>`).join('')}</div>
         </div>`;
     }).join('');
 }
@@ -960,6 +1326,19 @@ function renderFlightsList(filter = currentStatusFilter) {
     if (!container) return;
     let displayFlights = filteredFlights;
     const todayStr = getLocalTodayStr();
+
+    // Update filter tab counts
+    const countAll = filteredFlights.length;
+    const countUpcoming = filteredFlights.filter(f => f.status_info?.status !== 'completed' && f.date >= todayStr).length;
+    const countCompleted = filteredFlights.filter(f => f.status_info?.status === 'completed').length;
+    document.querySelectorAll('.filter-tab').forEach(btn => {
+        const f = btn.dataset.filter;
+        const count = f === 'all' ? countAll : f === 'upcoming' ? countUpcoming : countCompleted;
+        let badge = btn.querySelector('.filter-count');
+        if (!badge) { badge = document.createElement('span'); badge.className = 'filter-count'; btn.appendChild(badge); }
+        badge.textContent = count;
+    });
+
     if (filter === 'upcoming') {
         displayFlights = filteredFlights.filter(f => f.status_info?.status !== 'completed' && f.date >= todayStr);
         displayFlights.sort((a, b) => a.date.localeCompare(b.date) || (a.dep_time || '').localeCompare(b.dep_time || ''));
@@ -967,7 +1346,21 @@ function renderFlightsList(filter = currentStatusFilter) {
         displayFlights = filteredFlights.filter(f => f.status_info?.status === 'completed');
         displayFlights.sort((a, b) => b.date.localeCompare(a.date) || (b.dep_time || '').localeCompare(a.dep_time || ''));
     } else {
-        displayFlights = [...filteredFlights].sort((a, b) => b.date.localeCompare(a.date) || (b.dep_time || '').localeCompare(a.dep_time || ''));
+        displayFlights = [...filteredFlights].sort((a, b) => {
+            if (_allSortOrder === 'oldest') return a.date.localeCompare(b.date) || (a.dep_time || '').localeCompare(b.dep_time || '');
+            return b.date.localeCompare(a.date) || (b.dep_time || '').localeCompare(a.dep_time || '');
+        });
+    }
+
+    // Show sort toggle for "all" filter
+    let sortToggleEl = document.getElementById('sort-toggle-btn');
+    if (sortToggleEl) {
+        if (filter === 'all') {
+            sortToggleEl.style.display = 'inline-flex';
+            sortToggleEl.innerHTML = _allSortOrder === 'newest' ? `↓ ${t('sortNewest') || '最新优先'}` : `↑ ${t('sortOldest') || '最早优先'}`;
+        } else {
+            sortToggleEl.style.display = 'none';
+        }
     }
 
     const groupedFlights = groupConnectedFlights(displayFlights);
@@ -985,10 +1378,8 @@ function renderFlightsList(filter = currentStatusFilter) {
         dateGroups[date].push(item);
     });
 
-    const sortedDates = Object.keys(dateGroups).sort((a, b) => {
-        if (filter === 'upcoming') return a.localeCompare(b);
-        return b.localeCompare(a);
-    });
+    const isNewestFirst = filter === 'completed' || (filter === 'all' && _allSortOrder === 'newest');
+    const sortedDates = Object.keys(dateGroups).sort((a, b) => isNewestFirst ? b.localeCompare(a) : a.localeCompare(b));
 
     let html = '';
     sortedDates.forEach(date => {
@@ -1005,38 +1396,58 @@ function renderFlightsList(filter = currentStatusFilter) {
 }
 
 function renderFlightCard(flight) {
-    const depAirport = flight.dep_airport || {};
-    const arrAirport = flight.arr_airport || {};
+    const dep = flight.dep_airport || {};
+    const arr = flight.arr_airport || {};
     const statusInfo = flight.status_info || {};
-
-    let duration = '';
-    if (flight.dep_time && flight.arr_time) {
-        const dep = new Date(`2000-01-01 ${flight.dep_time}`);
-        let arr = new Date(`2000-01-01 ${flight.arr_time}`);
-        if (arr < dep) arr.setDate(arr.getDate() + 1);
-        const diff = (arr - dep) / 1000 / 60;
-        duration = `${Math.floor(diff / 60)}h ${Math.round(diff % 60)}m`;
-    }
-
-    const statusClass = statusInfo.status === 'completed' ? 'completed' : statusInfo.status === 'checkin_open' ? 'checkin_open' : statusInfo.status === 'boarding' ? 'boarding' : 'upcoming';
-    const isSelected = selectedConnectIds.has(flight.id);
-    const depTerminal = flight.dep_terminal ? `<span class="terminal-tag">T${flight.dep_terminal}</span>` : '';
-    const arrTerminal = flight.arr_terminal ? `<span class="terminal-tag">T${flight.arr_terminal}</span>` : '';
-    const showGate = statusInfo.status !== 'completed';
-    const depGate = showGate ? `<div class="gate-info">${t('gateLabel')}: ${flight.dep_gate || t('gatePending')}</div>` : '';
     const logo = getAirlineLogoHtml(flight.flight_no);
+    const depTerminal = formatTerminal(flight.dep_terminal);
+    const arrTerminal = formatTerminal(flight.arr_terminal);
+    const gate = flight.dep_gate ? `Gate ${flight.dep_gate}` : '';
 
-    return `<div class="flight-card ${isSelected ? 'selected-connect' : ''} ${connectMode ? 'connect-mode' : ''}" onclick="${connectMode ? `toggleConnectSelect('${flight.id}')` : `showFlightDetail('${flight.id}')`}">
+    const duration = calcDuration(flight);
+    const stopoverHtml = renderStopoverHtml(flight);
+
+    const isSelected = selectedConnectIds.has(flight.id);
+    const statusClass = statusInfo.status === 'completed' ? 'completed' : statusInfo.status === 'checkin_open' ? 'checkin_open' : statusInfo.status === 'boarding' ? 'boarding' : 'upcoming';
+    const countdownHtml = statusInfo.countdown ? `<div class="home-card-countdown">${renderCountdown(statusInfo.countdown)}</div>` : '';
+    const distKm = flight.distance ? `${flight.distance.toLocaleString()} km` : '';
+
+    return `<div class="nearest-swipe-card flights-list-card ${isSelected ? 'selected-connect' : ''} ${connectMode ? 'connect-mode' : ''}" onclick="${connectMode ? `toggleConnectSelect('${flight.id}')` : `showFlightDetail('${flight.id}')`}">
         ${connectMode ? `<div class="connect-checkbox">${isSelected ? '☑' : '☐'}</div>` : ''}
         <div class="flight-card-body">
-            <div class="flight-card-header"><div class="flight-info">${logo}<span class="flight-no">${flight.flight_no}</span></div><span class="flight-status ${statusClass}">${getStatusText(statusInfo)}</span></div>
-            <div class="flight-route">
-                <div class="route-point departure"><div class="airport-code">${flight.departure} ${depTerminal}</div><div class="airport-city">${getAirportCity(depAirport)}</div><div class="route-time">${flight.dep_time}</div>${depGate}</div>
-                <div class="route-line"><div class="route-line-graphic"></div><div class="route-duration">${duration}</div><div class="route-distance">${(flight.distance || 0).toLocaleString()} km</div></div>
-                <div class="route-point arrival"><div class="airport-code">${flight.arrival} ${arrTerminal}</div><div class="airport-city">${getAirportCity(arrAirport)}</div><div class="route-time">${flight.arr_time}</div></div>
+            <div class="fcard-top-row">
+                <div class="nearest-airline">${logo}<span class="nearest-flight-no">${flight.flight_no}</span></div>
+                <span class="flight-status ${statusClass}">${getStatusText(statusInfo)}</span>
+            </div>
+            <div class="nearest-route">
+                <div class="nearest-point dep">
+                    <div class="nearest-code">${flight.departure}</div>
+                    ${depTerminal ? `<div class="nearest-terminal">${depTerminal}</div>` : ''}
+                    <div class="nearest-city">${getAirportCity(dep)}</div>
+                    <div class="nearest-time">${flight.dep_time || ''}</div>
+                </div>
+                <div class="nearest-arrow">
+                    <div class="nearest-line"></div>
+                    <span class="nearest-plane">✈</span>
+                    <div class="nearest-line"></div>
+                    ${stopoverHtml}
+                    ${duration ? `<div class="nearest-duration">${duration}</div>` : ''}
+                </div>
+                <div class="nearest-point arr">
+                    <div class="nearest-code">${flight.arrival}</div>
+                    ${arrTerminal ? `<div class="nearest-terminal">${arrTerminal}</div>` : ''}
+                    <div class="nearest-city">${getAirportCity(arr)}</div>
+                    <div class="nearest-time">${formatArrTime(flight)}</div>
+                </div>
+            </div>
+            <div class="nearest-footer">
+                <div class="nearest-meta">
+                    ${distKm ? `<span class="nearest-distance">${distKm}</span>` : ''}
+                </div>
+                ${gate ? `<span class="nearest-gate">${gate}</span>` : ''}
             </div>
             ${statusInfo.status === 'in_flight' ? `<div class="flight-progress-bar"><div class="fill" style="width:${statusInfo.progress || 0}%"></div></div>` : ''}
-            ${statusInfo.countdown ? `<div class="flight-countdown">${renderCountdown(statusInfo.countdown)}</div>` : ''}
+            ${countdownHtml}
         </div>
     </div>`;
 }
@@ -1082,6 +1493,15 @@ function _checkVersionAndRefresh() {
 }
 
 // ==================== 标签切换 ====================
+function _updateFabVisibility() {
+    const fab = document.getElementById('fab-add');
+    if (!fab) return;
+    const flightsView = document.getElementById('flights-view');
+    const isFlightsActive = flightsView && flightsView.classList.contains('active');
+    const isListActive = document.getElementById('flights-list-subview')?.classList.contains('active');
+    fab.style.display = (isFlightsActive && isListActive) ? 'flex' : 'none';
+}
+
 function initTabs() {
     // 主导航标签 + 移动端底部导航
     const allNavTabs = [...document.querySelectorAll('.nav-tab'), ...document.querySelectorAll('.mobile-nav-tab')];
@@ -1108,12 +1528,7 @@ function initTabs() {
                 document.querySelector('.home-flights-overlay')?.style.setProperty('display', 'none');
             }
             if (tab.dataset.tab === 'calendar') initCalendar();
-            // Show FAB only on flights tab with list subtab
-            const fab = document.querySelector('.btn-add-float');
-            if (fab) {
-                const isFlightsList = tab.dataset.tab === 'flights' && document.getElementById('flights-list-subview')?.classList.contains('active');
-                fab.style.display = isFlightsList ? 'flex' : 'none';
-            }
+            _updateFabVisibility();
         });
     });
 
@@ -1126,16 +1541,16 @@ function initTabs() {
             const subtab = tab.dataset.subtab;
             if (subtab === 'list') {
                 const sv = document.getElementById('flights-list-subview'); sv.classList.add('active'); requestAnimationFrame(() => sv.classList.add('view-enter'));
-                const fab = document.querySelector('.btn-add-float'); if (fab) fab.style.display = 'flex';
             }
             else if (subtab === 'fmap') {
                 const sv = document.getElementById('flights-map-subview'); sv.classList.add('active'); requestAnimationFrame(() => sv.classList.add('view-enter'));
-                initFlightsMap(); const fab = document.querySelector('.btn-add-float'); if (fab) fab.style.display = 'none';
+                initFlightsMap();
             }
             else if (subtab === 'fstats') {
                 const sv = document.getElementById('flights-stats-subview'); sv.classList.add('active'); requestAnimationFrame(() => sv.classList.add('view-enter'));
-                loadStats(); const fab = document.querySelector('.btn-add-float'); if (fab) fab.style.display = 'none';
+                loadStats();
             }
+            _updateFabVisibility();
         });
     });
 
@@ -1147,6 +1562,9 @@ function initTabs() {
             renderFlightsList(tab.dataset.filter);
         });
     });
+
+    // Initial FAB state
+    _updateFabVisibility();
 }
 
 // ==================== 模态框 ====================
@@ -1156,12 +1574,20 @@ function openAddModal() {
     document.getElementById('flight-form').reset();
     document.getElementById('flight-id').value = '';
     document.getElementById('flight-date').value = new Date().toISOString().split('T')[0];
+    // Reset advanced fields and day offset
+    const advCheck = document.getElementById('show-advanced-fields');
+    if (advCheck) { advCheck.checked = false; _toggleAdvancedFields(false); }
+    _setDayOffsetBadge(0);
+    // Clear airport hints
+    ['departure-hint', 'arrival-hint', 'stopover-hint'].forEach(id => { const el = document.getElementById(id); if (el) { el.textContent = ''; el.style.display = 'none'; } });
     document.getElementById('flight-modal').classList.add('active');
 }
 function closeModal() {
     document.getElementById('flight-modal').classList.remove('active');
     document.getElementById('dep-suggestions').classList.remove('active');
     document.getElementById('arr-suggestions').classList.remove('active');
+    const stopSug = document.getElementById('stopover-suggestions');
+    if (stopSug) stopSug.classList.remove('active');
 }
 function closeDetailModal() { document.getElementById('detail-modal').classList.remove('active'); }
 
@@ -1185,31 +1611,17 @@ function showFlightDetail(flightId) {
     const logo = getAirlineLogoHtml(flight.flight_no);
     const airlineName = typeof translateAirline === 'function' ? translateAirline(flight.airline) : (flight.airline || '');
 
-    // 登机口/航站楼卡片
-    let gateCardHtml = '';
-    const hasGateInfo = flight.dep_terminal || flight.arr_terminal || flight.dep_gate || flight.arr_gate || statusInfo.status !== 'completed';
-    if (hasGateInfo) {
-        gateCardHtml = `<div class="detail-card detail-gate-card">
-            <div class="detail-card-title">🚪 ${t('gateInfo') || '登机信息'}</div>
-            <div class="detail-gate-grid">
-                <div class="detail-gate-col">
-                    <div class="detail-gate-airport">${flight.departure}</div>
-                    ${flight.dep_terminal ? `<div class="detail-gate-item"><span class="detail-gate-label">${t('terminalLabel') || '航站楼'}</span><span class="detail-gate-value">T${flight.dep_terminal}</span></div>` : ''}
-                    <div class="detail-gate-item"><span class="detail-gate-label">${t('gateLabel')}</span><span class="detail-gate-value ${!flight.dep_gate && statusInfo.status !== 'completed' ? 'pending' : ''}">${flight.dep_gate || (statusInfo.status !== 'completed' ? t('gatePending') : '-')}</span></div>
-                </div>
-                <div class="detail-gate-divider"></div>
-                <div class="detail-gate-col">
-                    <div class="detail-gate-airport">${flight.arrival}</div>
-                    ${flight.arr_terminal ? `<div class="detail-gate-item"><span class="detail-gate-label">${t('terminalLabel') || '航站楼'}</span><span class="detail-gate-value">T${flight.arr_terminal}</span></div>` : ''}
-                    ${flight.arr_gate ? `<div class="detail-gate-item"><span class="detail-gate-label">${t('gateLabel')}</span><span class="detail-gate-value">${flight.arr_gate}</span></div>` : ''}
-                </div>
-            </div>
-        </div>`;
-    }
+    // 登机口/行李信息 - 单列显示在乘机信息上部
+    const gateDisplay = flight.dep_gate || (statusInfo.status !== 'completed' ? t('gatePending') : '-');
+    const gateRows = [];
+    gateRows.push(`<div class="detail-boarding-row"><span class="detail-boarding-label">${t('depGate') || '出发登机口'}</span><span class="detail-boarding-value ${!flight.dep_gate && statusInfo.status !== 'completed' ? 'text-warning' : ''}">${gateDisplay}</span></div>`);
+    if (flight.checkin_counter) gateRows.push(`<div class="detail-boarding-row"><span class="detail-boarding-label">${t('checkinCounter') || '值机柜台'}</span><span class="detail-boarding-value">${flight.checkin_counter}</span></div>`);
+    if (flight.baggage_carousel) gateRows.push(`<div class="detail-boarding-row"><span class="detail-boarding-label">${t('baggageCarousel') || '行李转盘'}</span><span class="detail-boarding-value">${flight.baggage_carousel}</span></div>`);
 
-    // 座位/舱位/机型卡片
+    // 座位/舱位/机型卡片 — 登机信息在上部单列，乘机信息在下部网格
     let seatCardHtml = `<div class="detail-card">
         <div class="detail-card-title">💺 ${t('seatInfo') || '乘机信息'}</div>
+        ${gateRows.length > 0 ? `<div class="detail-boarding-section">${gateRows.join('')}</div>` : ''}
         <div class="detail-info-grid detail-info-grid-bordered">
             <div class="detail-info-item"><div class="detail-info-label">${t('seatLabel')}</div><div class="detail-info-value">${flight.seat || '-'}</div></div>
             <div class="detail-info-item"><div class="detail-info-label">${t('cabinLabel')}</div><div class="detail-info-value">${getCabinText(flight.class)}</div></div>
@@ -1223,7 +1635,7 @@ function showFlightDetail(flightId) {
         <div class="detail-flight-header">
             <div class="detail-flight-logo">${logo}</div>
             <div class="detail-flight-info">
-                <div class="detail-flight-no">${flight.flight_no}</div>
+                <div class="detail-flight-no">${flight.flight_no} ${getAllianceBadgeHtml(flight.flight_no)}</div>
                 <div class="detail-flight-airline">${airlineName}</div>
             </div>
             <div class="detail-flight-status"><span class="flight-status ${statusInfo.status || 'upcoming'}">${getStatusText(statusInfo)}</span></div>
@@ -1231,14 +1643,17 @@ function showFlightDetail(flightId) {
         <div class="detail-date-row">${formatDateDetail(flight.date)}</div>
         <div class="detail-route">
             <div class="detail-point departure">
-                <div class="detail-code">${flight.departure}</div><div class="detail-city">${getAirportCity(depAirport)}</div><div class="detail-time">${flight.dep_time}</div>
+                <div class="detail-code">${flight.departure}</div>
+                ${flight.dep_terminal ? `<div class="detail-terminal-tag">${formatTerminal(flight.dep_terminal)}</div>` : ''}
+                <div class="detail-city">${getAirportCity(depAirport)}</div><div class="detail-time">${flight.dep_time}</div>
             </div>
-            <div class="detail-arrow">${isActive ? `<div class="flight-progress-mini"><div class="progress-track"><div class="progress-fill" style="width:${progress}%"></div><div class="progress-plane" style="left:${progress}%">✈</div></div><div class="progress-text">${renderCountdown(statusInfo.countdown)}</div></div>` : '<div class="detail-route-line"><div class="detail-route-dot"></div><div class="detail-route-dash"></div><span class="detail-route-plane">✈</span><div class="detail-route-dash"></div><div class="detail-route-dot"></div></div>'}</div>
+            <div class="detail-arrow">${isActive ? `<div class="flight-progress-mini"><div class="progress-track"><div class="progress-fill" style="width:${progress}%"></div><div class="progress-plane" style="left:${progress}%">✈</div></div><div class="progress-text">${renderCountdown(statusInfo.countdown)}</div></div>` : '<div class="detail-route-line"><div class="detail-route-dot"></div><div class="detail-route-dash"></div><span class="detail-route-plane">✈</span><div class="detail-route-dash"></div><div class="detail-route-dot"></div></div>'}${renderStopoverHtml(flight)}</div>
             <div class="detail-point arrival">
-                <div class="detail-code">${flight.arrival}</div><div class="detail-city">${getAirportCity(arrAirport)}</div><div class="detail-time">${flight.arr_time}</div>
+                <div class="detail-code">${flight.arrival}</div>
+                ${flight.arr_terminal ? `<div class="detail-terminal-tag">${formatTerminal(flight.arr_terminal)}</div>` : ''}
+                <div class="detail-city">${getAirportCity(arrAirport)}</div><div class="detail-time">${formatArrTime(flight)}</div>
             </div>
         </div>
-        ${gateCardHtml}
         ${seatCardHtml}
         ${statusInfo.status !== 'completed' ? `<div class="detail-card"><div class="detail-card-title">⏱️ ${t('keyTimeline')}</div><div class="detail-reminder-item"><span>${t('checkinOpen')}</span><span>${formatDateTime(statusInfo.checkin_open)}</span></div><div class="detail-reminder-item"><span>${t('checkinClose')}</span><span>${formatDateTime(statusInfo.checkin_close)}</span></div><div class="detail-reminder-item"><span>${t('boardingStart')}</span><span>${formatDateTime(statusInfo.boarding_time)}</span></div></div>` : ''}
         ${flight.notes ? `<div class="detail-card"><div class="detail-card-title">📝 ${t('noteLabel')}</div><div style="font-size:14px;">${flight.notes}</div></div>` : ''}
@@ -1270,11 +1685,19 @@ function editFlight() {
     document.getElementById('dep-terminal').value = flight.dep_terminal || '';
     document.getElementById('arr-terminal').value = flight.arr_terminal || '';
     document.getElementById('dep-gate').value = flight.dep_gate || '';
-    document.getElementById('arr-gate').value = flight.arr_gate || '';
     document.getElementById('seat').value = flight.seat || '';
     document.getElementById('cabin-class').value = flight.class || 'economy';
     document.getElementById('notes').value = flight.notes || '';
+    document.getElementById('stopover').value = flight.stopover || '';
+    document.getElementById('arr-day-offset').value = String(flight.arr_day_offset !== undefined && flight.arr_day_offset !== null ? flight.arr_day_offset : (flight.arr_next_day ? 1 : 0));
+    _setDayOffsetBadge(document.getElementById('arr-day-offset').value);
+    // Show advanced fields if they have data
+    const hasAdvanced = flight.stopover || flight.dep_terminal || flight.arr_terminal || flight.dep_gate;
+    const advCheck = document.getElementById('show-advanced-fields');
+    if (advCheck) { advCheck.checked = hasAdvanced; _toggleAdvancedFields(hasAdvanced); }
     document.getElementById('flight-modal').classList.add('active');
+    // Trigger airport name hints
+    _showAirportHint('departure'); _showAirportHint('arrival'); _showAirportHint('stopover');
 }
 
 async function deleteFlight() {
@@ -1298,17 +1721,108 @@ async function saveFlight(event) {
         dep_terminal: document.getElementById('dep-terminal').value,
         arr_terminal: document.getElementById('arr-terminal').value,
         dep_gate: document.getElementById('dep-gate').value,
-        arr_gate: document.getElementById('arr-gate').value,
         seat: document.getElementById('seat').value.toUpperCase(),
         class: document.getElementById('cabin-class').value,
         notes: document.getElementById('notes').value,
+        stopover: document.getElementById('stopover').value.toUpperCase(),
+        arr_day_offset: parseInt(document.getElementById('arr-day-offset').value) || 0,
         status: 'scheduled'
     };
     try {
-        if (flightId) await fetch(`/api/flights/${flightId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(flight) });
-        else await fetch('/api/flights', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(flight) });
+        let savedFlight;
+        if (flightId) {
+            savedFlight = await (await fetch(`/api/flights/${flightId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(flight) })).json();
+        } else {
+            savedFlight = await (await fetch('/api/flights', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(flight) })).json();
+            // 自动关联: 检测5小时内转机
+            if (savedFlight && savedFlight.id) {
+                await _autoConnectFlight(savedFlight, flight);
+            }
+        }
         closeModal(); loadFlights(); loadStats();
     } catch (e) { alert(t('saveFailed')); }
+}
+
+/** 自动关联: 新航班与已有航班间<5h转机自动关联为联程 */
+async function _autoConnectFlight(savedResp, flightData) {
+    const MAX_TRANSFER_MS = 8 * 60 * 60 * 1000; // 8 hours
+    const newId = savedResp.id;
+    const newDep = flightData.departure;
+    const newArr = flightData.arrival;
+    const newDate = flightData.date;
+    const newDepTime = flightData.dep_time;
+    const newArrTime = flightData.arr_time;
+    if (!newDate || (!newDepTime && !newArrTime)) return;
+
+    let matchId = null;
+    let matchGroup = null;
+
+    for (const f of flights) {
+        if (f.id === newId) continue;
+        // Case 1: existing flight arrives at new flight's departure
+        if (f.arrival === newDep && f.arr_time && newDepTime) {
+            const arrDT = new Date(`${f.date}T${f.arr_time}`);
+            const depDT = new Date(`${newDate}T${newDepTime}`);
+            const gap = depDT - arrDT;
+            if (gap > 0 && gap <= MAX_TRANSFER_MS) {
+                matchId = f.id;
+                matchGroup = f.connected_group;
+                break;
+            }
+        }
+        // Case 2: existing flight departs from new flight's arrival
+        if (f.departure === newArr && f.dep_time && newArrTime) {
+            const arrDT = new Date(`${newDate}T${newArrTime}`);
+            const depDT = new Date(`${f.date}T${f.dep_time}`);
+            const gap = depDT - arrDT;
+            if (gap > 0 && gap <= MAX_TRANSFER_MS) {
+                matchId = f.id;
+                matchGroup = f.connected_group;
+                break;
+            }
+        }
+    }
+
+    if (matchId) {
+        const groupName = matchGroup || `group_${Date.now()}`;
+        const idsToConnect = [newId, matchId];
+        // Also include all flights already in this group
+        if (matchGroup) {
+            flights.forEach(f => { if (f.connected_group === matchGroup && !idsToConnect.includes(f.id)) idsToConnect.push(f.id); });
+        }
+        try {
+            await fetch('/api/flights/connect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ flight_ids: idsToConnect, group_name: groupName })
+            });
+        } catch (e) { /* silent fail */ }
+    }
+}
+
+// ==================== 行程三字码搜索 ====================
+function searchFlightsByAirport(query) {
+    const code = query.trim().toUpperCase();
+    const clearBtn = document.getElementById('flights-search-clear');
+    if (clearBtn) clearBtn.style.display = code.length > 0 ? 'flex' : 'none';
+    if (code.length === 0) {
+        filteredFlights = [...flights];
+        renderFlightsList(currentStatusFilter);
+        return;
+    }
+    if (code.length < 2) return;
+    filteredFlights = flights.filter(f =>
+        (f.departure && f.departure.includes(code)) ||
+        (f.arrival && f.arrival.includes(code)) ||
+        (f.stopover && f.stopover.includes(code))
+    );
+    renderFlightsList(currentStatusFilter);
+}
+function clearFlightSearch() {
+    const input = document.getElementById('flights-search-input');
+    if (input) input.value = '';
+    filteredFlights = [...flights];
+    renderFlightsList(currentStatusFilter);
 }
 
 // ==================== 机场搜索 ====================
@@ -1326,12 +1840,57 @@ async function searchAirport(input, suggestionsId) {
 function selectAirport(inputId, code, suggestionsId) {
     document.getElementById(inputId).value = code;
     document.getElementById(suggestionsId).classList.remove('active');
+    _showAirportHint(inputId);
+}
+
+// ==================== 机场名称提示 ====================
+function _showAirportHint(inputId) {
+    const code = (document.getElementById(inputId)?.value || '').toUpperCase().trim();
+    const hintEl = document.getElementById(inputId + '-hint');
+    if (!hintEl) return;
+    if (code.length === 3 && airports[code]) {
+        const a = airports[code];
+        hintEl.textContent = getAirportCity(a) + ' · ' + getAirportName(a);
+        hintEl.style.display = 'block';
+    } else {
+        hintEl.textContent = '';
+        hintEl.style.display = 'none';
+    }
+}
+
+// ==================== 高级字段折叠 ====================
+function _toggleAdvancedFields(show) {
+    const section = document.getElementById('advanced-fields');
+    const arrow = document.getElementById('advanced-toggle-arrow');
+    if (section) section.style.display = show ? 'block' : 'none';
+    if (arrow) arrow.textContent = show ? '▲' : '▼';
+}
+
+// ==================== 日期偏移切换 ====================
+function _cycleDayOffset() {
+    const sel = document.getElementById('arr-day-offset');
+    const badge = document.getElementById('day-offset-badge');
+    const values = ['0', '1', '2', '-1'];
+    const labels = ['+0', '+1', '+2', '-1'];
+    let idx = values.indexOf(sel.value);
+    idx = (idx + 1) % values.length;
+    sel.value = values[idx];
+    badge.textContent = labels[idx];
+    badge.classList.toggle('active', idx !== 0);
+}
+function _setDayOffsetBadge(val) {
+    const badge = document.getElementById('day-offset-badge');
+    if (!badge) return;
+    const v = parseInt(val) || 0;
+    badge.textContent = v > 0 ? `+${v}` : `${v}`;
+    badge.classList.toggle('active', v !== 0);
 }
 document.addEventListener('click', (e) => { if (!e.target.closest('.form-group')) document.querySelectorAll('.suggestions').forEach(el => el.classList.remove('active')); });
 
 // ==================== 航班智能查询 ====================
 let isLookingUp = false;
 async function lookupFlight() {
+    if (_isOffline) { const statusEl = document.getElementById('lookup-status'); if (statusEl) { statusEl.innerHTML = '📡 ' + (t('offlineBanner') || '离线模式 - 无法查询'); statusEl.className = 'lookup-status info'; } return; }
     const flightNo = document.getElementById('flight-no').value.trim();
     const date = document.getElementById('flight-date').value;
     const statusEl = document.getElementById('lookup-status');
@@ -1352,6 +1911,13 @@ async function lookupFlight() {
             for (const [id, value] of Object.entries(fields)) {
                 if (value) { const el = document.getElementById(id); if (el) { el.value = value; el.classList.add('field-filled'); setTimeout(() => el.classList.remove('field-filled'), 800); } }
             }
+            // Auto-expand advanced fields if API filled terminal data
+            if (result.dep_terminal || result.arr_terminal) {
+                const advCheck = document.getElementById('show-advanced-fields');
+                if (advCheck && !advCheck.checked) { advCheck.checked = true; _toggleAdvancedFields(true); }
+            }
+            // Show airport name hints
+            _showAirportHint('departure'); _showAirportHint('arrival');
             let sourceText = '', sourceClass = 'info';
             switch (result.source) {
                 case 'api': sourceText = `✅ ${t('lookupApiSuccess')} (${result.api_source || 'API'})`; sourceClass = 'success'; break;
@@ -1611,7 +2177,69 @@ function shareFlightCard() {
     const flight = flights.find(f => f.id === currentFlightId);
     if (!flight) return;
     const dep = flight.dep_airport || {}, arr = flight.arr_airport || {};
-    document.getElementById('share-card').innerHTML = `<div class="share-card-inner"><div class="share-card-header"><span class="share-logo">✈️ SkyTrace</span><span class="share-date">${formatDate(flight.date)}</span></div><div class="share-route"><div class="share-point"><div class="share-code">${flight.departure}</div><div class="share-city">${getAirportCity(dep)}</div><div class="share-time">${flight.dep_time}</div></div><div class="share-arrow"><div class="share-flight-no">${flight.flight_no}</div><div class="share-line">───── ✈ ─────</div><div class="share-distance">${(flight.distance || 0).toLocaleString()} km</div></div><div class="share-point"><div class="share-code">${flight.arrival}</div><div class="share-city">${getAirportCity(arr)}</div><div class="share-time">${flight.arr_time}</div></div></div><div class="share-details"><div class="share-detail-item"><span class="share-detail-label">${t('airlineLabel')}</span><span>${typeof translateAirline === 'function' ? translateAirline(flight.airline) : (flight.airline || '-')}</span></div><div class="share-detail-item"><span class="share-detail-label">${t('aircraftLabel')}</span><span>${flight.aircraft || '-'}</span></div><div class="share-detail-item"><span class="share-detail-label">${t('cabinLabel')}</span><span>${getCabinText(flight.class)}</span></div><div class="share-detail-item"><span class="share-detail-label">${t('seatLabel')}</span><span>${flight.seat || '-'}</span></div></div><div class="share-footer"><span>Generated by SkyTrace</span><span>${new Date().toLocaleDateString(getLocale())}</span></div></div>`;
+    const logo = getAirlineLogoHtml(flight.flight_no);
+    const airlineName = typeof translateAirline === 'function' ? translateAirline(flight.airline) : (flight.airline || '');
+
+    // Calculate duration
+    let duration = '';
+    if (flight.dep_time && flight.arr_time) {
+        const d1 = new Date(`2000-01-01 ${flight.dep_time}`);
+        let d2 = new Date(`2000-01-01 ${flight.arr_time}`);
+        const offset = _getDayOffset(flight);
+        if (offset) d2.setDate(d2.getDate() + offset);
+        else if (d2 < d1) d2.setDate(d2.getDate() + 1);
+        const diff = (d2 - d1) / 1000 / 60;
+        if (diff > 0) duration = `${Math.floor(diff / 60)}h ${Math.round(diff % 60)}m`;
+    }
+
+    // Fun fact based on distance
+    let funFact = '';
+    const dist = flight.distance || 0;
+    if (dist > 10000) funFact = `🌍 ${t('longHaulFlight') || '洲际飞行'}`;
+    else if (dist > 5000) funFact = `🛫 ${t('mediumHaulFlight') || '远程飞行'}`;
+    else if (dist > 2000) funFact = `✈️ ${t('midRangeFlight') || '中程飞行'}`;
+    else if (dist > 0) funFact = `🛩️ ${t('shortHaulFlight') || '短途飞行'}`;
+
+    const depT = formatTerminal(flight.dep_terminal);
+    const arrT = formatTerminal(flight.arr_terminal);
+    const stopoverText = flight.stopover ? `<div class="share-stopover">${t('stopoverVia')} ${flight.stopover}</div>` : '';
+
+    document.getElementById('share-card').innerHTML = `<div class="share-card-inner">
+        <div class="share-card-header">
+            <span class="share-logo">✈️ SkyTrace</span>
+            <span class="share-date">${formatDate(flight.date)}</span>
+        </div>
+        <div class="share-airline-row">${logo}<span class="share-airline-name">${airlineName}</span></div>
+        <div class="share-route">
+            <div class="share-point">
+                <div class="share-code">${flight.departure}</div>
+                ${depT ? `<div class="share-terminal">${depT}</div>` : ''}
+                <div class="share-city">${getAirportCity(dep)}</div>
+                <div class="share-time">${flight.dep_time}</div>
+            </div>
+            <div class="share-arrow">
+                <div class="share-flight-no">${flight.flight_no}</div>
+                <div class="share-line">───── ✈ ─────</div>
+                ${stopoverText}
+                ${duration ? `<div class="share-duration">${duration}</div>` : ''}
+                <div class="share-distance">${dist.toLocaleString()} km</div>
+            </div>
+            <div class="share-point">
+                <div class="share-code">${flight.arrival}</div>
+                ${arrT ? `<div class="share-terminal">${arrT}</div>` : ''}
+                <div class="share-city">${getAirportCity(arr)}</div>
+                <div class="share-time">${formatArrTimeText(flight)}</div>
+            </div>
+        </div>
+        <div class="share-details">
+            <div class="share-detail-item"><span class="share-detail-label">${t('aircraftLabel')}</span><span>${flight.aircraft || '-'}</span></div>
+            <div class="share-detail-item"><span class="share-detail-label">${t('cabinLabel')}</span><span>${getCabinText(flight.class)}</span></div>
+            <div class="share-detail-item"><span class="share-detail-label">${t('seatLabel')}</span><span>${flight.seat || '-'}</span></div>
+            <div class="share-detail-item"><span class="share-detail-label">${t('distanceLabel') || '距离'}</span><span>${dist.toLocaleString()} km</span></div>
+        </div>
+        ${funFact ? `<div class="share-fun-fact">${funFact}</div>` : ''}
+        <div class="share-footer"><span>Generated by SkyTrace</span><span>${new Date().toLocaleDateString(getLocale())}</span></div>
+    </div>`;
     document.getElementById('share-modal').classList.add('active');
 }
 function closeShareModal() { document.getElementById('share-modal').classList.remove('active'); }

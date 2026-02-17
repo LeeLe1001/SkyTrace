@@ -60,6 +60,39 @@ body {
     overflow-x: hidden;
 }
 
+/* ==================== 离线模式横幅 ==================== */
+#offline-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 0;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 10000;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    transition: height 0.3s ease;
+}
+#offline-banner .offline-icon {
+    font-size: 14px;
+}
+body.is-offline #offline-banner {
+    height: 32px;
+}
+body.is-offline .header {
+    top: 32px;
+}
+body.is-offline .main-content .view {
+    height: calc(100vh - 60px - 32px);
+}
+
 /* ==================== 头部导航 ==================== */
 .header {
     position: fixed;
@@ -182,6 +215,14 @@ body {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+#home-view.view.active {
+    opacity: 1;
+    transform: none;
+}
+#home-view.view.view-enter {
+    animation: none;
+    opacity: 1;
+}
 
 /* Sub-view transitions */
 .flights-sub-view {
@@ -263,6 +304,26 @@ body {
     font-weight: 600;
 }
 
+.btn-sort-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.btn-sort-toggle:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
 .filter-tabs {
     display: flex;
     gap: 8px;
@@ -292,6 +353,26 @@ body {
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
+.filter-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 18px;
+    padding: 0 5px;
+    margin-left: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 9px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    line-height: 1;
+}
+.filter-tab.active .filter-count {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
 /* 时间筛选 (可折叠) */
 .time-filter {
     background: var(--bg-card);
@@ -305,12 +386,20 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
     padding: 12px 16px;
     font-size: 13px;
     font-weight: 500;
     color: var(--text-secondary);
     transition: all 0.2s;
     user-select: none;
+}
+.time-filter-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    flex-shrink: 0;
 }
 
 .time-filter-header:hover .time-filter-left {
@@ -982,18 +1071,19 @@ body {
     flex-shrink: 0;
 }
 .detail-flight-logo .airline-logo {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 10px;
     object-fit: contain;
-    background: var(--bg-card);
+    background: var(--bg-secondary);
     padding: 4px;
+    border: 1px solid var(--border);
 }
 .detail-flight-logo .airline-logo-fallback {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 10px;
-    font-size: 14px;
+    font-size: 15px;
 }
 .detail-flight-info {
     flex: 1;
@@ -1094,6 +1184,9 @@ body {
     color: var(--warning);
     font-size: 13px;
 }
+.text-warning {
+    color: var(--warning) !important;
+}
 
 .detail-route {
     display: flex;
@@ -1120,6 +1213,17 @@ body {
     color: var(--accent);
 }
 
+.detail-terminal-tag {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    background: rgba(59, 130, 246, 0.1);
+    padding: 2px 10px;
+    border-radius: 8px;
+    margin-top: 2px;
+    display: inline-block;
+}
+
 .detail-city {
     font-size: 14px;
     color: var(--text-secondary);
@@ -1137,6 +1241,7 @@ body {
     color: var(--text-muted);
     flex: 0 0 80px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     padding-top: 12px;
@@ -1175,6 +1280,33 @@ body {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
+}
+
+/* 登机信息 - 单列列表在网格上方 */
+.detail-boarding-section {
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+.detail-boarding-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+}
+.detail-boarding-row:last-child {
+    border-bottom: none;
+}
+.detail-boarding-label {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+.detail-boarding-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
 .detail-info-grid-bordered {
@@ -2805,10 +2937,44 @@ body {
 
 .share-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     gap: 12px;
     padding: 16px 24px;
     border-top: 1px solid var(--border);
+}
+
+/* 分享卡片增强样式 */
+.share-airline-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+.share-airline-name {
+    font-size: 14px;
+    color: #94a3b8;
+}
+.share-terminal {
+    font-size: 12px;
+    color: #60a5fa;
+    font-weight: 600;
+    margin-top: 2px;
+}
+.share-duration {
+    font-size: 13px;
+    color: #94a3b8;
+    font-weight: 500;
+    margin: 2px 0;
+}
+.share-fun-fact {
+    text-align: center;
+    padding: 10px;
+    margin-top: 16px;
+    background: rgba(59, 130, 246, 0.08);
+    border-radius: 10px;
+    font-size: 13px;
+    color: #60a5fa;
+    font-weight: 500;
 }
 
 /* 年度报告卡片 */
@@ -3051,11 +3217,50 @@ body {
     vertical-align: middle;
 }
 
+/* 航班卡片中的航站楼+登机口 (在机场代码下方) */
+.route-terminal {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-top: 1px;
+    opacity: 0.85;
+}
+.route-gate {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
 /* ==================== 登机口信息 ==================== */
 .gate-info {
     font-size: 11px;
     color: var(--accent);
     margin-top: 2px;
+}
+
+/* 航班卡片中的登机口/航站楼信息框 */
+.card-gate-box {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.06), rgba(59, 130, 246, 0.02));
+    border: 1px solid rgba(59, 130, 246, 0.12);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: wrap;
+}
+.card-gate-item {
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+    white-space: nowrap;
+}
+.card-gate-sep {
+    margin: 0 8px;
+    color: var(--text-muted);
+    font-size: 10px;
 }
 
 .detail-gate {
@@ -3238,12 +3443,14 @@ body {
 }
 
 /* 联程多选模式 */
-.flight-card.selected-connect {
+.flight-card.selected-connect,
+.nearest-swipe-card.selected-connect {
     border-color: var(--accent);
     background: color-mix(in srgb, var(--accent) 8%, var(--bg-card));
 }
 
-.flight-card.connect-mode {
+.flight-card.connect-mode,
+.nearest-swipe-card.connect-mode {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -3258,6 +3465,11 @@ body {
     justify-content: center;
     width: 28px;
     cursor: pointer;
+    animation: checkboxSlideIn 0.3s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes checkboxSlideIn {
+    from { opacity: 0; transform: scale(0.5) translateX(-10px); }
+    to { opacity: 1; transform: scale(1) translateX(0); }
 }
 
 .flight-card-body {
@@ -3323,13 +3535,6 @@ body {
     background: var(--accent);
     color: #fff;
     border-color: var(--accent);
-}
-
-.time-filter-left {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
 }
 
 /* ==================== 统计展开/折叠样式 ==================== */
@@ -3489,15 +3694,17 @@ body {
     height: 100%;
     background: var(--bg-primary);
 }
-/* Leaflet attribution: keep small and out of the way */
-#home-map .leaflet-control-attribution {
-    font-size: 9px;
-    opacity: 0.5;
-    max-width: 200px;
+/* Leaflet attribution: hide on home map to prevent overlay overlap */
+#home-map .leaflet-control-attribution,
+#flights-map .leaflet-control-attribution {
+    font-size: 8px;
+    opacity: 0.2;
+    max-width: 180px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    z-index: 400;
+    z-index: 0;
+    pointer-events: none;
 }
 
 .home-stats-overlay { display: none; }
@@ -3508,7 +3715,7 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    max-height: 220px;
+    max-height: 280px;
     background: var(--header-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -3523,6 +3730,21 @@ body {
 }
 .home-flights-overlay.expanded {
     box-shadow: 0 -12px 60px rgba(0,0,0,0.3);
+}
+.home-flights-overlay.minimized {
+    box-shadow: 0 -4px 16px var(--shadow-color);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 30%, black 60%);
+    mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 30%, black 60%);
+}
+.home-flights-overlay:not(.minimized) {
+    -webkit-mask-image: none;
+    mask-image: none;
+}
+.home-flights-overlay.minimized .home-overlay-header {
+    padding: 6px 20px 4px;
+}
+.home-flights-overlay.minimized .home-overlay-handle {
+    margin: 6px auto 0;
 }
 
 .home-overlay-handle {
@@ -3554,10 +3776,8 @@ body {
 .home-overlay-expand-hint {
     font-size: 12px;
     color: var(--text-muted);
-    transition: transform 0.3s;
-}
-.home-flights-overlay.expanded .home-overlay-expand-hint {
-    transform: rotate(180deg);
+    transition: transform 0.35s cubic-bezier(.4,0,.2,1);
+    display: inline-block;
 }
 
 .home-overlay-title {
@@ -3584,6 +3804,70 @@ body {
     margin-bottom: 0;
 }
 
+/* 首页待出行列表用 nearest 风格 */
+.home-list-card {
+    margin-bottom: 8px;
+}
+/* 列表卡片倒计时框 */
+.home-card-countdown {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    text-align: center;
+    border: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+/* 行程列表卡片样式 (统一使用 nearest-swipe-card) */
+.flights-list-card {
+    margin-bottom: 8px;
+}
+.flights-list-card .fcard-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.flights-list-card .nearest-footer .nearest-airline {
+    display: none;
+}
+.flights-list-card .nearest-footer {
+    justify-content: space-between;
+}
+.flights-list-card .nearest-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.flights-list-card .nearest-footer > .nearest-gate {
+    margin-left: auto;
+}
+.flights-list-card .home-card-countdown {
+    margin-top: 8px;
+    margin-bottom: 0;
+}
+.nearest-distance {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* 首页展开列表置顶项 */
+.home-list-pinned {
+    position: relative;
+}
+
+/* 月度图表空状态 */
+.month-chart-empty {
+    text-align: center;
+    padding: 24px 16px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
 .home-overlay-list {
     display: flex;
     flex-direction: column;
@@ -3594,12 +3878,14 @@ body {
     scrollbar-width: none;
     flex: 1;
     min-height: 0;
-    opacity: 0.3;
+    opacity: 0;
+    height: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease, height 0.3s ease;
 }
 .home-flights-overlay.expanded .home-overlay-list {
     opacity: 1;
+    height: auto;
     pointer-events: auto;
 }
 .home-overlay-list::-webkit-scrollbar {
@@ -3836,14 +4122,22 @@ body {
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 24px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    gap: clamp(10px, 3vw, 24px);
     background: var(--map-stats-bg);
     backdrop-filter: blur(20px);
-    padding: 14px 28px;
+    padding: 12px clamp(14px, 4vw, 28px);
     border-radius: 14px;
     border: 1px solid var(--border-light);
     box-shadow: 0 8px 30px var(--shadow-color);
     z-index: 500;
+}
+.fmap-stats-card .stat-value {
+    font-size: clamp(18px, 4vw, 28px);
+}
+.fmap-stats-card .stat-label {
+    font-size: clamp(10px, 2vw, 12px);
 }
 
 /* ==================== 响应式补充 ==================== */
@@ -3867,7 +4161,7 @@ body {
     }
     
     .connect-action-bar {
-        border-radius: 0;
+        border-radius: 12px 12px 0 0;
     }
 
     .flights-sub-nav {
@@ -3902,8 +4196,8 @@ body {
     }
     
     .fmap-stats-card {
-        padding: 10px 18px;
-        gap: 16px;
+        padding: 10px clamp(12px, 3vw, 18px);
+        gap: clamp(8px, 2.5vw, 16px);
     }
     
     .mobile-nav {
@@ -3915,7 +4209,8 @@ body {
     }
     
     .home-flights-overlay {
-        bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+        bottom: 56px;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
         border-radius: 20px 20px 0 0;
     }
 
@@ -4046,21 +4341,22 @@ body {
 
 /* ==================== 航空公司 Logo ==================== */
 .airline-logo {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
     object-fit: contain;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
     flex-shrink: 0;
+    padding: 2px;
 }
 .airline-logo-fallback {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
     background: var(--accent);
     color: #fff;
     font-size: 9px;
@@ -4070,8 +4366,8 @@ body {
 }
 .flight-card .airline-logo,
 .flight-card .airline-logo-fallback {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     font-size: 8px;
 }
 
@@ -4095,10 +4391,11 @@ body {
     max-height: 0;
     overflow: hidden;
     padding: 0;
-    transition: opacity 0.3s, max-height 0.3s, padding 0.3s;
+    margin: 0;
+    transition: opacity 0.3s, max-height 0.3s, padding 0.3s, margin 0.3s;
 }
 .home-nearest-card {
-    transition: opacity 0.3s, max-height 0.35s, padding 0.3s;
+    transition: opacity 0.3s, max-height 0.35s, padding 0.3s, margin 0.3s;
     max-height: 300px;
 }
 .home-flights-overlay.expanded .home-overlay-list {
@@ -4106,93 +4403,213 @@ body {
     pointer-events: auto;
 }
 
-/* ==================== 首页轮播卡片 ==================== */
-.home-carousel {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    padding: 4px 0;
-}
-.home-carousel::-webkit-scrollbar { display: none; }
-
-.home-carousel-card {
-    flex: 0 0 200px;
-    scroll-snap-align: start;
+/* ==================== 最近出行详细大卡片 ==================== */
+.nearest-detail-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 12px 14px;
+    border-radius: 16px;
+    padding: 14px 16px;
     cursor: pointer;
     transition: all 0.2s;
+    position: relative;
 }
-.home-carousel-card:hover {
-    border-color: var(--accent);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px var(--shadow-color);
-}
-
-.carousel-card-date {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-bottom: 8px;
-    font-weight: 500;
+.nearest-detail-card:active {
+    transform: scale(0.98);
 }
 
-.carousel-card-route {
+.nearest-countdown {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 10px;
+    padding: 4px 12px;
+    background: rgba(59, 130, 246, 0.08);
+    border-radius: 8px;
+    display: inline-block;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.nearest-route {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    gap: 6px;
-    margin-bottom: 8px;
+    gap: 8px;
+    margin-bottom: 12px;
 }
 
-.carousel-card-point {
+.nearest-point {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 0;
+    min-width: 60px;
+    flex: 0 0 auto;
 }
 
-.carousel-code {
-    font-size: 20px;
-    font-weight: 700;
+.nearest-code {
+    font-size: 24px;
+    font-weight: 800;
     color: var(--accent);
-    line-height: 1.2;
+    line-height: 1.1;
+    letter-spacing: 1px;
 }
 
-.carousel-city {
-    font-size: 10px;
+.nearest-terminal {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    background: rgba(59, 130, 246, 0.1);
+    padding: 1px 8px;
+    border-radius: 6px;
+    margin-top: 2px;
+}
+
+.nearest-city {
+    font-size: 11px;
     color: var(--text-secondary);
+    margin-top: 2px;
     text-align: center;
-    word-break: break-word;
 }
 
-.carousel-card-arrow {
+.nearest-time {
     font-size: 14px;
-    color: var(--text-muted);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: 4px;
+}
+
+.nearest-arrow {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+    padding-top: 8px;
+    padding-bottom: 16px;
+}
+
+.nearest-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.nearest-plane {
+    font-size: 14px;
+    color: var(--accent);
     flex-shrink: 0;
 }
 
-.carousel-card-footer {
+.nearest-duration {
+    position: absolute;
+    top: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* 经停存在时, 飞行时长下移 */
+.stopover-indicator ~ .nearest-duration {
+    top: 34px;
+}
+
+.nearest-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-light);
+}
+
+.nearest-airline {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 12px;
-    color: var(--text-secondary);
 }
 
-.carousel-flight-no {
+.nearest-flight-no {
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-primary);
 }
 
-.carousel-time {
-    margin-left: auto;
-    color: var(--text-muted);
+.nearest-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nearest-gate {
     font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    background: rgba(59, 130, 246, 0.1);
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.nearest-date {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* ==================== 联程轮播 (全宽滑动) ==================== */
+.nearest-connected-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 8px;
+    padding-left: 2px;
+}
+
+.home-carousel {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding: 0;
+}
+.home-carousel::-webkit-scrollbar { display: none; }
+
+.nearest-swipe-card {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+.nearest-swipe-card:active {
+    transform: scale(0.98);
+}
+
+.carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.carousel-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.2s;
+}
+
+.carousel-dot.active {
+    background: var(--accent);
+    width: 16px;
+    border-radius: 3px;
 }
 
 /* ==================== 月度图表下拉选择器 ==================== */
@@ -4224,4 +4641,262 @@ body {
 
 .month-chart-select:hover {
     border-color: var(--accent);
+}
+
+/* ==================== 经停指示器 ==================== */
+.stopover-indicator {
+    position: absolute;
+    top: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 0;
+    font-size: 9px;
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.stopover-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.stopover-text {
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+/* 详情页经停 - 使用相对定位 */
+.detail-arrow .stopover-indicator {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    font-size: 11px;
+    margin-top: 6px;
+    gap: 5px;
+}
+
+.detail-arrow .stopover-dot {
+    width: 6px;
+    height: 6px;
+}
+
+/* 分享卡经停 */
+.share-stopover {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 500;
+    margin: 2px 0;
+}
+
+/* ==================== +1 跨日标识 ==================== */
+.next-day-sup {
+    font-size: 0.7em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-left: 1px;
+    vertical-align: super;
+    line-height: 1;
+}
+
+/* 表单中的 +1 切换按钮 */
+.arr-time-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.arr-time-row input[type="time"] {
+    flex: 1;
+    min-width: 0;
+}
+
+.next-day-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.next-day-toggle input[type="checkbox"] {
+    display: none;
+}
+
+.next-day-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 28px;
+    padding: 0 6px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 2px solid var(--border-light);
+    color: var(--text-muted);
+    background: transparent;
+    transition: all 0.2s;
+}
+
+.next-day-toggle input[type="checkbox"]:checked + .next-day-badge {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+/* ==================== 日期偏移切换 ==================== */
+.day-offset-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.day-offset-select {
+    display: none;
+}
+
+.day-offset-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 28px;
+    padding: 0 6px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 2px solid var(--border-light);
+    color: var(--text-muted);
+    background: transparent;
+    transition: all 0.2s;
+}
+
+.day-offset-badge.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+/* ==================== 机场名称提示 ==================== */
+.airport-hint {
+    display: none;
+    font-size: 11px;
+    color: var(--accent);
+    margin-top: 4px;
+    line-height: 1.3;
+    opacity: 0.8;
+}
+
+/* ==================== 高级字段折叠 ==================== */
+.advanced-fields-toggle {
+    margin: 12px 0 8px;
+}
+
+.advanced-toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+}
+
+.advanced-toggle-label input[type="checkbox"] {
+    display: none;
+}
+
+.advanced-toggle-arrow {
+    font-size: 10px;
+    transition: transform 0.2s;
+    margin-left: auto;
+}
+
+.advanced-fields {
+    animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================== 航空联盟徽章 ==================== */
+.alliance-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 600;
+    color: #fff;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+    letter-spacing: 0.3px;
+    line-height: 1.4;
+}
+.alliance-star { background: linear-gradient(135deg, #C5A94E, #A88B2A); }
+.alliance-skyteam { background: linear-gradient(135deg, #0A3A7D, #1A5CC8); }
+.alliance-oneworld { background: linear-gradient(135deg, #B51E34, #D43A52); }
+
+/* ==================== 行程搜索框 ==================== */
+.flights-search-box {
+    position: relative;
+    margin: 8px 0 4px;
+}
+.flights-search-box input {
+    width: 100%;
+    padding: 8px 36px 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+.flights-search-box input:focus {
+    border-color: var(--accent);
+}
+.flights-search-box input::placeholder {
+    color: var(--text-muted);
+}
+.flights-search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    border: none;
+    background: var(--border);
+    color: var(--text-muted);
+    border-radius: 50%;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+.flights-search-clear:hover {
+    background: var(--accent);
+    color: #fff;
+}
+
+/* ==================== 首页缩放按钮跟随覆盖层 ==================== */
+#home-map .leaflet-bottom.leaflet-right {
+    bottom: 290px;
+    transition: bottom 0.35s cubic-bezier(.4,0,.2,1);
 }

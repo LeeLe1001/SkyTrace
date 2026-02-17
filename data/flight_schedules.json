@@ -715,10 +715,14 @@
   },
   "CZ3101": {
     "departure": "CAN",
-    "arrival": "PEK",
-    "dep_time": "07:00",
-    "arr_time": "10:05",
-    "aircraft": "A330"
+    "arrival": "PKX",
+    "dep_time": "08:00",
+    "arr_time": "11:00",
+    "aircraft": "Airbus A350",
+    "dep_terminal": "2",
+    "arr_terminal": "",
+    "cached_at": "2026-02-17 21:23",
+    "source": "AeroDataBox"
   },
   "CZ3102": {
     "departure": "PEK",
@@ -2611,7 +2615,7 @@
     "aircraft": "Airbus A321",
     "dep_terminal": "2",
     "arr_terminal": "",
-    "cached_at": "2026-02-17 14:13",
+    "cached_at": "2026-02-17 23:04",
     "source": "AeroDataBox"
   }
 }

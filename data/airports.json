@@ -9800,9 +9800,9 @@
     "lon": 31.839974
   },
   "HRG": {
-    "name": "Hurghada International Airport",
+    "name": "赫尔格达国际机场",
     "name_en": "Hurghada International Airport",
-    "city": "Hurghada",
+    "city": "赫尔格达",
     "city_en": "Hurghada",
     "city_ja": "",
     "city_ko": "",
@@ -9814,9 +9814,9 @@
     "lon": 33.796692
   },
   "LXR": {
-    "name": "Luxor International Airport",
+    "name": "卢克索国际机场",
     "name_en": "Luxor International Airport",
-    "city": "Luxor",
+    "city": "卢克索",
     "city_en": "Luxor",
     "city_ja": "",
     "city_ko": "",
@@ -12168,7 +12168,7 @@
   "DFW": {
     "name": "达拉斯沃思堡国际机场",
     "name_en": "Dallas Fort Worth International Airport",
-    "city": "Dallas-Fort Worth",
+    "city": "达拉斯-沃思堡",
     "city_en": "Dallas-Fort Worth",
     "city_ja": "",
     "city_ko": "",
@@ -20608,10 +20608,10 @@
     "lon": 36.567546
   },
   "SAW": {
-    "name": "Istanbul Sabiha Gökçen International Airport",
+    "name": "伊斯坦布尔萨比哈格克琴机场",
     "name_en": "Istanbul Sabiha Gökçen International Airport",
-    "city": "Pendik, Istanbul",
-    "city_en": "Pendik, Istanbul",
+    "city": "伊斯坦布尔(萨比哈)",
+    "city_en": "Istanbul (Sabiha Gökçen)",
     "city_ja": "",
     "city_ko": "",
     "city_es": "",
@@ -27764,8 +27764,8 @@
   "NGO": {
     "name": "名古屋中部国际机场",
     "name_en": "Chubu Centrair International Airport",
-    "city": "Tokoname",
-    "city_en": "Tokoname",
+    "city": "名古屋",
+    "city_en": "Nagoya",
     "city_ja": "",
     "city_ko": "",
     "city_es": "",
@@ -34524,10 +34524,10 @@
     "lon": 142.717466
   },
   "VVO": {
-    "name": "Vladivostok International Airport",
+    "name": "海参崴国际机场",
     "name_en": "Vladivostok International Airport",
-    "city": "Artyom",
-    "city_en": "Artyom",
+    "city": "海参崴",
+    "city_en": "Vladivostok",
     "city_ja": "",
     "city_ko": "",
     "city_es": "",
@@ -35056,9 +35056,9 @@
     "lon": 102.309641
   },
   "KJA": {
-    "name": "Krasnoyarsk International Airport",
+    "name": "克拉斯诺亚尔斯克国际机场",
     "name_en": "Krasnoyarsk International Airport",
-    "city": "Krasnoyarsk",
+    "city": "克拉斯诺亚尔斯克",
     "city_en": "Krasnoyarsk",
     "city_ja": "",
     "city_ko": "",
@@ -37858,8 +37858,8 @@
   "MFM": {
     "name": "澳门国际机场",
     "name_en": "Macau International Airport",
-    "city": "Nossa Senhora do Carmo",
-    "city_en": "Nossa Senhora do Carmo",
+    "city": "澳门",
+    "city_en": "Macau",
     "city_ja": "",
     "city_ko": "",
     "city_es": "",
