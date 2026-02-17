@@ -300,7 +300,7 @@ const I18N = {
     settingsLanguage: 'Language',
     settingsTheme: 'Appearance',
     settingsApi: '✈️ API Settings',
-    settingsIntro: 'After configuring an API, entering a flight number will <strong>auto-detect</strong> airports, times, aircraft, and more.',,
+    settingsIntro: 'After configuring an API, entering a flight number will <strong>auto-detect</strong> airports, times, aircraft, and more.',
     settingsHint: 'Supported free APIs (choose one):',
     apiNotConfigured: 'Not Set',
     apiConfigured: '✅ Configured',
