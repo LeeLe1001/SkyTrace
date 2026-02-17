@@ -348,7 +348,7 @@ def find_in_local_data(flight_no):
 
 # ==================== 页面路由 ====================
 
-APP_VERSION = 11
+APP_VERSION = 12
 
 @app.route('/api/version')
 def get_app_version():

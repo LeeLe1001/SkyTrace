@@ -27,35 +27,42 @@ let currentStatsYear = 'all';
 let cachedStatsData = null;
 let homeRoutesByFlight = {};
 let _currentCenterSlide = null;
-const SKYTRACE_VERSION = 11;
+const SKYTRACE_VERSION = 12;
 
 // ==================== 航空公司 Logo 映射 (IATA → soaring-symbols slug) ====================
 const AIRLINE_LOGO_MAP = {
     'A3':'aegean-airlines','EI':'aer-lingus','AR':'aerolineas-argentinas','AM':'aeromexico',
-    'ZB':'air-albania','AH':'air-algerie','KC':'air-astana','AC':'air-canada',
+    'CA':'air-china','ZB':'air-albania','AH':'air-algerie','KC':'air-astana','AC':'air-canada',
     'EN':'air-dolomiti','UX':'air-europa','AF':'air-france','AI':'air-india',
     'MK':'air-mauritius','NZ':'air-new-zealand','JU':'air-serbia','TS':'air-transat',
-    'AK':'airasia','KT':'airasia','FD':'airasia','QZ':'airasia','Z2':'airasia',
-    'BT':'airbaltic','QP':'akasa-air','AS':'alaska-airlines','OZ':'asiana-airlines',
+    'BX':'air-busan','AK':'airasia','KT':'airasia','FD':'airasia','QZ':'airasia','Z2':'airasia',
+    'BT':'airbaltic','QP':'akasa-air','AS':'alaska-airlines','NH':'all-nippon-airways',
+    'AA':'american-airlines','OZ':'asiana-airlines',
     'RC':'atlantic-airways','AV':'avianca','LR':'avianca','2K':'avianca','TA':'avianca',
     'J2':'azerbaijan-airlines','QH':'bamboo-airways','PG':'bangkok-airways',
-    'BA':'british-airways','SN':'brussels-airlines','CX':'cathay-pacific','CM':'copa-airlines',
-    'EK':'emirates','ET':'ethiopian-airlines','EY':'etihad-airways','EW':'eurowings',
-    'ZD':'ewa-air','FJ':'fiji-airways','FY':'firefly','XY':'flynas',
-    'GA':'garuda-indonesia','UO':'hk-express','IB':'iberia','FI':'icelandair',
-    '6E':'indigo','JL':'japan-airlines','JQ':'jetstar','GK':'jetstar',
+    'BA':'british-airways','SN':'brussels-airlines',
+    'CI':'china-airlines-taiwan','MU':'china-eastern','CZ':'china-southern','KN':'china-united-airlines',
+    'CX':'cathay-pacific','CM':'copa-airlines','DL':'delta-air-lines',
+    'ZE':'eastar-jet','EK':'emirates','ET':'ethiopian-airlines','EY':'etihad-airways',
+    'EW':'eurowings','BR':'eva-air','ZD':'ewa-air','FJ':'fiji-airways','FY':'firefly','XY':'flynas',
+    'GA':'garuda-indonesia','UO':'hk-express','HU':'hainan-airlines','IB':'iberia','FI':'icelandair',
+    '6E':'indigo','JL':'japan-airlines','7C':'jeju-air','JQ':'jetstar','GK':'jetstar',
+    'LJ':'jin-air','HO':'juneyao-airlines',
     'KQ':'kenya-airways','KL':'klm','KE':'korean-air','KU':'kuwait-airways',
     'LA':'latam-airlines','JJ':'latam-airlines','4C':'latam-airlines','XL':'latam-airlines',
-    'LP':'latam-airlines','PZ':'latam-airlines','LO':'lot-polish-airlines','LH':'lufthansa',
+    'LP':'latam-airlines','PZ':'latam-airlines','LO':'lot-polish-airlines','GJ':'loong-air','LH':'lufthansa',
     'MH':'malaysia-airlines','UB':'myanmar-national-airlines','WY':'oman-air',
     'ZP':'paranair','MM':'peach-aviation','PR':'philippine-airlines','QF':'qantas',
     'QR':'qatar-airways','RX':'riyadh-air','AT':'royal-air-maroc','BI':'royal-brunei-airlines',
     'FR':'ryanair','SV':'saudia','SK':'scandinavian-airlines','SL':'scandinavian-airlines',
+    'SC':'shandong-airlines','FM':'shanghai-airlines','ZH':'shenzhen-airlines',
+    '3U':'sichuan-airlines','9C':'spring-airlines',
     'TR':'scoot','SQ':'singapore-airlines','WN':'southwest-airlines','JX':'starlux-airlines',
     '9G':'sun-phuquoc-airways','LX':'swiss','TW':'tway-air','TP':'tap-air-portugal',
-    'RO':'tarom','TG':'thai-airways','HV':'transavia','TK':'turkish-airlines',
+    'RO':'tarom','TG':'thai-airways','TV':'tibet-airlines','GS':'tianjin-airlines',
+    'IT':'tigerair-taiwan','HV':'transavia','TK':'turkish-airlines',
     'UA':'united-airlines','VJ':'vietjet-air','VN':'vietnam-airlines',
-    'VS':'virgin-atlantic','VA':'virgin-australia','WS':'westjet',
+    'VS':'virgin-atlantic','VA':'virgin-australia','PN':'west-air','WS':'westjet',
     'W6':'wizz-air','5W':'wizz-air','W9':'wizz-air','MF':'xiamenair',
 };
 const LOGO_LOCAL = '/static/img/airlines/';
@@ -309,11 +316,14 @@ function expandHomeOverlay() {
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
     el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
-    el.style.maxHeight = '75vh';
+    // 计算底部导航高度
+    const mobileNav = document.querySelector('.mobile-nav');
+    const navH = mobileNav ? mobileNav.offsetHeight : 0;
+    el.style.maxHeight = `calc(75vh - ${navH}px)`;
     el.classList.add('expanded');
     const nearest = el.querySelector('.home-nearest-card');
     const list = el.querySelector('.home-overlay-list');
-    if (nearest) nearest.style.opacity = '0';
+    if (nearest) { nearest.style.opacity = '0'; nearest.style.height = '0'; nearest.style.overflow = 'hidden'; nearest.style.padding = '0'; }
     if (list) { list.style.opacity = '1'; list.style.pointerEvents = 'auto'; }
     const hint = document.getElementById('ho-expand-hint');
     if (hint) hint.textContent = '▼';
@@ -328,7 +338,7 @@ function collapseHomeOverlay() {
     el.classList.remove('expanded');
     const nearest = el.querySelector('.home-nearest-card');
     const list = el.querySelector('.home-overlay-list');
-    if (nearest) nearest.style.opacity = '1';
+    if (nearest) { nearest.style.opacity = '1'; nearest.style.height = ''; nearest.style.overflow = ''; nearest.style.padding = ''; }
     if (list) { list.style.opacity = '0.3'; list.style.pointerEvents = 'none'; }
     const hint = document.getElementById('ho-expand-hint');
     if (hint) hint.textContent = '▲';
@@ -343,7 +353,7 @@ function peekHomeOverlay() {
     el.classList.remove('expanded');
     const nearest = el.querySelector('.home-nearest-card');
     const list = el.querySelector('.home-overlay-list');
-    if (nearest) nearest.style.opacity = '1';
+    if (nearest) { nearest.style.opacity = '1'; nearest.style.height = ''; nearest.style.overflow = ''; nearest.style.padding = ''; }
     if (list) { list.style.opacity = '0.3'; list.style.pointerEvents = 'none'; }
     const hint = document.getElementById('ho-expand-hint');
     if (hint) hint.textContent = '▲';
@@ -1156,6 +1166,13 @@ function closeModal() {
 function closeDetailModal() { document.getElementById('detail-modal').classList.remove('active'); }
 
 // ==================== 航班详情 ====================
+function formatDateDetail(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    const datePart = d.toLocaleDateString(getLocale(), { year: 'numeric', month: 'short', day: 'numeric' });
+    const weekday = d.toLocaleDateString(getLocale(), { weekday: 'long' });
+    return `<span class="detail-date-main">${datePart}</span><span class="detail-date-weekday">${weekday}</span>`;
+}
+
 function showFlightDetail(flightId) {
     const flight = flights.find(f => f.id === flightId);
     if (!flight) return;
@@ -1165,37 +1182,72 @@ function showFlightDetail(flightId) {
     const statusInfo = flight.status_info || {};
     const progress = statusInfo.progress || 0;
     const isActive = statusInfo.status === 'in_flight';
+    const logo = getAirlineLogoHtml(flight.flight_no);
+    const airlineName = typeof translateAirline === 'function' ? translateAirline(flight.airline) : (flight.airline || '');
 
-    document.getElementById('detail-content').innerHTML = `
+    // 登机口/航站楼卡片
+    let gateCardHtml = '';
+    const hasGateInfo = flight.dep_terminal || flight.arr_terminal || flight.dep_gate || flight.arr_gate || statusInfo.status !== 'completed';
+    if (hasGateInfo) {
+        gateCardHtml = `<div class="detail-card detail-gate-card">
+            <div class="detail-card-title">🚪 ${t('gateInfo') || '登机信息'}</div>
+            <div class="detail-gate-grid">
+                <div class="detail-gate-col">
+                    <div class="detail-gate-airport">${flight.departure}</div>
+                    ${flight.dep_terminal ? `<div class="detail-gate-item"><span class="detail-gate-label">${t('terminalLabel') || '航站楼'}</span><span class="detail-gate-value">T${flight.dep_terminal}</span></div>` : ''}
+                    <div class="detail-gate-item"><span class="detail-gate-label">${t('gateLabel')}</span><span class="detail-gate-value ${!flight.dep_gate && statusInfo.status !== 'completed' ? 'pending' : ''}">${flight.dep_gate || (statusInfo.status !== 'completed' ? t('gatePending') : '-')}</span></div>
+                </div>
+                <div class="detail-gate-divider"></div>
+                <div class="detail-gate-col">
+                    <div class="detail-gate-airport">${flight.arrival}</div>
+                    ${flight.arr_terminal ? `<div class="detail-gate-item"><span class="detail-gate-label">${t('terminalLabel') || '航站楼'}</span><span class="detail-gate-value">T${flight.arr_terminal}</span></div>` : ''}
+                    ${flight.arr_gate ? `<div class="detail-gate-item"><span class="detail-gate-label">${t('gateLabel')}</span><span class="detail-gate-value">${flight.arr_gate}</span></div>` : ''}
+                </div>
+            </div>
+        </div>`;
+    }
+
+    // 座位/舱位/机型卡片
+    let seatCardHtml = `<div class="detail-card">
+        <div class="detail-card-title">💺 ${t('seatInfo') || '乘机信息'}</div>
+        <div class="detail-info-grid detail-info-grid-bordered">
+            <div class="detail-info-item"><div class="detail-info-label">${t('seatLabel')}</div><div class="detail-info-value">${flight.seat || '-'}</div></div>
+            <div class="detail-info-item"><div class="detail-info-label">${t('cabinLabel')}</div><div class="detail-info-value">${getCabinText(flight.class)}</div></div>
+            <div class="detail-info-item"><div class="detail-info-label">${t('aircraftLabel')}</div><div class="detail-info-value">${flight.aircraft || '-'}</div></div>
+            <div class="detail-info-item"><div class="detail-info-label">${t('distanceLabel')}</div><div class="detail-info-value">${(flight.distance || 0).toLocaleString()} km</div></div>
+        </div>
+    </div>`;
+
+    const detailContent = document.getElementById('detail-content');
+    detailContent.innerHTML = `
+        <div class="detail-flight-header">
+            <div class="detail-flight-logo">${logo}</div>
+            <div class="detail-flight-info">
+                <div class="detail-flight-no">${flight.flight_no}</div>
+                <div class="detail-flight-airline">${airlineName}</div>
+            </div>
+            <div class="detail-flight-status"><span class="flight-status ${statusInfo.status || 'upcoming'}">${getStatusText(statusInfo)}</span></div>
+        </div>
+        <div class="detail-date-row">${formatDateDetail(flight.date)}</div>
         <div class="detail-route">
             <div class="detail-point departure">
                 <div class="detail-code">${flight.departure}</div><div class="detail-city">${getAirportCity(depAirport)}</div><div class="detail-time">${flight.dep_time}</div>
-                ${flight.dep_terminal ? `<div class="detail-terminal">T${flight.dep_terminal}</div>` : ''}
-                ${flight.dep_gate ? `<div class="detail-gate">${t('gateLabel')}: ${flight.dep_gate}</div>` : (statusInfo.status !== 'completed' ? `<div class="detail-gate pending">${t('gateLabel')}: ${t('gatePending')}</div>` : '')}
             </div>
             <div class="detail-arrow">${isActive ? `<div class="flight-progress-mini"><div class="progress-track"><div class="progress-fill" style="width:${progress}%"></div><div class="progress-plane" style="left:${progress}%">✈</div></div><div class="progress-text">${renderCountdown(statusInfo.countdown)}</div></div>` : '<div class="detail-route-line"><div class="detail-route-dot"></div><div class="detail-route-dash"></div><span class="detail-route-plane">✈</span><div class="detail-route-dash"></div><div class="detail-route-dot"></div></div>'}</div>
             <div class="detail-point arrival">
                 <div class="detail-code">${flight.arrival}</div><div class="detail-city">${getAirportCity(arrAirport)}</div><div class="detail-time">${flight.arr_time}</div>
-                ${flight.arr_terminal ? `<div class="detail-terminal">T${flight.arr_terminal}</div>` : ''}
-                ${flight.arr_gate ? `<div class="detail-gate">${t('gateLabel')}: ${flight.arr_gate}</div>` : ''}
             </div>
         </div>
-        <div class="detail-info-grid detail-info-grid-bordered">
-            <div class="detail-info-item"><div class="detail-info-label">${t('flightNoLabel')}</div><div class="detail-info-value">${flight.flight_no}</div></div>
-            <div class="detail-info-item"><div class="detail-info-label">${t('dateLabel')}</div><div class="detail-info-value">${formatDate(flight.date)}</div></div>
-            <div class="detail-info-item"><div class="detail-info-label">${t('airlineLabel')}</div><div class="detail-info-value">${typeof translateAirline === 'function' ? translateAirline(flight.airline) : (flight.airline || '-')}</div></div>
-            <div class="detail-info-item"><div class="detail-info-label">${t('aircraftLabel')}</div><div class="detail-info-value">${flight.aircraft || '-'}</div></div>
-            <div class="detail-info-item"><div class="detail-info-label">${t('seatLabel')}</div><div class="detail-info-value">${flight.seat || '-'}</div></div>
-            <div class="detail-info-item"><div class="detail-info-label">${t('cabinLabel')}</div><div class="detail-info-value">${getCabinText(flight.class)}</div></div>
-            <div class="detail-info-item"><div class="detail-info-label">${t('distanceLabel')}</div><div class="detail-info-value">${(flight.distance || 0).toLocaleString()} km</div></div>
-            <div class="detail-info-item"><div class="detail-info-label">${t('statusLabel')}</div><div class="detail-info-value">${getStatusText(statusInfo)}</div></div>
-        </div>
-        ${statusInfo.status !== 'completed' ? `<div class="detail-reminder"><div class="detail-reminder-title">${t('keyTimeline')}</div><div class="detail-reminder-item"><span>${t('checkinOpen')}</span><span>${formatDateTime(statusInfo.checkin_open)}</span></div><div class="detail-reminder-item"><span>${t('checkinClose')}</span><span>${formatDateTime(statusInfo.checkin_close)}</span></div><div class="detail-reminder-item"><span>${t('boardingStart')}</span><span>${formatDateTime(statusInfo.boarding_time)}</span></div></div>` : ''}
-        ${flight.notes ? `<div style="margin-top:16px;padding:14px;background:var(--bg-card);border-radius:10px;"><div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">${t('noteLabel')}</div><div style="font-size:14px;">${flight.notes}</div></div>` : ''}
+        ${gateCardHtml}
+        ${seatCardHtml}
+        ${statusInfo.status !== 'completed' ? `<div class="detail-card"><div class="detail-card-title">⏱️ ${t('keyTimeline')}</div><div class="detail-reminder-item"><span>${t('checkinOpen')}</span><span>${formatDateTime(statusInfo.checkin_open)}</span></div><div class="detail-reminder-item"><span>${t('checkinClose')}</span><span>${formatDateTime(statusInfo.checkin_close)}</span></div><div class="detail-reminder-item"><span>${t('boardingStart')}</span><span>${formatDateTime(statusInfo.boarding_time)}</span></div></div>` : ''}
+        ${flight.notes ? `<div class="detail-card"><div class="detail-card-title">📝 ${t('noteLabel')}</div><div style="font-size:14px;">${flight.notes}</div></div>` : ''}
         <div class="weather-container" id="detail-weather"></div>
         <div class="detail-delete-section"><button class="btn-danger btn-delete-full" onclick="deleteFlight()">🗑️ ${t('deleteTrip')}</button></div>
     `;
     document.getElementById('detail-modal').classList.add('active');
+    // 每次打开详情滚动到顶部
+    detailContent.scrollTop = 0;
     if (statusInfo.status !== 'completed') {
         loadFlightWeather(flight).then(html => { const el = document.getElementById('detail-weather'); if (el && html) el.innerHTML = html; });
     }
@@ -1510,15 +1562,40 @@ function toggleConnectMode() {
         btn.classList.add('active');
         let bar = document.getElementById('connect-action-bar');
         if (!bar) { bar = document.createElement('div'); bar.id = 'connect-action-bar'; bar.className = 'connect-action-bar'; document.querySelector('.flights-container').appendChild(bar); }
-        bar.innerHTML = `<span class="connect-bar-text">${t('selectFlightsHint')}</span><button class="btn-primary btn-sm" onclick="confirmConnect()" id="btn-confirm-connect" disabled>${t('confirmConnect')}</button><button class="btn-secondary btn-sm" onclick="toggleConnectMode()">${t('cancel')}</button>`;
+        _updateConnectBar();
         bar.style.display = 'flex';
     } else { btn.classList.remove('active'); const bar = document.getElementById('connect-action-bar'); if (bar) bar.style.display = 'none'; }
     renderFlightsList();
 }
-function toggleConnectSelect(id) { if (selectedConnectIds.has(id)) selectedConnectIds.delete(id); else selectedConnectIds.add(id); const btn = document.getElementById('btn-confirm-connect'); if (btn) btn.disabled = selectedConnectIds.size < 2; renderFlightsList(); }
+function _updateConnectBar() {
+    const bar = document.getElementById('connect-action-bar');
+    if (!bar) return;
+    const count = selectedConnectIds.size;
+    bar.innerHTML = `<span class="connect-bar-text">${count > 0 ? (t('selectedCount') || '{0} 已选').replace('{0}', count) : t('selectFlightsHint')}</span>
+        <div class="connect-bar-actions">
+            <button class="btn-primary btn-sm" onclick="confirmConnect()" id="btn-confirm-connect" ${count < 2 ? 'disabled' : ''}>🔗 ${t('confirmConnect')}</button>
+            <button class="btn-danger btn-sm" onclick="batchDeleteFlights()" id="btn-batch-delete" ${count < 1 ? 'disabled' : ''}>🗑️ ${t('deleteTrip')}</button>
+            <button class="btn-secondary btn-sm" onclick="toggleConnectMode()">${t('cancel')}</button>
+        </div>`;
+}
+function toggleConnectSelect(id) { if (selectedConnectIds.has(id)) selectedConnectIds.delete(id); else selectedConnectIds.add(id); _updateConnectBar(); renderFlightsList(); }
 async function confirmConnect() {
     if (selectedConnectIds.size < 2) return;
     try { await fetch('/api/flights/connect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ flight_ids: Array.from(selectedConnectIds) }) }); connectMode = false; selectedConnectIds.clear(); document.getElementById('btn-connect').classList.remove('active'); const bar = document.getElementById('connect-action-bar'); if (bar) bar.style.display = 'none'; loadFlights(); } catch (e) {}
+}
+async function batchDeleteFlights() {
+    if (selectedConnectIds.size < 1) return;
+    const count = selectedConnectIds.size;
+    if (!confirm((t('confirmBatchDelete') || '确定要删除选中的 {0} 个航班吗？此操作不可恢复。').replace('{0}', count))) return;
+    if (!confirm((t('confirmBatchDelete2') || '再次确认：删除 {0} 个航班？').replace('{0}', count))) return;
+    try {
+        const ids = Array.from(selectedConnectIds);
+        for (const id of ids) { await fetch(`/api/flights/${id}`, { method: 'DELETE' }); }
+        connectMode = false; selectedConnectIds.clear();
+        document.getElementById('btn-connect').classList.remove('active');
+        const bar = document.getElementById('connect-action-bar'); if (bar) bar.style.display = 'none';
+        loadFlights(); loadStats();
+    } catch (e) { alert(t('deleteFailed')); }
 }
 async function disconnectGroup(groupId) {
     if (!confirm(t('confirmDisconnect'))) return;

@@ -971,6 +971,130 @@ body {
     padding: 24px;
 }
 
+/* 详情 - 航班号头部(含logo) */
+.detail-flight-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.detail-flight-logo {
+    flex-shrink: 0;
+}
+.detail-flight-logo .airline-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    object-fit: contain;
+    background: var(--bg-card);
+    padding: 4px;
+}
+.detail-flight-logo .airline-logo-fallback {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    font-size: 14px;
+}
+.detail-flight-info {
+    flex: 1;
+    min-width: 0;
+}
+.detail-flight-no {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.detail-flight-airline {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+.detail-flight-status {
+    flex-shrink: 0;
+}
+
+/* 详情 - 日期行 */
+.detail-date-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 10px;
+    background: var(--bg-card);
+    border-radius: 10px;
+}
+.detail-date-main {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.detail-date-weekday {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+/* 详情 - 卡片通用 */
+.detail-card {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+.detail-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+/* 详情 - 登机信息卡片 */
+.detail-gate-card {
+    background: linear-gradient(135deg, var(--bg-card), rgba(59, 130, 246, 0.05));
+    border-color: rgba(59, 130, 246, 0.15);
+}
+.detail-gate-grid {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+}
+.detail-gate-col {
+    flex: 1;
+    text-align: center;
+}
+.detail-gate-divider {
+    width: 1px;
+    background: var(--border);
+    align-self: stretch;
+    margin: 0 12px;
+}
+.detail-gate-airport {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+}
+.detail-gate-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 6px;
+}
+.detail-gate-label {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+.detail-gate-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.detail-gate-value.pending {
+    color: var(--warning);
+    font-size: 13px;
+}
+
 .detail-route {
     display: flex;
     align-items: flex-start;
@@ -1089,21 +1213,6 @@ body {
 .detail-info-value {
     font-size: 15px;
     font-weight: 500;
-}
-
-.detail-reminder {
-    margin-top: 20px;
-    padding: 16px;
-    background: rgba(59, 130, 246, 0.1);
-    border-radius: 12px;
-    border: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-.detail-reminder-title {
-    font-size: 13px;
-    color: var(--accent);
-    font-weight: 600;
-    margin-bottom: 10px;
 }
 
 .detail-reminder-item {
@@ -2776,22 +2885,18 @@ body {
 /* 详情模态框分享按钮 */
 .detail-actions {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
+    gap: 10px;
     padding: 16px 24px;
     border-top: 1px solid var(--border);
     flex-shrink: 0;
 }
 
-.detail-actions-left {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
-.detail-actions-right {
-    display: flex;
-    gap: 8px;
+.detail-actions .btn-secondary,
+.detail-actions .btn-primary {
+    flex: 1;
+    text-align: center;
 }
 
 .btn-share {
@@ -3172,12 +3277,20 @@ body {
     border-radius: 12px 12px 0 0;
     box-shadow: 0 -4px 20px var(--shadow-color);
     z-index: 100;
+    flex-wrap: wrap;
 }
 
 .connect-bar-text {
-    flex: 1;
+    flex: 1 1 100%;
     font-size: 13px;
     color: var(--text-secondary);
+}
+
+.connect-bar-actions {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+    justify-content: flex-end;
 }
 
 .btn-sm {
@@ -3802,11 +3915,12 @@ body {
     }
     
     .home-flights-overlay {
-        bottom: 56px;
+        bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+        border-radius: 20px 20px 0 0;
     }
 
     .btn-add-float {
-        bottom: 76px;
+        bottom: calc(76px + env(safe-area-inset-bottom, 0px));
     }
 
     /* 行程列表底部留白避免遮挡 */
