@@ -27,6 +27,7 @@ let currentStatsYear = 'all';
 let cachedStatsData = null;
 let homeRoutesByFlight = {};
 let _currentCenterSlide = null;
+const SKYTRACE_VERSION = 11;
 
 // ==================== 航空公司 Logo 映射 (IATA → soaring-symbols slug) ====================
 const AIRLINE_LOGO_MAP = {
@@ -63,7 +64,7 @@ function getAirlineLogoHtml(flightNo) {
     const iata = (flightNo || '').match(/^([A-Z0-9]{2})/i)?.[1]?.toUpperCase();
     const slug = iata ? AIRLINE_LOGO_MAP[iata] : null;
     if (slug) {
-        return `<img class="airline-logo" src="${LOGO_LOCAL}${slug}.svg" alt="${iata}" onerror="this.src='${LOGO_REMOTE}${slug}/icon.svg';this.onerror=function(){this.style.display='none';this.nextElementSibling.style.display='flex'}"><span class="airline-logo-fallback" style="display:none">${iata}</span>`;
+        return `<img class="airline-logo" src="${LOGO_LOCAL}${slug}.svg" alt="${iata}" onerror="if(!this.dataset.tried){this.dataset.tried='1';this.src='${LOGO_LOCAL}${slug}.png'}else if(this.dataset.tried==='1'){this.dataset.tried='2';this.src='${LOGO_REMOTE}${slug}/icon.svg'}else{this.style.display='none';this.nextElementSibling.style.display='flex'}"><span class="airline-logo-fallback" style="display:none">${iata}</span>`;
     }
     return iata ? `<span class="airline-logo-fallback">${iata}</span>` : '';
 }
@@ -163,6 +164,13 @@ function _skytraceInit() {
     try { _initFlightInput(); } catch(e) { console.error('[SkyTrace] _initFlightInput:', e); }
     // 检查 API 状态
     checkApiStatus().catch(() => {});
+    // 版本检查 - 自动刷新
+    _checkVersionAndRefresh();
+    // 安全网: 如果5秒后加载指示器还在，强制隐藏
+    setTimeout(() => {
+        const li = document.getElementById('loading-indicator');
+        if (li && li.style.display !== 'none') { li.style.display = 'none'; console.warn('[SkyTrace] Force-hiding loading indicator'); }
+    }, 5000);
 }
 // 立即执行
 _skytraceInit();
@@ -262,15 +270,9 @@ function initHomeOverlayDrag() {
 
     // Click header or handle to toggle expand
     const toggleClick = () => {
-        const currentH = el.offsetHeight;
-        if (currentH < 100) {
-            // From collapsed → peek (show carousel)
+        if (_hoExpanded) {
             peekHomeOverlay();
-        } else if (_hoExpanded) {
-            // From expanded → collapsed
-            minimizeHomeOverlay();
         } else {
-            // From peek → expanded
             expandHomeOverlay();
         }
     };
@@ -293,15 +295,13 @@ function initHomeOverlayDrag() {
             const h = el.offsetHeight;
             if (h > window.innerHeight * 0.35) {
                 expandHomeOverlay();
-            } else if (h > 100) {
-                collapseHomeOverlay();
             } else {
-                minimizeHomeOverlay();
+                peekHomeOverlay();
             }
         });
     }
-    // Start minimized
-    minimizeHomeOverlay();
+    // Start at peek state (showing nearest card)
+    peekHomeOverlay();
 }
 
 function expandHomeOverlay() {
@@ -381,8 +381,13 @@ function renderHomeFlightOverlay(upcoming) {
         return;
     }
 
-    // Build carousel cards (nearest flights, with dates, no status capsule)
-    const carouselFlights = sorted.slice(0, 5);
+    // Build carousel cards: only the nearest single flight or connected group
+    let carouselFlights;
+    if (sorted[0].connected_group) {
+        carouselFlights = sorted.filter(f => f.connected_group === sorted[0].connected_group);
+    } else {
+        carouselFlights = [sorted[0]];
+    }
     nearestEl.innerHTML = `<div class="home-carousel">${carouselFlights.map(f => renderHomeCarouselCard(f)).join('')}</div>`;
 
     // Highlight nearest route on map
@@ -725,12 +730,12 @@ async function loadStats(year) {
         const stats = await (await fetch('/api/stats' + yearParam)).json();
         cachedStatsData = stats;
 
-        document.getElementById('total-flights').textContent = stats.total_flights;
-        document.getElementById('total-distance').textContent = stats.total_distance.toLocaleString();
-        document.getElementById('total-hours').textContent = stats.total_hours;
-        document.getElementById('visited-airports').textContent = stats.visited_airports;
-        document.getElementById('visited-countries').textContent = stats.visited_countries;
-        document.getElementById('earth-rounds').textContent = (stats.total_distance / 40075).toFixed(2);
+        animateCountUp(document.getElementById('total-flights'), stats.total_flights);
+        animateCountUp(document.getElementById('total-distance'), stats.total_distance);
+        animateCountUp(document.getElementById('total-hours'), stats.total_hours);
+        animateCountUp(document.getElementById('visited-airports'), stats.visited_airports);
+        animateCountUp(document.getElementById('visited-countries'), stats.visited_countries);
+        animateCountUp(document.getElementById('earth-rounds'), stats.total_distance / 40075, {decimals: 2});
         renderYearSelector(stats.available_years);
         renderFunStats(stats.fun_stats, stats.top_routes, stats.top_airlines);
     } catch (e) { console.error('加载统计失败:', e); }
@@ -1026,6 +1031,46 @@ function renderFlightCard(flight) {
     </div>`;
 }
 
+// ==================== 数字滚动动画 ====================
+function animateCountUp(el, endValue, opts = {}) {
+    if (!el) return;
+    const duration = opts.duration || 1200;
+    const decimals = opts.decimals || 0;
+    const numVal = typeof endValue === 'number' ? endValue : parseFloat(String(endValue).replace(/,/g, ''));
+    if (isNaN(numVal) || numVal === 0) {
+        el.textContent = decimals > 0 ? numVal.toFixed(decimals) : numVal.toLocaleString();
+        return;
+    }
+    const startTime = performance.now();
+    function update(now) {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = numVal * eased;
+        if (progress >= 1) {
+            el.textContent = decimals > 0 ? numVal.toFixed(decimals) : numVal.toLocaleString();
+            return;
+        }
+        el.textContent = decimals > 0 ? current.toFixed(decimals) : Math.round(current).toLocaleString();
+        requestAnimationFrame(update);
+    }
+    el.textContent = decimals > 0 ? (0).toFixed(decimals) : '0';
+    requestAnimationFrame(update);
+}
+
+// ==================== 版本检查 - 自动刷新 ====================
+function _checkVersionAndRefresh() {
+    fetch('/api/version?_=' + Date.now())
+        .then(r => r.json())
+        .then(data => {
+            if (data.version && data.version !== SKYTRACE_VERSION) {
+                console.log('[SkyTrace] Version mismatch: loaded=' + SKYTRACE_VERSION + ' server=' + data.version + ', reloading...');
+                if ('caches' in window) caches.keys().then(ks => ks.forEach(k => caches.delete(k)));
+                location.reload(true);
+            }
+        })
+        .catch(() => {});
+}
+
 // ==================== 标签切换 ====================
 function initTabs() {
     // 主导航标签 + 移动端底部导航
@@ -1034,10 +1079,17 @@ function initTabs() {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.mobile-nav-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            // 同步高亮
+            // Remove active and animation from all views
+            document.querySelectorAll('.view').forEach(v => {
+                v.classList.remove('active');
+                v.classList.remove('view-enter');
+            });
+            // Sync highlight
             allNavTabs.filter(t => t.dataset.tab === tab.dataset.tab).forEach(t => t.classList.add('active'));
-            document.getElementById(tab.dataset.tab + '-view').classList.add('active');
+            const targetView = document.getElementById(tab.dataset.tab + '-view');
+            targetView.classList.add('active');
+            // Trigger enter animation
+            requestAnimationFrame(() => targetView.classList.add('view-enter'));
 
             if (tab.dataset.tab === 'home') {
                 setTimeout(() => { if (homeMap) homeMap.invalidateSize(); }, 100);
@@ -1059,12 +1111,21 @@ function initTabs() {
     document.querySelectorAll('.flights-sub-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.flights-sub-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.flights-sub-view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.flights-sub-view').forEach(v => { v.classList.remove('active'); v.classList.remove('view-enter'); });
             tab.classList.add('active');
             const subtab = tab.dataset.subtab;
-            if (subtab === 'list') { document.getElementById('flights-list-subview').classList.add('active'); const fab = document.querySelector('.btn-add-float'); if (fab) fab.style.display = 'flex'; }
-            else if (subtab === 'fmap') { document.getElementById('flights-map-subview').classList.add('active'); initFlightsMap(); const fab = document.querySelector('.btn-add-float'); if (fab) fab.style.display = 'none'; }
-            else if (subtab === 'fstats') { document.getElementById('flights-stats-subview').classList.add('active'); loadStats(); const fab = document.querySelector('.btn-add-float'); if (fab) fab.style.display = 'none'; }
+            if (subtab === 'list') {
+                const sv = document.getElementById('flights-list-subview'); sv.classList.add('active'); requestAnimationFrame(() => sv.classList.add('view-enter'));
+                const fab = document.querySelector('.btn-add-float'); if (fab) fab.style.display = 'flex';
+            }
+            else if (subtab === 'fmap') {
+                const sv = document.getElementById('flights-map-subview'); sv.classList.add('active'); requestAnimationFrame(() => sv.classList.add('view-enter'));
+                initFlightsMap(); const fab = document.querySelector('.btn-add-float'); if (fab) fab.style.display = 'none';
+            }
+            else if (subtab === 'fstats') {
+                const sv = document.getElementById('flights-stats-subview'); sv.classList.add('active'); requestAnimationFrame(() => sv.classList.add('view-enter'));
+                loadStats(); const fab = document.querySelector('.btn-add-float'); if (fab) fab.style.display = 'none';
+            }
         });
     });
 
@@ -1132,6 +1193,7 @@ function showFlightDetail(flightId) {
         ${statusInfo.status !== 'completed' ? `<div class="detail-reminder"><div class="detail-reminder-title">${t('keyTimeline')}</div><div class="detail-reminder-item"><span>${t('checkinOpen')}</span><span>${formatDateTime(statusInfo.checkin_open)}</span></div><div class="detail-reminder-item"><span>${t('checkinClose')}</span><span>${formatDateTime(statusInfo.checkin_close)}</span></div><div class="detail-reminder-item"><span>${t('boardingStart')}</span><span>${formatDateTime(statusInfo.boarding_time)}</span></div></div>` : ''}
         ${flight.notes ? `<div style="margin-top:16px;padding:14px;background:var(--bg-card);border-radius:10px;"><div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">${t('noteLabel')}</div><div style="font-size:14px;">${flight.notes}</div></div>` : ''}
         <div class="weather-container" id="detail-weather"></div>
+        <div class="detail-delete-section"><button class="btn-danger btn-delete-full" onclick="deleteFlight()">🗑️ ${t('deleteTrip')}</button></div>
     `;
     document.getElementById('detail-modal').classList.add('active');
     if (statusInfo.status !== 'completed') {

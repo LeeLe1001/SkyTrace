@@ -348,6 +348,12 @@ def find_in_local_data(flight_no):
 
 # ==================== 页面路由 ====================
 
+APP_VERSION = 11
+
+@app.route('/api/version')
+def get_app_version():
+    return jsonify({'version': APP_VERSION})
+
 @app.route('/')
 def index():
     return render_template('index.html')

@@ -170,6 +170,32 @@ body {
 
 .view.active {
     display: block;
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.view.view-enter {
+    animation: viewFadeIn 0.3s ease-out forwards;
+}
+
+@keyframes viewFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Sub-view transitions */
+.flights-sub-view {
+    display: none;
+}
+
+.flights-sub-view.active {
+    display: block;
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+.flights-sub-view.view-enter {
+    animation: viewFadeIn 0.25s ease-out forwards;
 }
 
 /* ==================== 地图视图 ==================== */
@@ -509,18 +535,13 @@ body {
     font-size: 28px;
     font-weight: 700;
     letter-spacing: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .airport-city {
     font-size: 13px;
     color: var(--text-secondary);
     margin-top: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    word-break: break-word;
 }
 
 .route-time {
@@ -601,9 +622,11 @@ body {
     gap: 4px;
 }
 
+/* Stats value animation */
 .stats-value {
     font-size: 28px;
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
 }
 
 .stats-label {
@@ -1095,12 +1118,7 @@ body {
     border-bottom: none;
 }
 
-.detail-actions {
-    display: flex;
-    justify-content: space-between;
-    padding: 20px 24px;
-    border-top: 1px solid var(--border);
-}
+/* detail-actions defined later in file */
 
 /* 空状态 */
 .empty-state {
@@ -2760,8 +2778,15 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 24px;
+    padding: 16px 24px;
     border-top: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.detail-actions-left {
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
 .detail-actions-right {
@@ -2787,6 +2812,31 @@ body {
     background: #8b5cf6;
     color: white;
     border-color: #8b5cf6;
+}
+
+/* Delete button at bottom of detail content */
+.detail-delete-section {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+
+.btn-delete-full {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--danger);
+    background: transparent;
+    color: var(--danger);
+    transition: all 0.2s;
+}
+
+.btn-delete-full:hover {
+    background: var(--danger);
+    color: white;
 }
 
 /* ==================== 响应式 - 新功能 ==================== */
@@ -3345,7 +3395,7 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    max-height: 56px;
+    max-height: 220px;
     background: var(--header-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -3491,13 +3541,7 @@ body {
     color: white;
 }
 
-.flights-sub-view {
-    display: none;
-}
-
-.flights-sub-view.active {
-    display: block;
-}
+/* flights-sub-view rules defined above in view transitions */
 
 /* ==================== 行程地图 (全功能筛选) ==================== */
 .fmap-wrapper {
@@ -4008,10 +4052,8 @@ body {
 .carousel-city {
     font-size: 10px;
     color: var(--text-secondary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 70px;
+    text-align: center;
+    word-break: break-word;
 }
 
 .carousel-card-arrow {

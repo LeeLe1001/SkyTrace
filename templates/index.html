@@ -16,7 +16,7 @@
     <!-- Leaflet CSS (本地) -->
     <link rel="stylesheet" href="/static/lib/leaflet.css" />
     
-    <link rel="stylesheet" href="/static/css/style.css?v=10">
+    <link rel="stylesheet" href="/static/css/style.css?v=11">
     
     <!-- 全局错误捕获 + 加载指示器 -->
     <style>
@@ -36,7 +36,7 @@
     </script>
     
     <!-- i18n 多语言 (在 app.js 之前加载) -->
-    <script src="/static/js/i18n.js?v=10"></script>
+    <script src="/static/js/i18n.js?v=11"></script>
 </head>
 <body>
     <!-- 加载指示器 -->
@@ -65,7 +65,7 @@
     <!-- 主内容区 -->
     <main class="main-content">
         <!-- ==================== 首页: 仅待出行航线 ==================== -->
-        <section id="home-view" class="view active">
+        <section id="home-view" class="view active view-enter">
             <div id="home-map"></div>
             <div class="home-flights-overlay" id="home-flights-overlay">
                 <div class="home-overlay-handle"></div>
@@ -91,7 +91,7 @@
                 </div>
 
                 <!-- 列表子页 -->
-                <div class="flights-sub-view active" id="flights-list-subview">
+                <div class="flights-sub-view active view-enter" id="flights-list-subview">
                     <div class="flights-header">
                         <h2 data-i18n="myTrips">我的行程</h2>
                         <div class="filter-tabs">
@@ -270,7 +270,7 @@
     </main>
 
     <!-- 添加/编辑航班模态框 -->
-    <div class="modal-overlay" id="flight-modal">
+    <div class="modal-overlay" id="flight-modal" onclick="if(event.target===this)closeModal()">
         <div class="modal">
             <div class="modal-header">
                 <button class="modal-back" onclick="closeModal()">‹</button>
@@ -343,7 +343,7 @@
     </div>
 
     <!-- 航班详情模态框 -->
-    <div class="modal-overlay" id="detail-modal">
+    <div class="modal-overlay" id="detail-modal" onclick="if(event.target===this)closeDetailModal()">
         <div class="modal modal-detail">
             <div class="modal-header">
                 <button class="modal-back" onclick="closeDetailModal()">‹</button>
@@ -352,18 +352,17 @@
             </div>
             <div class="detail-content" id="detail-content"></div>
             <div class="detail-actions">
-                <button class="btn-danger" onclick="deleteFlight()" data-i18n="deleteTrip">删除行程</button>
-                <div class="detail-actions-right">
+                <div class="detail-actions-left">
+                    <button class="btn-secondary" onclick="editFlight()">✏️ <span data-i18n="edit">编辑</span></button>
                     <button class="btn-share" onclick="shareFlightCard()" data-i18n-title="shareCard">📤</button>
-                    <button class="btn-secondary" onclick="editFlight()" data-i18n="edit">编辑</button>
-                    <button class="btn-primary" onclick="closeDetailModal()" data-i18n="close">关闭</button>
                 </div>
+                <button class="btn-primary" onclick="closeDetailModal()" data-i18n="close">关闭</button>
             </div>
         </div>
     </div>
 
     <!-- 设置模态框 -->
-    <div class="modal-overlay" id="settings-modal">
+    <div class="modal-overlay" id="settings-modal" onclick="if(event.target===this)closeSettings()">
         <div class="modal modal-settings">
             <div class="modal-header">
                 <button class="modal-back" onclick="closeSettings()">‹</button>
@@ -422,7 +421,7 @@
     </div>
 
     <!-- 分享卡片模态框 -->
-    <div class="modal-overlay" id="share-modal">
+    <div class="modal-overlay" id="share-modal" onclick="if(event.target===this)closeShareModal()">
         <div class="modal modal-share">
             <div class="modal-header">
                 <button class="modal-back" onclick="closeShareModal()">‹</button>
@@ -448,13 +447,13 @@
     <script src="/static/lib/leaflet.js"></script>
     <script src="/static/lib/arc.js"></script>
     <script src="/static/lib/html2canvas.min.js"></script>
-    <script src="/static/js/app.js?v=10"></script>
+    <script src="/static/js/app.js?v=11"></script>
     <script>
         // 彻底清除 Service Worker 和所有缓存
         // 不再注册新的 SW，避免缓存问题
         if ('serviceWorker' in navigator) {
             // 注册一个 noop SW 来替换旧的（触发 skipWaiting）
-            navigator.serviceWorker.register('/sw.js?v=10', { scope: '/' })
+            navigator.serviceWorker.register('/sw.js?v=11', { scope: '/' })
                 .then(reg => {
                     console.log('[SW] noop SW registered, will clear all caches');
                     reg.update();
