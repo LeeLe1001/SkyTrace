@@ -30,7 +30,7 @@ let _currentCenterSlide = null;
 let _isOffline = false;
 let _hoState = 'peek'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
-const SKYTRACE_VERSION = 17;
+const SKYTRACE_VERSION = 18;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -50,22 +50,21 @@ function formatTerminal(terminal) {
  * 此函数将每段坐标归一化，使经度连续不跳变。
  */
 function _fixAntimeridianCoords(geometries) {
-    const segments = [];
+    // 将 arc.js 拆分的多段 geometry 合并为一条连续折线
+    // 并归一化经度，使其跨越反子午线时不跳变
+    const coords = [];
     geometries.forEach(geo => {
-        const coords = [];
-        geo.coords.forEach((c, i) => {
+        geo.coords.forEach(c => {
             let lon = c[0], lat = c[1];
-            if (i > 0) {
-                const prevLon = coords[i - 1][1]; // [lat, lon] in Leaflet
-                // 如果经度跳变超过 180°，加减 360° 使其连续
+            if (coords.length > 0) {
+                const prevLon = coords[coords.length - 1][1]; // [lat, lon]
                 while (lon - prevLon > 180) lon -= 360;
                 while (prevLon - lon > 180) lon += 360;
             }
             coords.push([lat, lon]);
         });
-        segments.push(coords);
     });
-    return segments;
+    return coords.length > 0 ? [coords] : [];
 }
 
 /** 格式化到达时间: 跨日到达加 +1/-1/+2 标识 */
@@ -1052,7 +1051,7 @@ function renderFlightsMapRoutes() {
         visitedAirports.add(flight.departure);
         visitedAirports.add(flight.arrival);
 
-        const isCompleted = flight.status_info?.status === 'completed';
+        const isCompleted = flight.status_info?.status === 'completed' || flight.date < getLocalTodayStr();
         const color = isCompleted ? '#64748b' : '#60a5fa';
         const glowColor = isCompleted ? '#475569' : '#3b82f6';
 
@@ -1583,12 +1582,38 @@ function _checkVersionAndRefresh() {
 
 // ==================== 标签切换 ====================
 function _updateFabVisibility() {
-    const fab = document.getElementById('fab-add');
-    if (!fab) return;
+    const container = document.getElementById('fab-container');
+    if (!container) return;
     const flightsView = document.getElementById('flights-view');
     const isFlightsActive = flightsView && flightsView.classList.contains('active');
     const isListActive = document.getElementById('flights-list-subview')?.classList.contains('active');
-    fab.style.display = (isFlightsActive && isListActive) ? 'flex' : 'none';
+    container.style.display = (isFlightsActive && isListActive) ? 'flex' : 'none';
+}
+
+// FAB 菜单
+let _fabMenuOpen = false;
+function toggleFabMenu() {
+    _fabMenuOpen = !_fabMenuOpen;
+    const menu = document.getElementById('fab-menu');
+    const fab = document.getElementById('fab-add');
+    if (menu) menu.classList.toggle('open', _fabMenuOpen);
+    if (fab) { fab.classList.toggle('open', _fabMenuOpen); fab.textContent = _fabMenuOpen ? '✕' : '+'; }
+    if (_fabMenuOpen) {
+        // 点击其他地方关闭
+        setTimeout(() => document.addEventListener('click', _fabOutsideClick, { once: true }), 10);
+    }
+}
+function closeFabMenu() {
+    _fabMenuOpen = false;
+    const menu = document.getElementById('fab-menu');
+    const fab = document.getElementById('fab-add');
+    if (menu) menu.classList.remove('open');
+    if (fab) { fab.classList.remove('open'); fab.textContent = '+'; }
+}
+function _fabOutsideClick(e) {
+    const container = document.getElementById('fab-container');
+    if (container && !container.contains(e.target)) closeFabMenu();
+    else if (_fabMenuOpen) setTimeout(() => document.addEventListener('click', _fabOutsideClick, { once: true }), 10);
 }
 
 function initTabs() {
@@ -2245,12 +2270,12 @@ function toggleConnectMode() {
     connectMode = !connectMode; selectedConnectIds.clear();
     const btn = document.getElementById('btn-connect');
     if (connectMode) {
-        btn.classList.add('active');
+        if (btn) btn.classList.add('active');
         let bar = document.getElementById('connect-action-bar');
         if (!bar) { bar = document.createElement('div'); bar.id = 'connect-action-bar'; bar.className = 'connect-action-bar'; document.querySelector('.flights-container').appendChild(bar); }
         _updateConnectBar();
         bar.style.display = 'flex';
-    } else { btn.classList.remove('active'); const bar = document.getElementById('connect-action-bar'); if (bar) bar.style.display = 'none'; }
+    } else { if (btn) btn.classList.remove('active'); const bar = document.getElementById('connect-action-bar'); if (bar) bar.style.display = 'none'; }
     renderFlightsList();
 }
 function _updateConnectBar() {

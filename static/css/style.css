@@ -436,16 +436,23 @@ body.is-offline .main-content .view {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 14px 16px;
+    padding: 16px;
     margin-bottom: 16px;
     animation: slideDown 0.2s ease;
 }
 
 .af-section {
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 .af-section:last-child {
     margin-bottom: 0;
+}
+
+.af-search-row {
+    margin-bottom: 2px;
+}
+.af-search-row .flights-search-box {
+    position: relative;
 }
 
 .af-date-row {
@@ -458,6 +465,8 @@ body.is-offline .main-content .view {
     display: flex;
     gap: 8px;
     align-items: center;
+    padding-top: 4px;
+    border-top: 1px solid var(--border);
 }
 
 .time-filter-group {
@@ -4273,7 +4282,7 @@ body.is-offline .main-content .view {
         border-radius: 20px 20px 0 0;
     }
 
-    .btn-add-float {
+    .fab-container {
         bottom: calc(76px + env(safe-area-inset-bottom, 0px));
     }
 
@@ -4283,11 +4292,58 @@ body.is-offline .main-content .view {
     }
 }
 
-/* ==================== 浮动添加按钮 ==================== */
-.btn-add-float {
+/* ==================== FAB 浮动按钮 + 菜单 ==================== */
+.fab-container {
     position: fixed;
     bottom: 90px;
     right: 24px;
+    z-index: 900;
+    display: none;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.fab-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+    pointer-events: none;
+    transition: all 0.25s cubic-bezier(.4,0,.2,1);
+}
+.fab-menu.open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+.fab-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    transition: all 0.2s;
+}
+.fab-menu-item:hover {
+    border-color: var(--accent);
+    background: var(--bg-secondary);
+}
+.fab-menu-icon {
+    font-size: 16px;
+}
+
+.btn-add-float {
     width: 56px;
     height: 56px;
     border-radius: 50%;
@@ -4298,8 +4354,7 @@ body.is-offline .main-content .view {
     font-weight: 300;
     cursor: pointer;
     box-shadow: 0 6px 24px var(--accent-glow);
-    z-index: 900;
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.3s;
@@ -4307,8 +4362,13 @@ body.is-offline .main-content .view {
 }
 
 .btn-add-float:hover {
-    transform: scale(1.1) rotate(90deg);
     box-shadow: 0 8px 32px var(--accent-glow);
+}
+.btn-add-float.open {
+    transform: rotate(45deg);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
 
 .btn-add-float:active {

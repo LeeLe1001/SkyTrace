@@ -522,7 +522,7 @@ def logo_proxy():
 
 # ==================== 页面路由 ====================
 
-APP_VERSION = 17
+APP_VERSION = 18
 
 @app.route('/api/version')
 def get_app_version():
