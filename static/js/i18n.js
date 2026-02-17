@@ -187,6 +187,12 @@ const I18N = {
     confirmDisconnect: '确定要解除此联程吗？',
     // 待出行预览
     nextFlight: '下一趟航班',
+    // 新导航
+    navHome: '🏠 首页',
+    subList: '列表',
+    subMap: '地图',
+    subStats: '统计',
+    daysUnit: '天',
   },
 
   // ========== English ==========
@@ -351,6 +357,11 @@ const I18N = {
     confirmConnect: 'Confirm Link',
     confirmDisconnect: 'Unlink these connected flights?',
     nextFlight: 'Next Flight',
+    navHome: '🏠 Home',
+    subList: 'List',
+    subMap: 'Map',
+    subStats: 'Stats',
+    daysUnit: 'days',
   },
 
   // ========== 日本語 ==========
@@ -515,6 +526,11 @@ const I18N = {
     confirmConnect: '乗継確定',
     confirmDisconnect: 'この乗継を解除しますか？',
     nextFlight: '次のフライト',
+    navHome: '🏠 ホーム',
+    subList: 'リスト',
+    subMap: '地図',
+    subStats: '統計',
+    daysUnit: '日',
   },
 
   // ========== 한국어 ==========
@@ -679,6 +695,11 @@ const I18N = {
     confirmConnect: '연결 확인',
     confirmDisconnect: '이 연결편을 해제하시겠습니까?',
     nextFlight: '다음 항공편',
+    navHome: '🏠 홈',
+    subList: '목록',
+    subMap: '지도',
+    subStats: '통계',
+    daysUnit: '일',
   },
 
   // ========== Español ==========
@@ -843,6 +864,11 @@ const I18N = {
     confirmConnect: 'Confirmar Vínculo',
     confirmDisconnect: '¿Desvincular estos vuelos?',
     nextFlight: 'Próximo Vuelo',
+    navHome: '🏠 Inicio',
+    subList: 'Lista',
+    subMap: 'Mapa',
+    subStats: 'Estadísticas',
+    daysUnit: 'días',
   },
 };
 

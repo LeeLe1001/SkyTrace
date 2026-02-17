@@ -2815,6 +2815,305 @@ body {
     margin-left: 6px;
 }
 
+/* ==================== 移动端底部导航 ==================== */
+.mobile-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--header-bg);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    z-index: 1000;
+    padding: 6px 0;
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+}
+
+.mobile-nav-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 10px;
+    cursor: pointer;
+    flex: 1;
+    padding: 4px 0;
+    transition: color 0.2s;
+}
+
+.mobile-nav-tab .mobile-nav-icon {
+    font-size: 20px;
+}
+
+.mobile-nav-tab.active {
+    color: var(--accent);
+}
+
+/* ==================== 首页地图 ==================== */
+#home-view {
+    overflow: hidden;
+    position: relative;
+}
+
+#home-map {
+    width: 100%;
+    height: 100%;
+    background: var(--bg-primary);
+}
+
+.home-stats-overlay {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: var(--map-stats-bg);
+    backdrop-filter: blur(20px);
+    padding: 14px 28px;
+    border-radius: 14px;
+    border: 1px solid var(--border-light);
+    box-shadow: 0 8px 30px var(--shadow-color);
+    z-index: 500;
+}
+
+.home-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.home-stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.home-stat-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.home-stat-divider {
+    width: 1px;
+    height: 30px;
+    background: var(--border-light);
+}
+
+/* ==================== 行程子标签 ==================== */
+.flights-sub-nav {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-secondary);
+    padding: 4px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+}
+
+.flights-sub-tab {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.flights-sub-tab:hover {
+    color: var(--text-primary);
+    background: var(--bg-card);
+}
+
+.flights-sub-tab.active {
+    background: var(--accent);
+    color: white;
+}
+
+.flights-sub-view {
+    display: none;
+}
+
+.flights-sub-view.active {
+    display: block;
+}
+
+/* ==================== 行程地图 (全功能筛选) ==================== */
+.fmap-wrapper {
+    position: relative;
+    height: calc(100vh - 200px);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.flights-full-map {
+    width: 100%;
+    height: 100%;
+    background: var(--bg-primary);
+}
+
+.fmap-filter-bar {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    z-index: 500;
+    flex-wrap: wrap;
+}
+
+.fmap-status-pills {
+    display: flex;
+    gap: 4px;
+    background: var(--map-stats-bg);
+    backdrop-filter: blur(20px);
+    padding: 4px;
+    border-radius: 10px;
+    border: 1px solid var(--border-light);
+    box-shadow: 0 4px 16px var(--shadow-color);
+}
+
+.fmap-pill {
+    padding: 6px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.fmap-pill:hover {
+    color: var(--text-primary);
+}
+
+.fmap-pill.active {
+    background: var(--accent);
+    color: white;
+}
+
+.fmap-right-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.fmap-year-pills {
+    display: flex;
+    gap: 4px;
+    background: var(--map-stats-bg);
+    backdrop-filter: blur(20px);
+    padding: 4px;
+    border-radius: 10px;
+    border: 1px solid var(--border-light);
+    box-shadow: 0 4px 16px var(--shadow-color);
+}
+
+.fmap-year-pill {
+    padding: 5px 12px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.fmap-year-pill:hover {
+    color: var(--text-primary);
+}
+
+.fmap-year-pill.active {
+    background: var(--accent);
+    color: white;
+}
+
+.fmap-date-range {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--map-stats-bg);
+    backdrop-filter: blur(20px);
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border-light);
+    box-shadow: 0 4px 16px var(--shadow-color);
+}
+
+.fmap-date-range input {
+    padding: 5px 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 12px;
+    width: 130px;
+}
+
+.fmap-date-range input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.fmap-date-range span {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.fmap-reset-btn {
+    padding: 5px 12px;
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.fmap-reset-btn:hover {
+    background: var(--accent-hover);
+}
+
+.fmap-stats-card {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 24px;
+    background: var(--map-stats-bg);
+    backdrop-filter: blur(20px);
+    padding: 14px 28px;
+    border-radius: 14px;
+    border: 1px solid var(--border-light);
+    box-shadow: 0 8px 30px var(--shadow-color);
+    z-index: 500;
+}
+
 /* ==================== 响应式补充 ==================== */
 @media (max-width: 768px) {
     .map-upcoming-preview {
@@ -2839,5 +3138,63 @@ body {
     
     .connect-action-bar {
         border-radius: 0;
+    }
+    
+    .home-stats-overlay {
+        top: 70px;
+        padding: 10px 20px;
+        gap: 14px;
+    }
+    
+    .home-stat-value {
+        font-size: 20px;
+    }
+    
+    .flights-sub-nav {
+        margin-bottom: 16px;
+    }
+    
+    .fmap-wrapper {
+        height: calc(100vh - 220px);
+        border-radius: 12px;
+    }
+    
+    .fmap-filter-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+    
+    .fmap-right-controls {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        width: 100%;
+    }
+    
+    .fmap-date-range {
+        width: 100%;
+    }
+    
+    .fmap-date-range input {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .fmap-stats-card {
+        padding: 10px 18px;
+        gap: 16px;
+    }
+    
+    .mobile-nav {
+        display: flex;
+    }
+    
+    .view {
+        height: calc(100vh - 60px - 60px);
+    }
+    
+    .map-upcoming-preview {
+        bottom: 80px;
     }
 }
