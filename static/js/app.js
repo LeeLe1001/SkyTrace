@@ -120,12 +120,17 @@ function initHomeMap() {
     L.control.zoom({ position: 'bottomright' }).addTo(homeMap);
 }
 
+function getLocalTodayStr() {
+    const n = new Date();
+    return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+}
+
 function renderHomeRoutes() {
     if (!homeMap) return;
     homeArcLayers.forEach(l => { try { homeMap.removeLayer(l); } catch(e) {} });
     homeArcLayers = [];
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalTodayStr();
     const upcoming = flights.filter(f => f.status_info?.status !== 'completed' && f.date >= todayStr);
     const visitedAirports = new Set();
     // Build a map of terminal info per airport code
@@ -542,12 +547,40 @@ function renderMonthlyChart(monthData) {
     if (!container || !monthData) return;
     const months = Object.keys(monthData).sort();
     if (months.length === 0) { container.innerHTML = ''; return; }
-    const max = Math.max(...Object.values(monthData));
+    // Determine year range and fill all months
+    const years = [...new Set(months.map(m => m.substring(0, 4)))];
+    const allMonths = [];
+    years.forEach(y => {
+        for (let m = 1; m <= 12; m++) {
+            const key = `${y}-${String(m).padStart(2, '0')}`;
+            allMonths.push(key);
+        }
+    });
+    // If all in same year, just show that year's months
+    const displayMonths = years.length === 1 ? allMonths : months;
+    const max = Math.max(...displayMonths.map(m => monthData[m] || 0));
     const monthFlights = cachedStatsData?.fun_stats?.month_flights || {};
-    container.innerHTML = months.map(m => `<div class="month-bar-col month-bar-clickable" onclick="toggleMonthDetail(this, '${m}')"><div class="month-bar-value">${monthData[m]}</div><div class="month-bar" style="height:${max ? Math.round(monthData[m] / max * 120) : 0}px"></div><div class="month-bar-label">${m.substring(5)}</div><div class="month-detail-popup" style="display:none">${(monthFlights[m] || []).slice(0, 8).map(f => `<div class="month-detail-item">${f.flight_no} ${f.route} <small>${f.date}</small></div>`).join('')}</div></div>`).join('');
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    container.innerHTML = displayMonths.map(m => {
+        const val = monthData[m] || 0;
+        const mIdx = parseInt(m.substring(5)) - 1;
+        const label = years.length === 1 ? monthNames[mIdx] : m.substring(5);
+        return `<div class="month-bar-col${val > 0 ? ' month-bar-clickable' : ''}" ${val > 0 ? `onclick="toggleMonthDetail(this, '${m}')"` : ''}><div class="month-bar-value">${val || ''}</div><div class="month-bar" style="height:${max ? Math.round((val || 0) / max * 120) : 0}px"></div><div class="month-bar-label">${label}</div>${val > 0 ? `<div class="month-detail-popup" style="display:none">${(monthFlights[m] || []).slice(0, 8).map(f => `<div class="month-detail-item">${f.flight_no} ${f.route} <small>${f.date}</small></div>`).join('')}</div>` : ''}</div>`;
+    }).join('');
 }
 
 // ==================== 时间筛选 (列表用) ====================
+let timeFilterExpanded = false;
+function toggleTimeFilter() {
+    timeFilterExpanded = !timeFilterExpanded;
+    const body = document.getElementById('time-filter-body');
+    const toggle = document.getElementById('time-filter-toggle');
+    if (body) {
+        body.style.maxHeight = timeFilterExpanded ? body.scrollHeight + 'px' : '0';
+        body.style.opacity = timeFilterExpanded ? '1' : '0';
+    }
+    if (toggle) toggle.classList.toggle('expanded', timeFilterExpanded);
+}
 function applyTimeFilter() {
     const startDate = document.getElementById('filter-start-date').value;
     const endDate = document.getElementById('filter-end-date').value;
@@ -569,10 +602,15 @@ function resetTimeFilter() {
 function renderFlightsList(filter = currentStatusFilter) {
     currentStatusFilter = filter;
     const container = document.getElementById('flights-list');
+    if (!container) return;
     let displayFlights = filteredFlights;
-    const todayStr = new Date().toISOString().split('T')[0];
-    if (filter === 'upcoming') displayFlights = filteredFlights.filter(f => f.status_info.status !== 'completed' && f.date >= todayStr);
-    else if (filter === 'completed') displayFlights = filteredFlights.filter(f => f.status_info.status === 'completed');
+    const todayStr = getLocalTodayStr();
+    if (filter === 'upcoming') {
+        displayFlights = filteredFlights.filter(f => f.status_info?.status !== 'completed' && f.date >= todayStr);
+        displayFlights.sort((a, b) => a.date.localeCompare(b.date) || (a.dep_time || '').localeCompare(b.dep_time || ''));
+    } else if (filter === 'completed') {
+        displayFlights = filteredFlights.filter(f => f.status_info?.status === 'completed');
+    }
 
     const groupedFlights = groupConnectedFlights(displayFlights);
 
@@ -918,15 +956,29 @@ function formatDate(dateStr) { return new Date(dateStr + 'T00:00:00').toLocaleDa
 function formatDateTime(dateTimeStr) { if (!dateTimeStr) return '-'; return new Date(dateTimeStr).toLocaleString(getLocale(), { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }); }
 function getAirportCity(a) { if (!a) return ''; const m = { zh: 'city', en: 'city_en', ja: 'city_ja', ko: 'city_ko', es: 'city_es' }; const f = m[currentLang]; let city = ''; if (f && a[f]) city = a[f]; else if (currentLang !== 'zh' && a.city_en) city = a.city_en; else city = a.city || a.city_en || ''; return city.replace(/[（(][^)）]*[)）]/g, '').trim(); }
 function getAirportName(a) { if (!a) return ''; if (currentLang === 'zh') return a.name || a.name_en || ''; return a.name_en || a.name || ''; }
-function renderCountdown(c) { if (!c) return ''; if (typeof c === 'string') return c; if (c.key) return t(c.key, ...(c.args || [])); return ''; }
+function renderCountdown(c) { if (!c) return ''; if (typeof c === 'string') return c; if (c.key) { const args = Array.isArray(c.args) ? c.args : (c.args != null ? [c.args] : []); return t(c.key, ...args); } return ''; }
 function getStatusText(si) { if (!si?.status) return t('statusScheduled'); const m = { scheduled: 'statusScheduled', checkin_open: 'statusCheckin', boarding: 'statusBoarding', in_flight: 'statusInFlight', completed: 'statusCompleted' }; return t(m[si.status] || 'statusUnknown'); }
 function getCabinText(v) { if (!v) return '-'; const m = { economy: 'cabinEconomy', premium_economy: 'cabinPremiumEconomy', business: 'cabinBusiness', first: 'cabinFirst', '经济舱': 'cabinEconomy', '超级经济舱': 'cabinPremiumEconomy', '公务舱': 'cabinBusiness', '头等舱': 'cabinFirst' }; return t(m[v] || 'cabinEconomy'); }
 
 // ==================== 日历视图 ====================
 let calendarYear, calendarMonth;
+let calendarTodos = JSON.parse(localStorage.getItem('skytrace-todos') || '{}');
 function initCalendar() { const now = new Date(); calendarYear = now.getFullYear(); calendarMonth = now.getMonth(); renderCalendar(); }
 function changeCalendarMonth(delta) { calendarMonth += delta; if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; } if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; } renderCalendar(); }
+function changeCalendarYear(delta) { calendarYear += delta; renderCalendar(); }
 function goCalendarToday() { const now = new Date(); calendarYear = now.getFullYear(); calendarMonth = now.getMonth(); renderCalendar(); }
+function showYearPicker() {
+    const picker = document.getElementById('year-picker-dropdown');
+    if (!picker) return;
+    if (picker.style.display === 'block') { picker.style.display = 'none'; return; }
+    const startYear = calendarYear - 3;
+    picker.innerHTML = Array.from({length: 7}, (_, i) => {
+        const y = startYear + i;
+        return `<button class="year-pick-btn${y === calendarYear ? ' active' : ''}" onclick="jumpToYear(${y})">${y}</button>`;
+    }).join('');
+    picker.style.display = 'block';
+}
+function jumpToYear(y) { calendarYear = y; document.getElementById('year-picker-dropdown').style.display = 'none'; renderCalendar(); }
 function renderCalendar() {
     document.getElementById('calendar-month-label').textContent = new Date(calendarYear, calendarMonth).toLocaleDateString(getLocale(), { year: 'numeric', month: 'long' });
     const wdNames = [t('wdSun'), t('wdMon'), t('wdTue'), t('wdWed'), t('wdThu'), t('wdFri'), t('wdSat')];
@@ -935,22 +987,62 @@ function renderCalendar() {
     flights.forEach(f => { if (!flightMap[f.date]) flightMap[f.date] = []; flightMap[f.date].push(f); });
     const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
     const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getLocalTodayStr();
     let html = '';
     for (let i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
     for (let d = 1; d <= daysInMonth; d++) {
         const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const dayFlights = flightMap[dateStr] || [];
-        html += `<div class="cal-day${dateStr === todayStr ? ' today' : ''}${dayFlights.length ? ' has-flights' : ''}" onclick="showCalendarDayFlights('${dateStr}')"><span class="cal-day-num">${d}</span>${dayFlights.length ? `<div class="cal-flight-dots">${dayFlights.slice(0, 3).map(f => `<span class="cal-dot ${f.status_info?.status === 'completed' ? 'completed' : 'upcoming'}"></span>`).join('')}${dayFlights.length > 3 ? `<span class="cal-dot-more">+${dayFlights.length - 3}</span>` : ''}</div>` : ''}</div>`;
+        const dayTodos = calendarTodos[dateStr] || [];
+        const hasTodos = dayTodos.length > 0;
+        html += `<div class="cal-day${dateStr === todayStr ? ' today' : ''}${dayFlights.length ? ' has-flights' : ''}${hasTodos ? ' has-todos' : ''}" onclick="showCalendarDayFlights('${dateStr}')"><span class="cal-day-num">${d}</span>${dayFlights.length ? `<div class="cal-flight-dots">${dayFlights.slice(0, 3).map(f => `<span class="cal-dot ${f.status_info?.status === 'completed' ? 'completed' : 'upcoming'}"></span>`).join('')}${dayFlights.length > 3 ? `<span class="cal-dot-more">+${dayFlights.length - 3}</span>` : ''}</div>` : ''}${hasTodos ? '<div class="cal-todo-dot">📌</div>' : ''}</div>`;
     }
     document.getElementById('calendar-grid').innerHTML = html;
 }
 function showCalendarDayFlights(dateStr) {
     const dayFlights = flights.filter(f => f.date === dateStr);
+    const dayTodos = calendarTodos[dateStr] || [];
     const container = document.getElementById('calendar-flight-detail');
-    if (!dayFlights.length) { container.innerHTML = `<div class="cal-detail-empty">${formatDate(dateStr)} — ${t('emptyTrips')}</div>`; return; }
-    container.innerHTML = `<div class="cal-detail-date">${formatDate(dateStr)}</div>${dayFlights.map(f => `<div class="cal-flight-item" onclick="showFlightDetail('${f.id}')"><div class="cal-flight-no">${f.flight_no}</div><div class="cal-flight-route"><span>${f.departure}</span><span class="cal-arrow">→</span><span>${f.arrival}</span></div><div class="cal-flight-time">${f.dep_time} - ${f.arr_time}</div><span class="flight-status ${f.status_info?.status === 'completed' ? 'completed' : 'upcoming'}">${getStatusText(f.status_info)}</span></div>`).join('')}`;
+    let html = `<div class="cal-detail-date">${formatDate(dateStr)}</div>`;
+    if (dayFlights.length) {
+        html += dayFlights.map(f => `<div class="cal-flight-item" onclick="showFlightDetail('${f.id}')"><div class="cal-flight-no">${f.flight_no}</div><div class="cal-flight-route"><span>${f.departure}</span><span class="cal-arrow">→</span><span>${f.arrival}</span></div><div class="cal-flight-time">${f.dep_time} - ${f.arr_time}</div><span class="flight-status ${f.status_info?.status === 'completed' ? 'completed' : 'upcoming'}">${getStatusText(f.status_info)}</span></div>`).join('');
+    }
+    // Todos section
+    html += `<div class="cal-todo-section"><div class="cal-todo-header"><span>📌 ${t('calTodos') || '日程'}</span></div>`;
+    if (dayTodos.length) {
+        html += dayTodos.map((todo, i) => `<div class="cal-todo-item"><span class="cal-todo-text${todo.done ? ' done' : ''}" onclick="toggleTodoDone('${dateStr}',${i})">${todo.done ? '☑' : '☐'} ${todo.text}</span><button class="cal-todo-delete" onclick="deleteTodo('${dateStr}',${i})">✕</button></div>`).join('');
+    }
+    html += `<div class="cal-todo-add"><input type="text" id="new-todo-input" placeholder="${t('calTodoPlaceholder') || '添加日程...'}" onkeypress="if(event.key==='Enter')addTodo('${dateStr}')"><button onclick="addTodo('${dateStr}')">+</button></div></div>`;
+    if (!dayFlights.length && !dayTodos.length) {
+        html += `<div class="cal-detail-empty">${t('emptyTrips')}</div>`;
+    }
+    container.innerHTML = html;
 }
+function addTodo(dateStr) {
+    const input = document.getElementById('new-todo-input');
+    if (!input || !input.value.trim()) return;
+    if (!calendarTodos[dateStr]) calendarTodos[dateStr] = [];
+    calendarTodos[dateStr].push({ text: input.value.trim(), done: false });
+    saveTodos();
+    showCalendarDayFlights(dateStr);
+}
+function toggleTodoDone(dateStr, idx) {
+    if (calendarTodos[dateStr]?.[idx]) {
+        calendarTodos[dateStr][idx].done = !calendarTodos[dateStr][idx].done;
+        saveTodos();
+        showCalendarDayFlights(dateStr);
+    }
+}
+function deleteTodo(dateStr, idx) {
+    if (calendarTodos[dateStr]) {
+        calendarTodos[dateStr].splice(idx, 1);
+        if (calendarTodos[dateStr].length === 0) delete calendarTodos[dateStr];
+        saveTodos();
+        showCalendarDayFlights(dateStr);
+        renderCalendar();
+    }
+}
+function saveTodos() { localStorage.setItem('skytrace-todos', JSON.stringify(calendarTodos)); }
 
 // ==================== 天气 ====================
 const weatherCache = {};
@@ -1022,10 +1114,17 @@ function shareFlightCard() {
 function closeShareModal() { document.getElementById('share-modal').classList.remove('active'); }
 async function downloadShareCard() { try { const canvas = await html2canvas(document.getElementById('share-card'), { scale: 2, backgroundColor: null, useCORS: true }); const link = document.createElement('a'); link.download = `SkyTrace_${currentFlightId || 'flight'}.png`; link.href = canvas.toDataURL('image/png'); link.click(); } catch (e) { alert('导出失败'); } }
 async function exportAnnualReport() {
-    const stats = await (await fetch('/api/stats')).json();
+    // Default to most recent year with completed flights
+    const completedYears = flights
+        .filter(f => f.status_info?.status === 'completed')
+        .map(f => parseInt(f.date.split('-')[0]))
+        .filter(y => !isNaN(y));
+    const reportYear = completedYears.length > 0 ? Math.max(...completedYears) : new Date().getFullYear();
+    const yearParam = `?year=${reportYear}`;
+    const stats = await (await fetch('/api/stats' + yearParam)).json();
     const fun = stats.fun_stats || {}, sp = fun.seat_preference || {};
-    const totalSeats = sp.window + sp.aisle + sp.middle;
-    const pref = sp.window >= sp.aisle && sp.window >= sp.middle ? 'window' : sp.aisle >= sp.middle ? 'aisle' : 'middle';
-    document.getElementById('share-card').innerHTML = `<div class="share-card-inner share-report"><div class="share-card-header"><span class="share-logo">✈️ SkyTrace</span><span class="share-date">${t('annualReport')} ${new Date().getFullYear()}</span></div><div class="report-hero"><div class="report-hero-value">${stats.total_flights}</div><div class="report-hero-label">${t('totalFlights')}</div></div><div class="report-stats-row"><div class="report-stat"><div class="report-stat-value">${stats.total_distance.toLocaleString()}</div><div class="report-stat-label">${t('totalDistance')}</div></div><div class="report-stat"><div class="report-stat-value">${stats.total_hours}h</div><div class="report-stat-label">${t('totalHours')}</div></div><div class="report-stat"><div class="report-stat-value">${stats.visited_airports}</div><div class="report-stat-label">${t('visitedAirports')}</div></div></div><div class="report-insights"><div class="report-insight-item"><span>🏆 ${t('topAirlines')}</span><strong>${stats.top_airlines?.[0]?.airline || '-'}</strong></div><div class="report-insight-item"><span>✈️ ${t('topRoutes')}</span><strong>${stats.top_routes?.[0]?.route || '-'}</strong></div><div class="report-insight-item"><span>${pref === 'window' ? '🪟' : '🚶'} ${t('favoriteSeat')}</span><strong>${totalSeats > 0 ? t('seatPref_' + pref) : '-'}</strong></div></div><div class="share-footer"><span>Generated by SkyTrace</span><span>${new Date().toLocaleDateString(getLocale())}</span></div></div>`;
+    const totalSeats = (sp.window || 0) + (sp.aisle || 0) + (sp.middle || 0);
+    const pref = (sp.window || 0) >= (sp.aisle || 0) && (sp.window || 0) >= (sp.middle || 0) ? 'window' : (sp.aisle || 0) >= (sp.middle || 0) ? 'aisle' : 'middle';
+    document.getElementById('share-card').innerHTML = `<div class="share-card-inner share-report"><div class="share-card-header"><span class="share-logo">✈️ SkyTrace</span><span class="share-date">${t('annualReport')} ${reportYear}</span></div><div class="report-hero"><div class="report-hero-value">${stats.total_flights}</div><div class="report-hero-label">${t('totalFlights')}</div></div><div class="report-stats-row"><div class="report-stat"><div class="report-stat-value">${stats.total_distance.toLocaleString()}</div><div class="report-stat-label">${t('totalDistance')}</div></div><div class="report-stat"><div class="report-stat-value">${stats.total_hours}h</div><div class="report-stat-label">${t('totalHours')}</div></div><div class="report-stat"><div class="report-stat-value">${stats.visited_airports}</div><div class="report-stat-label">${t('visitedAirports')}</div></div></div><div class="report-insights"><div class="report-insight-item"><span>🏆 ${t('topAirlines')}</span><strong>${stats.top_airlines?.[0]?.airline || '-'}</strong></div><div class="report-insight-item"><span>✈️ ${t('topRoutes')}</span><strong>${stats.top_routes?.[0]?.route || '-'}</strong></div><div class="report-insight-item"><span>${pref === 'window' ? '🪟' : '🚶'} ${t('favoriteSeat')}</span><strong>${totalSeats > 0 ? t('seatPref_' + pref) : '-'}</strong></div></div><div class="share-footer"><span>Generated by SkyTrace</span><span>${new Date().toLocaleDateString(getLocale())}</span></div></div>`;
     document.getElementById('share-modal').classList.add('active');
 }

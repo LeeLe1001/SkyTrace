@@ -84,16 +84,22 @@
                         </div>
                     </div>
                     <div class="time-filter">
-                        <div class="time-filter-row">
-                            <div class="time-filter-group">
-                                <label data-i18n="startDate">开始日期</label>
-                                <input type="date" id="filter-start-date" onchange="applyTimeFilter()">
+                        <div class="time-filter-header" onclick="toggleTimeFilter()">
+                            <span data-i18n="timeFilter">📅 日期筛选</span>
+                            <span class="time-filter-arrow" id="time-filter-toggle">▼</span>
+                        </div>
+                        <div class="time-filter-body" id="time-filter-body">
+                            <div class="time-filter-row">
+                                <div class="time-filter-group">
+                                    <label data-i18n="startDate">开始日期</label>
+                                    <input type="date" id="filter-start-date" onchange="applyTimeFilter()">
+                                </div>
+                                <div class="time-filter-group">
+                                    <label data-i18n="endDate">结束日期</label>
+                                    <input type="date" id="filter-end-date" onchange="applyTimeFilter()">
+                                </div>
+                                <button class="btn-filter-reset" onclick="resetTimeFilter()" data-i18n="reset">重置</button>
                             </div>
-                            <div class="time-filter-group">
-                                <label data-i18n="endDate">结束日期</label>
-                                <input type="date" id="filter-end-date" onchange="applyTimeFilter()">
-                            </div>
-                            <button class="btn-filter-reset" onclick="resetTimeFilter()" data-i18n="reset">重置</button>
                         </div>
                     </div>
                     <div class="flights-list" id="flights-list"></div>
@@ -222,9 +228,12 @@
                 <div class="calendar-header">
                     <h2 data-i18n="navCalendar">📅 日历</h2>
                     <div class="calendar-nav">
+                        <button class="btn-cal-nav btn-cal-year" onclick="changeCalendarYear(-1)" title="上一年">«</button>
                         <button class="btn-cal-nav" onclick="changeCalendarMonth(-1)">◀</button>
-                        <span class="calendar-month-label" id="calendar-month-label"></span>
+                        <span class="calendar-month-label" id="calendar-month-label" onclick="showYearPicker()"></span>
+                        <div class="year-picker-dropdown" id="year-picker-dropdown"></div>
                         <button class="btn-cal-nav" onclick="changeCalendarMonth(1)">▶</button>
+                        <button class="btn-cal-nav btn-cal-year" onclick="changeCalendarYear(1)" title="下一年">»</button>
                         <button class="btn-cal-today" onclick="goCalendarToday()" data-i18n="calToday">今天</button>
                     </div>
                 </div>

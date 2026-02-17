@@ -3,7 +3,7 @@
  * 缓存策略: 网络优先，离线回退到缓存
  */
 
-const CACHE_NAME = 'skytrace-v1';
+const CACHE_NAME = 'skytrace-v2';
 const PRECACHE_URLS = [
   '/',
   '/static/css/style.css',

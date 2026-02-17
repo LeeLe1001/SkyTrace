@@ -252,17 +252,58 @@ body {
 }
 
 .filter-tab.active {
-    background: var(--bg-card);
-    color: var(--text-primary);
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
-/* 时间筛选 */
+/* 时间筛选 (可折叠) */
 .time-filter {
     background: var(--bg-card);
     border-radius: 12px;
-    padding: 16px;
     margin-bottom: 20px;
     border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.time-filter-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.time-filter-header:hover {
+    color: var(--text-primary);
+    background: var(--bg-card-hover);
+}
+
+.time-filter-arrow {
+    font-size: 11px;
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+.time-filter-arrow.expanded {
+    transform: rotate(180deg);
+}
+
+.time-filter-body {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, opacity 0.3s ease;
+    padding: 0 16px;
+}
+
+.time-filter-body > .time-filter-row {
+    padding-bottom: 16px;
 }
 
 .time-filter-row {
@@ -1047,6 +1088,75 @@ body {
     
     .detail-code {
         font-size: 28px;
+    }
+
+    .flights-header {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .flights-header h2 {
+        font-size: 20px;
+        width: 100%;
+    }
+
+    .filter-tabs {
+        width: 100%;
+        order: 3;
+    }
+
+    .filter-tab {
+        flex: 1;
+        text-align: center;
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .flights-container {
+        padding: 20px 16px;
+    }
+
+    .time-filter-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn-filter-reset {
+        align-self: flex-end;
+    }
+
+    .calendar-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .calendar-header h2 {
+        font-size: 20px;
+    }
+
+    .calendar-nav {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .btn-cal-year {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .calendar-month-label {
+        min-width: auto;
+        font-size: 14px;
+    }
+
+    .year-picker-dropdown {
+        min-width: 180px;
+    }
+
+    .cal-todo-add input {
+        font-size: 14px;
     }
 }
 
@@ -1883,7 +1993,8 @@ body {
 .calendar-nav {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
+    position: relative;
 }
 
 .btn-cal-nav {
@@ -1909,6 +2020,67 @@ body {
     font-weight: 600;
     min-width: 160px;
     text-align: center;
+    cursor: pointer;
+    position: relative;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.calendar-month-label:hover {
+    background: var(--bg-card-hover);
+}
+
+.btn-cal-year {
+    font-size: 14px;
+    font-weight: 700;
+    width: 32px;
+    height: 32px;
+}
+
+.year-picker-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0 8px 30px var(--shadow-color);
+    z-index: 100;
+    gap: 6px;
+    flex-wrap: wrap;
+    min-width: 200px;
+    justify-content: center;
+}
+
+.year-picker-dropdown[style*="block"] {
+    display: flex;
+}
+
+.year-pick-btn {
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.year-pick-btn:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+}
+
+.year-pick-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
 }
 
 .btn-cal-today {
@@ -2043,6 +2215,113 @@ body {
     font-weight: 600;
     margin-bottom: 12px;
     color: var(--accent);
+}
+
+/* 日历待办 */
+.cal-day.has-todos {
+    border-color: #f59e0b;
+}
+
+.cal-todo-dot {
+    font-size: 10px;
+    margin-top: 2px;
+}
+
+.cal-todo-section {
+    margin-top: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+}
+
+.cal-todo-header {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.cal-todo-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.cal-todo-item:last-of-type {
+    border-bottom: none;
+}
+
+.cal-todo-text {
+    font-size: 14px;
+    color: var(--text-primary);
+    cursor: pointer;
+    flex: 1;
+    transition: all 0.2s;
+}
+
+.cal-todo-text.done {
+    text-decoration: line-through;
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+.cal-todo-delete {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.cal-todo-delete:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.cal-todo-add {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.cal-todo-add input {
+    flex: 1;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.cal-todo-add input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.cal-todo-add button {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    font-size: 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cal-todo-add button:hover {
+    background: var(--accent-hover);
 }
 
 .cal-flight-item {
