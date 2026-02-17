@@ -43,11 +43,19 @@ function toggleTheme() {
     localStorage.setItem('skytrace-theme', next);
     updateThemeIcon(next);
     updateMapTiles(next);
+    updateSettingsThemeUI(next);
 }
 
 function updateThemeIcon(theme) {
     const btn = document.getElementById('theme-toggle-btn');
     if (btn) btn.textContent = theme === 'dark' ? '🌙' : '☀️';
+}
+
+function updateSettingsThemeUI(theme) {
+    const icon = document.getElementById('settings-theme-icon');
+    const text = document.getElementById('settings-theme-text');
+    if (icon) icon.textContent = theme === 'dark' ? '🌙' : '☀️';
+    if (text) text.textContent = theme === 'dark' ? (t('themeDark') || '深色模式') : (t('themeLight') || '浅色模式');
 }
 
 function updateMapTiles(theme) {
@@ -58,11 +66,22 @@ function updateMapTiles(theme) {
 
 // ==================== 语言切换 ====================
 function toggleLangDropdown() {
-    document.getElementById('lang-dropdown').classList.toggle('active');
+    const dd = document.getElementById('lang-dropdown');
+    if (dd) dd.classList.toggle('active');
 }
 function switchLang(lang) {
     setLanguage(lang);
-    document.getElementById('lang-dropdown').classList.remove('active');
+    document.getElementById('lang-dropdown')?.classList.remove('active');
+    updateSettingsLangButtons();
+}
+function switchLangFromSettings(lang) {
+    setLanguage(lang);
+    updateSettingsLangButtons();
+}
+function updateSettingsLangButtons() {
+    document.querySelectorAll('.settings-lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === currentLang);
+    });
 }
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.lang-switcher')) {
@@ -102,11 +121,15 @@ function initHomeMap() {
 }
 
 function renderHomeRoutes() {
-    homeArcLayers.forEach(l => homeMap.removeLayer(l));
+    if (!homeMap) return;
+    homeArcLayers.forEach(l => { try { homeMap.removeLayer(l); } catch(e) {} });
     homeArcLayers = [];
 
-    const upcoming = flights.filter(f => f.status_info?.status !== 'completed');
+    const todayStr = new Date().toISOString().split('T')[0];
+    const upcoming = flights.filter(f => f.status_info?.status !== 'completed' && f.date >= todayStr);
     const visitedAirports = new Set();
+    // Build a map of terminal info per airport code
+    const airportTerminals = {};
 
     upcoming.forEach(flight => {
         const dep = flight.dep_airport;
@@ -114,6 +137,9 @@ function renderHomeRoutes() {
         if (!dep || !arr || !dep.lat || !arr.lat) return;
         visitedAirports.add(flight.departure);
         visitedAirports.add(flight.arrival);
+        // Collect terminal info
+        if (flight.dep_terminal && !airportTerminals[flight.departure]) airportTerminals[flight.departure] = flight.dep_terminal;
+        if (flight.arr_terminal && !airportTerminals[flight.arrival]) airportTerminals[flight.arrival] = flight.arr_terminal;
 
         const generator = new arc.GreatCircle({ x: dep.lon, y: dep.lat }, { x: arr.lon, y: arr.lat });
         const arcLine = generator.Arc(50, { offset: 10 });
@@ -127,10 +153,11 @@ function renderHomeRoutes() {
     visitedAirports.forEach(code => {
         const airport = airports[code];
         if (!airport) return;
+        const terminalHtml = airportTerminals[code] ? `<div style="font-size:11px;color:#3b82f6;margin-top:3px;">T${airportTerminals[code]}</div>` : '';
         const marker = L.circleMarker([airport.lat, airport.lon], {
             radius: 6, fillColor: '#3b82f6', color: '#fff', weight: 2, fillOpacity: 1
         }).addTo(homeMap);
-        marker.bindPopup(`<div style="text-align:center;padding:5px;"><div style="font-size:18px;font-weight:bold;color:#3b82f6;">${code}</div><div style="font-size:13px;color:#666;margin-top:4px;">${getAirportCity(airports[code])} · ${getAirportName(airports[code])}</div></div>`, { className: 'airport-popup' });
+        marker.bindPopup(`<div style="text-align:center;padding:5px;"><div style="font-size:18px;font-weight:bold;color:#3b82f6;">${code}</div><div style="font-size:13px;color:#666;margin-top:4px;">${getAirportCity(airports[code])} · ${getAirportName(airports[code])}</div>${terminalHtml}</div>`, { className: 'airport-popup' });
         homeArcLayers.push(marker);
     });
 
@@ -141,22 +168,63 @@ function renderHomeRoutes() {
     // 飞行中动画
     renderAnimatedFlightOnMap(homeMap, homeArcLayers, upcoming);
 
-    // 更新首页统计
-    updateHomeStats(upcoming);
+    // 更新首页覆盖层
+    renderHomeFlightOverlay(upcoming);
 }
 
-function updateHomeStats(upcoming) {
-    document.getElementById('home-stat-upcoming').textContent = upcoming.length;
+function renderHomeFlightOverlay(upcoming) {
+    const countEl = document.getElementById('home-overlay-count');
+    const listEl = document.getElementById('home-overlay-list');
+    const overlayEl = document.getElementById('home-flights-overlay');
+    if (!countEl || !listEl || !overlayEl) return;
+
     const sorted = upcoming.sort((a, b) => a.date.localeCompare(b.date) || (a.dep_time || '').localeCompare(b.dep_time || ''));
-    if (sorted.length > 0) {
-        const next = sorted[0];
-        const now = new Date();
-        const depDate = new Date(next.date + 'T00:00:00');
-        const days = Math.ceil((depDate - now) / (1000 * 60 * 60 * 24));
-        document.getElementById('home-stat-next').textContent = days > 0 ? `${days}${t('daysUnit') || '天'}` : next.dep_time;
-    } else {
-        document.getElementById('home-stat-next').textContent = '-';
+    countEl.textContent = sorted.length;
+
+    if (sorted.length === 0) {
+        listEl.innerHTML = `<div class="home-overlay-empty">✈️ ${t('emptyTrips')}</div>`;
+        return;
     }
+
+    listEl.innerHTML = sorted.map(f => {
+        const depAirport = f.dep_airport || {};
+        const arrAirport = f.arr_airport || {};
+        const statusInfo = f.status_info || {};
+        const depTerminal = f.dep_terminal ? `T${f.dep_terminal}` : '';
+        const arrTerminal = f.arr_terminal ? `T${f.arr_terminal}` : '';
+        let countdown = '';
+        if (statusInfo.countdown) countdown = renderCountdown(statusInfo.countdown);
+        else {
+            const now = new Date();
+            const depDate = new Date(f.date + 'T00:00:00');
+            const days = Math.ceil((depDate - now) / (1000 * 60 * 60 * 24));
+            if (days > 0) countdown = `${days}${t('daysUnit') || '\u5929'}`;
+            else countdown = f.dep_time;
+        }
+        return `<div class="home-overlay-card" onclick="showFlightDetail('${f.id}')">
+            <div class="home-overlay-card-header">
+                <span class="home-overlay-flight-no">${f.flight_no}</span>
+                <span class="home-overlay-date">${formatDate(f.date)}</span>
+            </div>
+            <div class="home-overlay-route">
+                <div class="home-overlay-airport">
+                    <div class="home-overlay-code">${f.departure}</div>
+                    <div class="home-overlay-city">${getAirportCity(depAirport)}</div>
+                    ${depTerminal ? `<div class="home-overlay-terminal">${depTerminal}</div>` : ''}
+                </div>
+                <span class="home-overlay-arrow">→</span>
+                <div class="home-overlay-airport">
+                    <div class="home-overlay-code">${f.arrival}</div>
+                    <div class="home-overlay-city">${getAirportCity(arrAirport)}</div>
+                    ${arrTerminal ? `<div class="home-overlay-terminal">${arrTerminal}</div>` : ''}
+                </div>
+            </div>
+            <div class="home-overlay-meta">
+                <span class="home-overlay-time">${f.dep_time} - ${f.arr_time}</span>
+                <span class="home-overlay-countdown">${countdown}</span>
+            </div>
+        </div>`;
+    }).join('');
 }
 
 // ==================== 行程地图 (全功能筛选) ====================
@@ -356,7 +424,6 @@ async function loadFlights() {
         filteredFlights = [...flights];
         renderFlightsList();
         renderHomeRoutes();
-        renderMapUpcomingPreview();
         initTimeFilterDefaults();
         // 如果行程地图已初始化，刷新
         if (fmapInited) {
@@ -503,7 +570,8 @@ function renderFlightsList(filter = currentStatusFilter) {
     currentStatusFilter = filter;
     const container = document.getElementById('flights-list');
     let displayFlights = filteredFlights;
-    if (filter === 'upcoming') displayFlights = filteredFlights.filter(f => f.status_info.status !== 'completed');
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (filter === 'upcoming') displayFlights = filteredFlights.filter(f => f.status_info.status !== 'completed' && f.date >= todayStr);
     else if (filter === 'completed') displayFlights = filteredFlights.filter(f => f.status_info.status === 'completed');
 
     const groupedFlights = groupConnectedFlights(displayFlights);
@@ -568,8 +636,19 @@ function initTabs() {
             allNavTabs.filter(t => t.dataset.tab === tab.dataset.tab).forEach(t => t.classList.add('active'));
             document.getElementById(tab.dataset.tab + '-view').classList.add('active');
 
-            if (tab.dataset.tab === 'home') setTimeout(() => homeMap.invalidateSize(), 100);
+            if (tab.dataset.tab === 'home') {
+                setTimeout(() => homeMap.invalidateSize(), 100);
+                document.querySelector('.home-flights-overlay')?.style.setProperty('display', 'flex');
+            } else {
+                document.querySelector('.home-flights-overlay')?.style.setProperty('display', 'none');
+            }
             if (tab.dataset.tab === 'calendar') initCalendar();
+            // Show FAB only on flights tab with list subtab
+            const fab = document.querySelector('.btn-add-float');
+            if (fab) {
+                const isFlightsList = tab.dataset.tab === 'flights' && document.getElementById('flights-list-subview')?.classList.contains('active');
+                fab.style.display = isFlightsList ? 'flex' : 'none';
+            }
         });
     });
 
@@ -580,9 +659,9 @@ function initTabs() {
             document.querySelectorAll('.flights-sub-view').forEach(v => v.classList.remove('active'));
             tab.classList.add('active');
             const subtab = tab.dataset.subtab;
-            if (subtab === 'list') document.getElementById('flights-list-subview').classList.add('active');
-            else if (subtab === 'fmap') { document.getElementById('flights-map-subview').classList.add('active'); initFlightsMap(); }
-            else if (subtab === 'fstats') { document.getElementById('flights-stats-subview').classList.add('active'); loadStats(); }
+            if (subtab === 'list') { document.getElementById('flights-list-subview').classList.add('active'); const fab = document.querySelector('.btn-add-float'); if (fab) fab.style.display = 'flex'; }
+            else if (subtab === 'fmap') { document.getElementById('flights-map-subview').classList.add('active'); initFlightsMap(); const fab = document.querySelector('.btn-add-float'); if (fab) fab.style.display = 'none'; }
+            else if (subtab === 'fstats') { document.getElementById('flights-stats-subview').classList.add('active'); loadStats(); const fab = document.querySelector('.btn-add-float'); if (fab) fab.style.display = 'none'; }
         });
     });
 
@@ -734,7 +813,6 @@ function selectAirport(inputId, code, suggestionsId) {
 document.addEventListener('click', (e) => { if (!e.target.closest('.form-group')) document.querySelectorAll('.suggestions').forEach(el => el.classList.remove('active')); });
 
 // ==================== 航班智能查询 ====================
-let lookupTimer = null;
 let isLookingUp = false;
 async function lookupFlight() {
     const flightNo = document.getElementById('flight-no').value.trim();
@@ -744,6 +822,7 @@ async function lookupFlight() {
     const btnLoading = document.querySelector('.btn-lookup-loading');
     const btn = document.querySelector('.btn-lookup');
     if (!flightNo || flightNo.length < 3) { statusEl.textContent = ''; statusEl.className = 'lookup-status'; return; }
+    if (!date) { statusEl.innerHTML = '⚠️ ' + (t('lookupNeedDate') || '请先选择出发日期'); statusEl.className = 'lookup-status info'; return; }
     if (isLookingUp) return;
     isLookingUp = true;
     btn.disabled = true; btnText.style.display = 'none'; btnLoading.style.display = 'inline-flex';
@@ -779,10 +858,8 @@ document.addEventListener('DOMContentLoaded', () => {
             e.target.value = value;
             const match = value.match(/^([A-Z0-9]{2})/);
             if (match && airlines[match[1]]) document.getElementById('airline').value = airlines[match[1]].name;
-            if (lookupTimer) clearTimeout(lookupTimer);
-            if (value.length >= 4) lookupTimer = setTimeout(() => { if (!document.getElementById('departure').value.trim()) lookupFlight(); }, 800);
         });
-        flightNoInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (lookupTimer) clearTimeout(lookupTimer); if (e.target.value.trim().length >= 3) lookupFlight(); } });
+        flightNoInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (e.target.value.trim().length >= 3 && document.getElementById('flight-date').value) lookupFlight(); } });
     }
     checkApiStatus();
 });
@@ -800,6 +877,8 @@ async function checkApiStatus() {
 // ==================== 设置管理 ====================
 async function openSettings() {
     document.getElementById('settings-modal').classList.add('active');
+    updateSettingsLangButtons();
+    updateSettingsThemeUI(document.documentElement.getAttribute('data-theme') || 'dark');
     try {
         const settings = await (await fetch('/api/settings')).json();
         document.getElementById('aviationstack-key').value = settings.aviationstack_key || '';
@@ -837,7 +916,7 @@ async function testApi(apiName) {
 function getLocale() { return LANG_TAG[currentLang] || 'zh-CN'; }
 function formatDate(dateStr) { return new Date(dateStr + 'T00:00:00').toLocaleDateString(getLocale(), { year: 'numeric', month: 'short', day: 'numeric', weekday: 'short' }); }
 function formatDateTime(dateTimeStr) { if (!dateTimeStr) return '-'; return new Date(dateTimeStr).toLocaleString(getLocale(), { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }); }
-function getAirportCity(a) { if (!a) return ''; const m = { zh: 'city', en: 'city_en', ja: 'city_ja', ko: 'city_ko', es: 'city_es' }; const f = m[currentLang]; if (f && a[f]) return a[f]; if (currentLang !== 'zh' && a.city_en) return a.city_en; return a.city || a.city_en || ''; }
+function getAirportCity(a) { if (!a) return ''; const m = { zh: 'city', en: 'city_en', ja: 'city_ja', ko: 'city_ko', es: 'city_es' }; const f = m[currentLang]; let city = ''; if (f && a[f]) city = a[f]; else if (currentLang !== 'zh' && a.city_en) city = a.city_en; else city = a.city || a.city_en || ''; return city.replace(/[（(][^)）]*[)）]/g, '').trim(); }
 function getAirportName(a) { if (!a) return ''; if (currentLang === 'zh') return a.name || a.name_en || ''; return a.name_en || a.name || ''; }
 function renderCountdown(c) { if (!c) return ''; if (typeof c === 'string') return c; if (c.key) return t(c.key, ...(c.args || [])); return ''; }
 function getStatusText(si) { if (!si?.status) return t('statusScheduled'); const m = { scheduled: 'statusScheduled', checkin_open: 'statusCheckin', boarding: 'statusBoarding', in_flight: 'statusInFlight', completed: 'statusCompleted' }; return t(m[si.status] || 'statusUnknown'); }
@@ -891,19 +970,7 @@ async function loadFlightWeather(flight) {
     return `<div class="weather-widget"><div class="weather-icon">${getWeatherIcon(data.current.weather_code)}</div><div class="weather-info"><div class="weather-temp">${Math.round(data.current.temperature_2m)}°C</div><div class="weather-label">${getAirportCity(arr)} ${t('weatherNow')}</div></div></div>`;
 }
 
-// ==================== 首页待出行预览 ====================
-function renderMapUpcomingPreview() {
-    const container = document.getElementById('map-upcoming-preview');
-    if (!container) return;
-    const upcoming = flights.filter(f => f.status_info?.status !== 'completed').sort((a, b) => a.date.localeCompare(b.date) || (a.dep_time || '').localeCompare(b.dep_time || ''));
-    if (!upcoming.length) { container.innerHTML = ''; container.style.display = 'none'; return; }
-    container.style.display = 'block';
-    container.innerHTML = `<div class="upcoming-scroll">${upcoming.slice(0, 3).map(f => {
-        const statusInfo = f.status_info || {};
-        const depTerminal = f.dep_terminal ? `T${f.dep_terminal}` : '';
-        return `<div class="upcoming-card" onclick="showFlightDetail('${f.id}')"><div class="upcoming-header"><span class="upcoming-flight-no">${f.flight_no}</span><span class="upcoming-countdown">${statusInfo.countdown ? renderCountdown(statusInfo.countdown) : formatDate(f.date)}</span></div><div class="upcoming-route"><span class="upcoming-dep">${f.departure} ${depTerminal}</span><span class="upcoming-arrow">→</span><span class="upcoming-arr">${f.arrival}</span></div><div class="upcoming-time">${f.dep_time} - ${f.arr_time} · ${formatDate(f.date)}</div>${f.dep_gate ? `<div class="upcoming-gate">${t('gateLabel')}: ${f.dep_gate}</div>` : ''}</div>`;
-    }).join('')}</div>`;
-}
+// ==================== 首页待出行覆盖层已集成到 renderHomeFlightOverlay ====================
 
 // ==================== 联程功能 ====================
 function groupConnectedFlights(list) {

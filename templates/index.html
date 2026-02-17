@@ -41,19 +41,7 @@
                 <button class="nav-tab" data-tab="calendar" data-i18n="navCalendar">📅 日历</button>
             </nav>
             <div class="header-actions">
-                <div class="lang-switcher">
-                    <button class="btn-lang-toggle" onclick="toggleLangDropdown()" title="Language">🌐</button>
-                    <div class="lang-dropdown" id="lang-dropdown">
-                        <div class="lang-option active" data-lang="zh" onclick="switchLang('zh')">中文</div>
-                        <div class="lang-option" data-lang="en" onclick="switchLang('en')">English</div>
-                        <div class="lang-option" data-lang="ja" onclick="switchLang('ja')">日本語</div>
-                        <div class="lang-option" data-lang="ko" onclick="switchLang('ko')">한국어</div>
-                        <div class="lang-option" data-lang="es" onclick="switchLang('es')">Español</div>
-                    </div>
-                </div>
-                <button class="btn-theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn" data-i18n-title="toggleTheme" title="切换主题">🌙</button>
-                <button class="btn-settings" onclick="openSettings()" data-i18n-title="settingsTitle" title="API设置">⚙️</button>
-                <button class="btn-add" onclick="openAddModal()" data-i18n="addTrip">+ 添加行程</button>
+                <button class="btn-settings" onclick="openSettings()" data-i18n-title="settingsTitle" title="设置">⚙️</button>
             </div>
         </div>
     </header>
@@ -63,18 +51,14 @@
         <!-- ==================== 首页: 仅待出行航线 ==================== -->
         <section id="home-view" class="view active">
             <div id="home-map"></div>
-            <div class="home-stats-overlay">
-                <div class="home-stat">
-                    <span class="home-stat-value" id="home-stat-upcoming">0</span>
-                    <span class="home-stat-label" data-i18n="filterUpcoming">待出行</span>
+            <div class="home-flights-overlay" id="home-flights-overlay">
+                <div class="home-overlay-handle"></div>
+                <div class="home-overlay-header">
+                    <span class="home-overlay-title" data-i18n="filterUpcoming">待出行</span>
+                    <span class="home-overlay-count" id="home-overlay-count">0</span>
                 </div>
-                <div class="home-stat-divider"></div>
-                <div class="home-stat">
-                    <span class="home-stat-value" id="home-stat-next">-</span>
-                    <span class="home-stat-label" data-i18n="nextFlight">最近航班</span>
-                </div>
+                <div class="home-overlay-list" id="home-overlay-list"></div>
             </div>
-            <div class="map-upcoming-preview" id="map-upcoming-preview"></div>
         </section>
 
         <!-- ==================== 行程 (子标签: 列表/地图/统计) ==================== -->
@@ -113,6 +97,7 @@
                         </div>
                     </div>
                     <div class="flights-list" id="flights-list"></div>
+                    <button class="btn-add-float" onclick="openAddModal()" data-i18n-title="addTrip" title="添加行程">+</button>
                 </div>
 
                 <!-- 地图子页 -->
@@ -348,13 +333,36 @@
         <div class="modal modal-settings">
             <div class="modal-header">
                 <button class="modal-back" onclick="closeSettings()">‹</button>
-                <h3 data-i18n="settingsTitle">⚙️ API 设置</h3>
+                <h3 data-i18n="settingsTitle">⚙️ 设置</h3>
                 <button class="modal-close" onclick="closeSettings()">&times;</button>
             </div>
             <div class="settings-content">
-                <div class="settings-intro">
-                    <p data-i18n="settingsIntro">配置航班数据API后，输入航班号即可<strong>自动识别</strong>出发/到达机场、时间、机型等信息。</p>
-                    <p class="settings-hint" data-i18n="settingsHint">支持以下免费API（任选一个即可）：</p>
+                <div class="settings-section">
+                    <h4 class="settings-section-title" data-i18n="settingsGeneral">🎨 通用设置</h4>
+                    <div class="settings-row">
+                        <div class="settings-row-label" data-i18n="settingsLanguage">语言</div>
+                        <div class="settings-lang-options" id="settings-lang-options">
+                            <button class="settings-lang-btn active" data-lang="zh" onclick="switchLangFromSettings('zh')">中文</button>
+                            <button class="settings-lang-btn" data-lang="en" onclick="switchLangFromSettings('en')">EN</button>
+                            <button class="settings-lang-btn" data-lang="ja" onclick="switchLangFromSettings('ja')">日本語</button>
+                            <button class="settings-lang-btn" data-lang="ko" onclick="switchLangFromSettings('ko')">한국어</button>
+                            <button class="settings-lang-btn" data-lang="es" onclick="switchLangFromSettings('es')">ES</button>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-label" data-i18n="settingsTheme">外观</div>
+                        <button class="settings-theme-btn" onclick="toggleTheme()" id="settings-theme-btn">
+                            <span class="settings-theme-icon" id="settings-theme-icon">🌙</span>
+                            <span class="settings-theme-text" id="settings-theme-text" data-i18n="themeDark">深色模式</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4 class="settings-section-title" data-i18n="settingsApi">✈️ API 设置</h4>
+                    <div class="settings-intro">
+                        <p data-i18n="settingsIntro">配置航班数据API后，输入航班号即可<strong>自动识别</strong>出发/到达机场、时间、机型等信息。</p>
+                        <p class="settings-hint" data-i18n="settingsHint">支持以下免费API（任选一个即可）：</p>
+                    </div>
                 </div>
                 <div class="api-card">
                     <div class="api-card-header"><div class="api-info"><span class="api-name">AviationStack</span><span class="api-tier" data-i18n="apiTierAvstack">免费 500次/月</span></div><span class="api-status" id="avstack-status" data-i18n="apiNotConfigured">未配置</span></div>
