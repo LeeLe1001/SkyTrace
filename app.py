@@ -368,6 +368,95 @@ def service_worker():
     return send_from_directory('static', 'sw.js', mimetype='application/javascript')
 
 
+@app.route('/debug')
+def debug_page():
+    """纯内联诊断页面 - 不依赖任何外部资源"""
+    return '''<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SkyTrace Debug</title>
+<style>
+body{font-family:monospace;background:#0f172a;color:#e2e8f0;padding:20px;font-size:14px;max-width:600px;margin:0 auto;}
+h1{color:#3b82f6;font-size:18px;}
+.ok{color:#22c55e;} .fail{color:#ef4444;} .warn{color:#f59e0b;}
+.test{margin:8px 0;padding:8px;background:#1e293b;border-radius:6px;}
+button{background:#3b82f6;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-size:14px;margin:5px;}
+button:hover{background:#2563eb;}
+#results{margin-top:20px;}
+</style></head><body>
+<h1>✈️ SkyTrace 诊断工具</h1>
+<button onclick="runTests()">🔍 开始诊断</button>
+<button onclick="clearSW()">🗑️ 清除SW+缓存</button>
+<button onclick="location.href='/'">🏠 回到首页</button>
+<div id="results"></div>
+<script>
+var results = document.getElementById('results');
+function log(msg, cls) { results.innerHTML += '<div class="test ' + (cls||'') + '">' + msg + '</div>'; }
+
+async function runTests() {
+    results.innerHTML = '';
+    log('⏳ 开始诊断...');
+
+    // 1. Service Worker 状态
+    if ('serviceWorker' in navigator) {
+        var regs = await navigator.serviceWorker.getRegistrations();
+        log('Service Worker 数量: ' + regs.length, regs.length > 0 ? 'warn' : 'ok');
+        regs.forEach(function(r) { log('  SW scope: ' + r.scope + ', active: ' + (r.active ? r.active.scriptURL : 'none')); });
+    } else { log('Service Worker: 不支持', 'warn'); }
+
+    // 2. Cache Storage
+    var cacheNames = await caches.keys();
+    log('缓存数量: ' + cacheNames.length, cacheNames.length > 0 ? 'warn' : 'ok');
+    cacheNames.forEach(function(n) { log('  缓存: ' + n); });
+
+    // 3. 测试关键资源
+    var files = [
+        {url: '/static/lib/leaflet.js', name: 'Leaflet.js'},
+        {url: '/static/lib/arc.js', name: 'arc.js'},
+        {url: '/static/lib/html2canvas.min.js', name: 'html2canvas'},
+        {url: '/static/js/app.js', name: 'app.js'},
+        {url: '/static/js/i18n.js', name: 'i18n.js'},
+        {url: '/static/css/style.css', name: 'style.css'},
+        {url: '/api/airports', name: 'airports API'},
+        {url: '/api/flights', name: 'flights API'},
+    ];
+    for (var i = 0; i < files.length; i++) {
+        var f = files[i];
+        try {
+            var start = Date.now();
+            var resp = await fetch(f.url + '?_t=' + Date.now());
+            var elapsed = Date.now() - start;
+            var size = parseInt(resp.headers.get('content-length') || '0');
+            if (!size) { var blob = await resp.clone().blob(); size = blob.size; }
+            var sizeStr = size > 1024 ? (size/1024).toFixed(0) + 'KB' : size + 'B';
+            log(f.name + ': ' + resp.status + ' (' + sizeStr + ', ' + elapsed + 'ms)', resp.ok ? 'ok' : 'fail');
+        } catch(e) { log(f.name + ': ❌ ' + e.message, 'fail'); }
+    }
+
+    // 4. 测试外部地图瓦片
+    try {
+        var start2 = Date.now();
+        var tileResp = await fetch('https://a.basemaps.cartocdn.com/dark_all/3/4/3.png');
+        log('地图瓦片 (CartoDB): ' + tileResp.status + ' (' + (Date.now()-start2) + 'ms)', tileResp.ok ? 'ok' : 'fail');
+    } catch(e) { log('地图瓦片 (CartoDB): ❌ 无法连接 - ' + e.message, 'fail'); }
+
+    log('✅ 诊断完成');
+}
+
+async function clearSW() {
+    results.innerHTML = '';
+    // 注销所有 SW
+    if ('serviceWorker' in navigator) {
+        var regs = await navigator.serviceWorker.getRegistrations();
+        for (var r of regs) { await r.unregister(); log('已注销 SW: ' + r.scope, 'ok'); }
+    }
+    // 清除所有缓存
+    var names = await caches.keys();
+    for (var n of names) { await caches.delete(n); log('已删除缓存: ' + n, 'ok'); }
+    log('✅ 所有 SW 和缓存已清除! 现在可以回到首页了', 'ok');
+}
+</script></body></html>''', 200, {'Content-Type': 'text/html; charset=utf-8'}
+
+
 # ==================== API 路由: 机场 & 航空公司 ====================
 
 @app.route('/api/airports', methods=['GET'])

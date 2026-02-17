@@ -91,21 +91,39 @@ document.addEventListener('click', (e) => {
 });
 
 // ==================== 初始化 ====================
-document.addEventListener('DOMContentLoaded', async () => {
-    const steps = [
-        ['initTheme', initTheme],
-        ['initHomeMap', initHomeMap],
-        ['loadAirports', loadAirports],
-        ['loadAirlines', loadAirlines],
-        ['initTabs', initTabs],
-        ['applyI18n', applyI18n],
-    ];
-    for (const [name, fn] of steps) {
-        try { await fn(); } catch (e) { console.error(`[SkyTrace] ${name} failed:`, e); }
-    }
-    // loadFlights depends on airports/airlines being loaded
-    try { await loadFlights(); } catch (e) { console.error('[SkyTrace] loadFlights failed:', e); }
-});
+// NOTE: 不使用 DOMContentLoaded，因为此脚本在 </body> 前加载
+// 此时 DOM 已完全可用，直接执行初始化
+function _skytraceInit() {
+    console.log('[SkyTrace] Starting init...');
+    // 第一步: 同步初始化 — UI 必须立即可交互
+    try { initTheme(); console.log('[SkyTrace] initTheme OK'); } catch(e) { console.error('[SkyTrace] initTheme:', e); }
+    try { initTabs(); console.log('[SkyTrace] initTabs OK'); } catch(e) { console.error('[SkyTrace] initTabs:', e); }
+    try { applyI18n(); console.log('[SkyTrace] applyI18n OK'); } catch(e) { console.error('[SkyTrace] applyI18n:', e); }
+
+    // 第二步: 初始化地图 (依赖 Leaflet)
+    try { initHomeMap(); console.log('[SkyTrace] initHomeMap OK'); } catch(e) { console.error('[SkyTrace] initHomeMap:', e); }
+
+    // 第三步: 异步加载数据 (并行, 不阻塞 UI)
+    Promise.all([
+        loadAirports().catch(e => console.error('[SkyTrace] loadAirports:', e)),
+        loadAirlines().catch(e => console.error('[SkyTrace] loadAirlines:', e)),
+    ]).then(() => {
+        console.log('[SkyTrace] Data loaded, loading flights...');
+        return loadFlights().catch(e => console.error('[SkyTrace] loadFlights:', e));
+    }).then(() => {
+        console.log('[SkyTrace] All init complete');
+        // 隐藏加载指示器
+        const li = document.getElementById('loading-indicator');
+        if (li) li.style.display = 'none';
+    });
+
+    // 第四步: 设置航班号输入框事件
+    try { _initFlightInput(); } catch(e) { console.error('[SkyTrace] _initFlightInput:', e); }
+    // 检查 API 状态
+    checkApiStatus().catch(() => {});
+}
+// 立即执行
+_skytraceInit();
 
 // ==================== 首页地图 (仅待出行) ====================
 function initHomeMap() {
@@ -894,7 +912,7 @@ async function lookupFlight() {
     finally { isLookingUp = false; btn.disabled = false; btnText.style.display = 'inline'; btnLoading.style.display = 'none'; }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function _initFlightInput() {
     const flightNoInput = document.getElementById('flight-no');
     if (flightNoInput) {
         flightNoInput.addEventListener('input', (e) => {
@@ -905,8 +923,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         flightNoInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (e.target.value.trim().length >= 3 && document.getElementById('flight-date').value) lookupFlight(); } });
     }
-    checkApiStatus();
-});
+}
 
 async function checkApiStatus() {
     try {
