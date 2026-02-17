@@ -681,7 +681,7 @@ function initTabs() {
             document.getElementById(tab.dataset.tab + '-view').classList.add('active');
 
             if (tab.dataset.tab === 'home') {
-                setTimeout(() => homeMap.invalidateSize(), 100);
+                setTimeout(() => { if (homeMap) homeMap.invalidateSize(); }, 100);
                 document.querySelector('.home-flights-overlay')?.style.setProperty('display', 'flex');
             } else {
                 document.querySelector('.home-flights-overlay')?.style.setProperty('display', 'none');

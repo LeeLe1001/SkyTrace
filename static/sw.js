@@ -1,19 +1,20 @@
 /**
- * SkyTrace Service Worker v4
+ * SkyTrace Service Worker v5
  * 缓存策略: 网络优先，离线回退到缓存
+ * 所有依赖已本地化，无外部CDN
  */
 
-const CACHE_NAME = 'skytrace-v4';
+const CACHE_NAME = 'skytrace-v5';
 const PRECACHE_URLS = [
   '/',
   '/static/css/style.css',
   '/static/js/app.js',
   '/static/js/i18n.js',
+  '/static/lib/leaflet.css',
+  '/static/lib/leaflet.js',
+  '/static/lib/arc.js',
+  '/static/lib/html2canvas.min.js',
   '/static/manifest.json',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-  'https://unpkg.com/arc@0.1.1/arc.js',
-  'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
 ];
 
 // 安装: 预缓存核心资源，立即激活

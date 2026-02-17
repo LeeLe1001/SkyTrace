@@ -268,9 +268,9 @@ def query_all_apis(flight_no, date):
     preferred = settings.get('preferred_api', 'auto')
 
     apis = [
-        ('aviationstack', query_aviationstack, settings.get('aviationstack_key', '')),
-        ('airlabs', query_airlabs, settings.get('airlabs_key', '')),
         ('aerodata', query_aerodata, settings.get('aerodata_key', '')),
+        ('airlabs', query_airlabs, settings.get('airlabs_key', '')),
+        ('aviationstack', query_aviationstack, settings.get('aviationstack_key', '')),
     ]
 
     # 优先使用用户指定的 API

@@ -13,19 +13,13 @@
     <meta name="apple-mobile-web-app-title" content="SkyTrace">
     <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
     
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet CSS (本地) -->
+    <link rel="stylesheet" href="/static/lib/leaflet.css" />
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="/static/css/style.css?v=4">
-    
-    <!-- html2canvas for share/export -->
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css?v=5">
     
     <!-- i18n 多语言 (在 app.js 之前加载) -->
-    <script src="/static/js/i18n.js?v=4"></script>
+    <script src="/static/js/i18n.js?v=5"></script>
 </head>
 <body>
     <!-- 顶部导航 -->
@@ -419,10 +413,11 @@
         <button class="mobile-nav-tab" data-tab="calendar"><span class="mobile-nav-icon">📅</span><span data-i18n="navCalendar">日历</span></button>
     </nav>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/arc@0.1.1/arc.js"></script>
-    <script src="/static/js/app.js?v=4"></script>
+    <!-- JS 依赖 (全部本地化，无CDN依赖) -->
+    <script src="/static/lib/leaflet.js"></script>
+    <script src="/static/lib/arc.js"></script>
+    <script src="/static/lib/html2canvas.min.js"></script>
+    <script src="/static/js/app.js?v=5"></script>
     <script>
         // Force-refresh Service Worker: unregister old ones, register fresh
         if ('serviceWorker' in navigator) {
@@ -441,7 +436,7 @@
                 })));
             }).then(() => {
                 // Re-register fresh SW
-                return navigator.serviceWorker.register('/sw.js?v=4', { scope: '/' });
+                return navigator.serviceWorker.register('/sw.js?v=5', { scope: '/' });
             }).then(reg => {
                 console.log('[SW] Fresh SW registered:', reg.scope);
                 // Force update check
