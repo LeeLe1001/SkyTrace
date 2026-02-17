@@ -57,12 +57,13 @@ const AIRLINE_LOGO_MAP = {
     'VS':'virgin-atlantic','VA':'virgin-australia','WS':'westjet',
     'W6':'wizz-air','5W':'wizz-air','W9':'wizz-air','MF':'xiamenair',
 };
-const LOGO_BASE = 'https://raw.githubusercontent.com/anhthang/soaring-symbols/main/assets/';
+const LOGO_LOCAL = '/static/img/airlines/';
+const LOGO_REMOTE = 'https://raw.githubusercontent.com/anhthang/soaring-symbols/main/assets/';
 function getAirlineLogoHtml(flightNo) {
     const iata = (flightNo || '').match(/^([A-Z0-9]{2})/i)?.[1]?.toUpperCase();
     const slug = iata ? AIRLINE_LOGO_MAP[iata] : null;
     if (slug) {
-        return `<img class="airline-logo" src="${LOGO_BASE}${slug}/icon.svg" alt="${iata}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="airline-logo-fallback" style="display:none">${iata}</span>`;
+        return `<img class="airline-logo" src="${LOGO_LOCAL}${slug}.svg" alt="${iata}" onerror="this.src='${LOGO_REMOTE}${slug}/icon.svg';this.onerror=function(){this.style.display='none';this.nextElementSibling.style.display='flex'}"><span class="airline-logo-fallback" style="display:none">${iata}</span>`;
     }
     return iata ? `<span class="airline-logo-fallback">${iata}</span>` : '';
 }
@@ -252,14 +253,26 @@ let _hoStartH = 0;
 
 function initHomeOverlayDrag() {
     const el = document.getElementById('home-flights-overlay');
-    if (!el || el._dragInited) return;
+    if (!el) return;
+    // Always re-attach drag if overlay HTML was replaced
+    if (el._dragInited) return;
     el._dragInited = true;
     const handle = el.querySelector('.home-overlay-handle');
     const header = el.querySelector('.home-overlay-header');
 
     // Click header or handle to toggle expand
     const toggleClick = () => {
-        if (_hoExpanded) collapseHomeOverlay(); else expandHomeOverlay();
+        const currentH = el.offsetHeight;
+        if (currentH < 100) {
+            // From collapsed → peek (show carousel)
+            peekHomeOverlay();
+        } else if (_hoExpanded) {
+            // From expanded → collapsed
+            minimizeHomeOverlay();
+        } else {
+            // From peek → expanded
+            expandHomeOverlay();
+        }
     };
     if (header) header.addEventListener('click', toggleClick);
 
@@ -272,21 +285,23 @@ function initHomeOverlayDrag() {
         }, {passive: true});
         handle.addEventListener('touchmove', e => {
             const dy = _hoDragStartY - e.touches[0].clientY;
-            const newH = Math.max(60, Math.min(window.innerHeight * 0.85, _hoStartH + dy));
+            const newH = Math.max(56, Math.min(window.innerHeight * 0.85, _hoStartH + dy));
             el.style.maxHeight = newH + 'px';
         }, {passive: true});
         handle.addEventListener('touchend', () => {
             el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
             const h = el.offsetHeight;
-            if (h > window.innerHeight * 0.3) {
+            if (h > window.innerHeight * 0.35) {
                 expandHomeOverlay();
-            } else {
+            } else if (h > 100) {
                 collapseHomeOverlay();
+            } else {
+                minimizeHomeOverlay();
             }
         });
     }
-    // Start collapsed
-    collapseHomeOverlay();
+    // Start minimized
+    minimizeHomeOverlay();
 }
 
 function expandHomeOverlay() {
@@ -296,7 +311,6 @@ function expandHomeOverlay() {
     el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
     el.style.maxHeight = '75vh';
     el.classList.add('expanded');
-    // Fade out the nearest card, show the full list
     const nearest = el.querySelector('.home-nearest-card');
     const list = el.querySelector('.home-overlay-list');
     if (nearest) nearest.style.opacity = '0';
@@ -312,11 +326,40 @@ function collapseHomeOverlay() {
     el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
     el.style.maxHeight = '220px';
     el.classList.remove('expanded');
-    // Show nearest card, fade the full list
     const nearest = el.querySelector('.home-nearest-card');
     const list = el.querySelector('.home-overlay-list');
     if (nearest) nearest.style.opacity = '1';
     if (list) { list.style.opacity = '0.3'; list.style.pointerEvents = 'none'; }
+    const hint = document.getElementById('ho-expand-hint');
+    if (hint) hint.textContent = '▲';
+}
+
+function peekHomeOverlay() {
+    _hoExpanded = false;
+    const el = document.getElementById('home-flights-overlay');
+    if (!el) return;
+    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
+    el.style.maxHeight = '220px';
+    el.classList.remove('expanded');
+    const nearest = el.querySelector('.home-nearest-card');
+    const list = el.querySelector('.home-overlay-list');
+    if (nearest) nearest.style.opacity = '1';
+    if (list) { list.style.opacity = '0.3'; list.style.pointerEvents = 'none'; }
+    const hint = document.getElementById('ho-expand-hint');
+    if (hint) hint.textContent = '▲';
+}
+
+function minimizeHomeOverlay() {
+    _hoExpanded = false;
+    const el = document.getElementById('home-flights-overlay');
+    if (!el) return;
+    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
+    el.style.maxHeight = '56px';
+    el.classList.remove('expanded');
+    const nearest = el.querySelector('.home-nearest-card');
+    const list = el.querySelector('.home-overlay-list');
+    if (nearest) nearest.style.opacity = '0';
+    if (list) { list.style.opacity = '0'; list.style.pointerEvents = 'none'; }
     const hint = document.getElementById('ho-expand-hint');
     if (hint) hint.textContent = '▲';
 }
@@ -328,7 +371,7 @@ function renderHomeFlightOverlay(upcoming) {
     const listEl = document.getElementById('home-overlay-list');
     if (!countEl || !overlayEl || !nearestEl || !listEl) return;
 
-    const sorted = upcoming.sort((a, b) => a.date.localeCompare(b.date) || (a.dep_time || '').localeCompare(b.dep_time || ''));
+    const sorted = [...upcoming].sort((a, b) => a.date.localeCompare(b.date) || (a.dep_time || '').localeCompare(b.dep_time || ''));
     countEl.textContent = sorted.length;
 
     if (sorted.length === 0) {
@@ -338,23 +381,21 @@ function renderHomeFlightOverlay(upcoming) {
         return;
     }
 
-    // Determine nearest flight(s) — single or connected group
-    const first = sorted[0];
-    let nearestFlights;
-    if (first.connected_group) {
-        nearestFlights = sorted.filter(f => f.connected_group === first.connected_group);
-    } else {
-        nearestFlights = [first];
-    }
-
-    // Render nearest card (floating)
-    nearestEl.innerHTML = nearestFlights.map(f => renderHomeCard(f)).join('');
+    // Build carousel cards (nearest flights, with dates, no status capsule)
+    const carouselFlights = sorted.slice(0, 5);
+    nearestEl.innerHTML = `<div class="home-carousel">${carouselFlights.map(f => renderHomeCarouselCard(f)).join('')}</div>`;
 
     // Highlight nearest route on map
-    const nearestIds = nearestFlights.map(f => f.id);
+    const first = sorted[0];
+    let nearestIds;
+    if (first.connected_group) {
+        nearestIds = sorted.filter(f => f.connected_group === first.connected_group).map(f => f.id);
+    } else {
+        nearestIds = [first.id];
+    }
     highlightRouteForSlide(nearestIds);
 
-    // Render full list (same format as flights page, grouped by date)
+    // Render full list (grouped by date, no status capsule)
     const grouped = groupConnectedFlights(sorted);
     const dateGroups = {};
     grouped.forEach(item => {
@@ -378,7 +419,25 @@ function renderHomeFlightOverlay(upcoming) {
     initHomeOverlayDrag();
 }
 
-/** Home card: reuses flight-card styling with date omitted */
+/** Carousel card: compact with date, no status capsule */
+function renderHomeCarouselCard(flight) {
+    const depAirport = flight.dep_airport || {};
+    const arrAirport = flight.arr_airport || {};
+    const logo = getAirlineLogoHtml(flight.flight_no);
+    const dateStr = formatDate(flight.date);
+
+    return `<div class="home-carousel-card" onclick="showFlightDetail('${flight.id}')">
+        <div class="carousel-card-date">${dateStr}</div>
+        <div class="carousel-card-route">
+            <div class="carousel-card-point"><span class="carousel-code">${flight.departure}</span><span class="carousel-city">${getAirportCity(depAirport)}</span></div>
+            <div class="carousel-card-arrow">✈</div>
+            <div class="carousel-card-point"><span class="carousel-code">${flight.arrival}</span><span class="carousel-city">${getAirportCity(arrAirport)}</span></div>
+        </div>
+        <div class="carousel-card-footer">${logo}<span class="carousel-flight-no">${flight.flight_no}</span><span class="carousel-time">${flight.dep_time || ''}</span></div>
+    </div>`; 
+}
+
+/** Home card: reuses flight-card styling, no status capsule (all upcoming) */
 function renderHomeCard(flight) {
     const depAirport = flight.dep_airport || {};
     const arrAirport = flight.arr_airport || {};
@@ -393,13 +452,12 @@ function renderHomeCard(flight) {
         duration = `${Math.floor(diff / 60)}h ${Math.round(diff % 60)}m`;
     }
 
-    const statusClass = statusInfo.status === 'completed' ? 'completed' : statusInfo.status === 'checkin_open' ? 'checkin_open' : statusInfo.status === 'boarding' ? 'boarding' : 'upcoming';
     const depTerminal = flight.dep_terminal ? `<span class="terminal-tag">T${flight.dep_terminal}</span>` : '';
     const arrTerminal = flight.arr_terminal ? `<span class="terminal-tag">T${flight.arr_terminal}</span>` : '';
     const logo = getAirlineLogoHtml(flight.flight_no);
 
     return `<div class="flight-card" onclick="showFlightDetail('${flight.id}')">
-        <div class="flight-card-header"><div class="flight-info">${logo}<span class="flight-no">${flight.flight_no}</span></div><span class="flight-status ${statusClass}">${getStatusText(statusInfo)}</span></div>
+        <div class="flight-card-header"><div class="flight-info">${logo}<span class="flight-no">${flight.flight_no}</span></div></div>
         <div class="flight-route">
             <div class="route-point departure"><div class="airport-code">${flight.departure} ${depTerminal}</div><div class="airport-city">${getAirportCity(depAirport)}</div><div class="route-time">${flight.dep_time}</div></div>
             <div class="route-line"><div class="route-line-graphic"></div><div class="route-duration">${duration}</div><div class="route-distance">${(flight.distance || 0).toLocaleString()} km</div></div>
@@ -727,7 +785,7 @@ function renderFunStats(fun, topRoutes, topAirlines) {
         const maxWd = wd.indexOf(Math.max(...wd));
         const wdNames = [t('wdMon'), t('wdTue'), t('wdWed'), t('wdThu'), t('wdFri'), t('wdSat'), t('wdSun')];
         const maxWdVal = Math.max(...wd);
-        cards += `<div class="fun-card fun-card-wide fun-card-expandable" onclick="toggleWeekdayDetail(this)"><div class="fun-card-icon">📅</div><div class="fun-card-value">${wdNames[maxWd]}</div><div class="fun-card-label">${t('busiestDay')} <span class="expand-hint">▼</span></div><div class="weekday-bars">${wd.map((v, i) => `<div class="wd-bar-col"><div class="wd-bar" style="height:${maxWdVal ? Math.round(v / maxWdVal * 40) : 0}px" title="${wdNames[i]}: ${v}"></div><div class="wd-label">${wdNames[i].charAt(0)}</div></div>`).join('')}</div><div class="fun-card-expand-detail" style="display:none">${wd.map((v, i) => {
+        cards += `<div class="fun-card fun-card-wide fun-card-expandable" onclick="toggleWeekdayDetail(this)"><div class="fun-card-icon">📅</div><div class="fun-card-value">${wdNames[maxWd]}</div><div class="fun-card-label">${t('busiestDay')} <span class="expand-hint">▼</span></div><div class="weekday-bars">${wd.map((v, i) => `<div class="wd-bar-col"><div class="wd-bar" style="height:${maxWdVal ? Math.round(v / maxWdVal * 40) : 0}px" title="${wdNames[i]}: ${v}"></div><div class="wd-label">${wdNames[i]}</div></div>`).join('')}</div><div class="fun-card-expand-detail" style="display:none">${wd.map((v, i) => {
             if (v === 0) return '';
             const dayFlights = fun.weekday_flights?.[i] || [];
             return `<div class="expand-day-section"><div class="expand-day-title">${wdNames[i]} — ${v} ${t('flights')}</div><div class="expand-day-flights">${dayFlights.slice(0, 5).map(f => `<span class="expand-flight-tag">${f.flight_no} ${f.route} (${f.date})</span>`).join('')}${dayFlights.length > 5 ? `<span class="expand-more">+${dayFlights.length - 5}</span>` : ''}</div></div>`;
@@ -773,17 +831,22 @@ function renderMonthlyChart(monthData) {
         _currentChartMonth = months.includes(currentYM) ? currentYM : months[months.length - 1];
     }
 
-    // Render month selector nav
+    // Render month selector as year + month dropdowns
     if (selectorEl) {
-        const idx = months.indexOf(_currentChartMonth);
         const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
-        const mIdx = parseInt(_currentChartMonth.substring(5)) - 1;
-        const year = _currentChartMonth.substring(0, 4);
-        const label = `${year} ${monthNames[mIdx]}`;
+        const selectedYear = _currentChartMonth.substring(0, 4);
+        const selectedMonth = parseInt(_currentChartMonth.substring(5));
+        // Available years from data
+        const availYears = [...new Set(months.map(m => m.substring(0, 4)))].sort();
+        // Available months for selected year
+        const availMonths = months.filter(m => m.startsWith(selectedYear)).map(m => parseInt(m.substring(5)));
+        
+        let yearOpts = availYears.map(y => `<option value="${y}" ${y === selectedYear ? 'selected' : ''}>${y}年</option>`).join('');
+        let monthOpts = availMonths.map(m => `<option value="${m}" ${m === selectedMonth ? 'selected' : ''}>${monthNames[m - 1]}</option>`).join('');
+        
         selectorEl.innerHTML = `
-            <button class="month-nav-btn" ${idx <= 0 ? 'disabled' : ''} onclick="changeChartMonth(-1)">◀</button>
-            <span class="month-nav-label">${label}</span>
-            <button class="month-nav-btn" ${idx >= months.length - 1 ? 'disabled' : ''} onclick="changeChartMonth(1)">▶</button>
+            <select class="month-chart-select" id="chart-year-select" onchange="onChartYearChange(this.value)">${yearOpts}</select>
+            <select class="month-chart-select" id="chart-month-select" onchange="onChartMonthChange(this.value)">${monthOpts}</select>
         `;
     }
 
@@ -823,6 +886,27 @@ function changeChartMonth(dir) {
     if (newIdx < 0 || newIdx >= months.length) return;
     _currentChartMonth = months[newIdx];
     renderMonthlyChart(_cachedMonthData);
+}
+
+function onChartYearChange(year) {
+    if (!_cachedMonthData) return;
+    const months = Object.keys(_cachedMonthData).sort();
+    const availMonths = months.filter(m => m.startsWith(year));
+    if (availMonths.length > 0) {
+        _currentChartMonth = availMonths[availMonths.length - 1]; // default to last month in year
+    }
+    renderMonthlyChart(_cachedMonthData);
+}
+
+function onChartMonthChange(month) {
+    if (!_cachedMonthData) return;
+    const year = _currentChartMonth.substring(0, 4);
+    const newKey = `${year}-${String(month).padStart(2, '0')}`;
+    const months = Object.keys(_cachedMonthData).sort();
+    if (months.includes(newKey)) {
+        _currentChartMonth = newKey;
+        renderMonthlyChart(_cachedMonthData);
+    }
 }
 
 // ==================== 时间筛选 (列表用) ====================
@@ -1028,14 +1112,14 @@ function showFlightDetail(flightId) {
                 ${flight.dep_terminal ? `<div class="detail-terminal">T${flight.dep_terminal}</div>` : ''}
                 ${flight.dep_gate ? `<div class="detail-gate">${t('gateLabel')}: ${flight.dep_gate}</div>` : (statusInfo.status !== 'completed' ? `<div class="detail-gate pending">${t('gateLabel')}: ${t('gatePending')}</div>` : '')}
             </div>
-            <div class="detail-arrow">${isActive ? `<div class="flight-progress-mini"><div class="progress-track"><div class="progress-fill" style="width:${progress}%"></div><div class="progress-plane" style="left:${progress}%">✈</div></div><div class="progress-text">${renderCountdown(statusInfo.countdown)}</div></div>` : '✈️ →'}</div>
+            <div class="detail-arrow">${isActive ? `<div class="flight-progress-mini"><div class="progress-track"><div class="progress-fill" style="width:${progress}%"></div><div class="progress-plane" style="left:${progress}%">✈</div></div><div class="progress-text">${renderCountdown(statusInfo.countdown)}</div></div>` : '<div class="detail-route-line"><div class="detail-route-dot"></div><div class="detail-route-dash"></div><span class="detail-route-plane">✈</span><div class="detail-route-dash"></div><div class="detail-route-dot"></div></div>'}</div>
             <div class="detail-point arrival">
                 <div class="detail-code">${flight.arrival}</div><div class="detail-city">${getAirportCity(arrAirport)}</div><div class="detail-time">${flight.arr_time}</div>
                 ${flight.arr_terminal ? `<div class="detail-terminal">T${flight.arr_terminal}</div>` : ''}
                 ${flight.arr_gate ? `<div class="detail-gate">${t('gateLabel')}: ${flight.arr_gate}</div>` : ''}
             </div>
         </div>
-        <div class="detail-info-grid">
+        <div class="detail-info-grid detail-info-grid-bordered">
             <div class="detail-info-item"><div class="detail-info-label">${t('flightNoLabel')}</div><div class="detail-info-value">${flight.flight_no}</div></div>
             <div class="detail-info-item"><div class="detail-info-label">${t('dateLabel')}</div><div class="detail-info-value">${formatDate(flight.date)}</div></div>
             <div class="detail-info-item"><div class="detail-info-label">${t('airlineLabel')}</div><div class="detail-info-value">${typeof translateAirline === 'function' ? translateAirline(flight.airline) : (flight.airline || '-')}</div></div>
