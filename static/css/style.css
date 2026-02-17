@@ -3183,6 +3183,7 @@ body {
     max-height: 45vh;
     background: var(--header-bg);
     backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-radius: 20px 20px 0 0;
     border-top: 1px solid var(--border-light);
     box-shadow: 0 -8px 40px var(--shadow-color);
@@ -3231,107 +3232,153 @@ body {
     scrollbar-width: thin;
 }
 
-.home-overlay-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 14px 16px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    transition: transform 0.2s, border-color 0.2s;
-}
-
-.home-overlay-card:hover {
-    transform: translateY(-1px);
-    border-color: var(--accent);
-}
-
-.home-overlay-card:last-child {
-    margin-bottom: 0;
-}
-
-.home-overlay-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.home-overlay-flight-no {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--accent);
-}
-
-.home-overlay-date {
-    font-size: 12px;
-    color: var(--text-muted);
-    background: var(--bg-secondary);
-    padding: 2px 8px;
-    border-radius: 8px;
-}
-
-.home-overlay-route {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 6px;
-}
-
-.home-overlay-airport {
-    text-align: center;
-    flex: 1;
-    min-width: 0;
-}
-
-.home-overlay-code {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text-primary);
-}
-
-.home-overlay-city {
-    font-size: 11px;
-    color: var(--text-secondary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.home-overlay-terminal {
-    font-size: 10px;
-    color: var(--accent);
-    margin-top: 1px;
-}
-
-.home-overlay-arrow {
-    color: var(--text-muted);
-    font-size: 14px;
-    flex-shrink: 0;
-}
-
-.home-overlay-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.home-overlay-time {
-    font-size: 12px;
-    color: var(--text-secondary);
-}
-
-.home-overlay-countdown {
-    font-size: 11px;
-    color: var(--accent);
-    font-weight: 600;
-}
-
 .home-overlay-empty {
     text-align: center;
     padding: 30px 20px;
     color: var(--text-muted);
     font-size: 14px;
+}
+
+/* -- 新版航班卡片 (ho- prefix) -- */
+.ho-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 16px 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.ho-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+}
+.ho-card:last-child { margin-bottom: 0; }
+
+.ho-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.ho-card-flight {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+.ho-flight-no {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.ho-airline {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+.ho-countdown {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    padding: 3px 10px;
+    border-radius: 10px;
+}
+.ho-countdown.imminent {
+    color: #f97316;
+    background: rgba(249, 115, 22, 0.12);
+}
+.ho-countdown.soon {
+    color: var(--accent);
+    background: rgba(59, 130, 246, 0.12);
+}
+
+/* 航线路径 */
+.ho-route {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+}
+.ho-point {
+    flex: 0 0 auto;
+    min-width: 54px;
+}
+.ho-point.right {
+    text-align: right;
+}
+.ho-code {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: 0.5px;
+    line-height: 1.1;
+}
+.ho-time {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+.ho-city {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80px;
+}
+.ho-point.right .ho-city {
+    margin-left: auto;
+}
+
+/* 航线连线 */
+.ho-line {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 8px 0;
+    min-width: 0;
+}
+.ho-line-track {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 16px;
+    position: relative;
+}
+.ho-line-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+}
+.ho-line-dot.end {
+    background: var(--text-muted);
+}
+.ho-line-bar {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(to right, var(--accent), var(--text-muted));
+    opacity: 0.4;
+    margin: 0 2px;
+}
+.ho-line-plane {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    color: var(--accent);
+    filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.4));
+}
+.ho-date {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    white-space: nowrap;
 }
 
 /* ==================== 行程子标签 ==================== */

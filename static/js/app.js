@@ -219,38 +219,44 @@ function renderHomeFlightOverlay(upcoming) {
         const depAirport = f.dep_airport || {};
         const arrAirport = f.arr_airport || {};
         const statusInfo = f.status_info || {};
-        const depTerminal = f.dep_terminal ? `T${f.dep_terminal}` : '';
-        const arrTerminal = f.arr_terminal ? `T${f.arr_terminal}` : '';
         let countdown = '';
-        if (statusInfo.countdown) countdown = renderCountdown(statusInfo.countdown);
-        else {
+        let countdownClass = '';
+        if (statusInfo.countdown) {
+            countdown = renderCountdown(statusInfo.countdown);
+            countdownClass = 'imminent';
+        } else {
             const now = new Date();
             const depDate = new Date(f.date + 'T00:00:00');
             const days = Math.ceil((depDate - now) / (1000 * 60 * 60 * 24));
-            if (days > 0) countdown = `${days}${t('daysUnit') || '\u5929'}`;
-            else countdown = f.dep_time;
+            if (days <= 0) { countdown = t('today') || '今天'; countdownClass = 'imminent'; }
+            else if (days === 1) { countdown = t('tomorrow') || '明天'; countdownClass = 'imminent'; }
+            else if (days <= 7) { countdown = `${days}${t('daysUnit') || '天'}`; countdownClass = 'soon'; }
+            else { countdown = `${days}${t('daysUnit') || '天'}`; }
         }
-        return `<div class="home-overlay-card" onclick="showFlightDetail('${f.id}')">
-            <div class="home-overlay-card-header">
-                <span class="home-overlay-flight-no">${f.flight_no}</span>
-                <span class="home-overlay-date">${formatDate(f.date)}</span>
-            </div>
-            <div class="home-overlay-route">
-                <div class="home-overlay-airport">
-                    <div class="home-overlay-code">${f.departure}</div>
-                    <div class="home-overlay-city">${getAirportCity(depAirport)}</div>
-                    ${depTerminal ? `<div class="home-overlay-terminal">${depTerminal}</div>` : ''}
+        const airlineName = f.airline || '';
+        return `<div class="ho-card" onclick="showFlightDetail('${f.id}')">
+            <div class="ho-card-top">
+                <div class="ho-card-flight">
+                    <span class="ho-flight-no">${f.flight_no}</span>
+                    <span class="ho-airline">${airlineName}</span>
                 </div>
-                <span class="home-overlay-arrow">→</span>
-                <div class="home-overlay-airport">
-                    <div class="home-overlay-code">${f.arrival}</div>
-                    <div class="home-overlay-city">${getAirportCity(arrAirport)}</div>
-                    ${arrTerminal ? `<div class="home-overlay-terminal">${arrTerminal}</div>` : ''}
-                </div>
+                <div class="ho-countdown ${countdownClass}">${countdown}</div>
             </div>
-            <div class="home-overlay-meta">
-                <span class="home-overlay-time">${f.dep_time} - ${f.arr_time}</span>
-                <span class="home-overlay-countdown">${countdown}</span>
+            <div class="ho-route">
+                <div class="ho-point">
+                    <div class="ho-code">${f.departure}</div>
+                    <div class="ho-time">${f.dep_time || '--:--'}</div>
+                    <div class="ho-city">${getAirportCity(depAirport)}</div>
+                </div>
+                <div class="ho-line">
+                    <div class="ho-line-track"><div class="ho-line-dot start"></div><div class="ho-line-bar"></div><div class="ho-line-plane">✈</div><div class="ho-line-dot end"></div></div>
+                    <div class="ho-date">${formatDate(f.date)}</div>
+                </div>
+                <div class="ho-point right">
+                    <div class="ho-code">${f.arrival}</div>
+                    <div class="ho-time">${f.arr_time || '--:--'}</div>
+                    <div class="ho-city">${getAirportCity(arrAirport)}</div>
+                </div>
             </div>
         </div>`;
     }).join('');
@@ -634,6 +640,10 @@ function renderFlightsList(filter = currentStatusFilter) {
         displayFlights.sort((a, b) => a.date.localeCompare(b.date) || (a.dep_time || '').localeCompare(b.dep_time || ''));
     } else if (filter === 'completed') {
         displayFlights = filteredFlights.filter(f => f.status_info?.status === 'completed');
+        displayFlights.sort((a, b) => b.date.localeCompare(a.date) || (b.dep_time || '').localeCompare(a.dep_time || ''));
+    } else {
+        // "全部" - 从新到旧
+        displayFlights = [...filteredFlights].sort((a, b) => b.date.localeCompare(a.date) || (b.dep_time || '').localeCompare(a.dep_time || ''));
     }
 
     const groupedFlights = groupConnectedFlights(displayFlights);

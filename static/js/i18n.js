@@ -201,6 +201,8 @@ const I18N = {
     subMap: '地图',
     subStats: '统计',
     daysUnit: '天',
+    today: '今天',
+    tomorrow: '明天',
   },
 
   // ========== English ==========
@@ -378,6 +380,8 @@ const I18N = {
     subMap: 'Map',
     subStats: 'Stats',
     daysUnit: 'days',
+    today: 'Today',
+    tomorrow: 'Tomorrow',
   },
 
   // ========== 日本語 ==========
@@ -555,6 +559,8 @@ const I18N = {
     subMap: '地図',
     subStats: '統計',
     daysUnit: '日',
+    today: '今日',
+    tomorrow: '明日',
   },
 
   // ========== 한국어 ==========
@@ -732,6 +738,8 @@ const I18N = {
     subMap: '지도',
     subStats: '통계',
     daysUnit: '일',
+    today: '오늘',
+    tomorrow: '내일',
   },
 
   // ========== Español ==========
@@ -909,6 +917,8 @@ const I18N = {
     subMap: 'Mapa',
     subStats: 'Estadísticas',
     daysUnit: 'días',
+    today: 'Hoy',
+    tomorrow: 'Mañana',
   },
 };
 
