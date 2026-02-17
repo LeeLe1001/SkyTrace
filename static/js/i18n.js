@@ -925,10 +925,10 @@ function setLanguage(lang) {
   if (!I18N[lang]) return;
   currentLang = lang;
   localStorage.setItem('skytrace-lang', lang);
-  applyI18n();
+  try { applyI18n(); } catch (e) { console.error('[i18n] applyI18n failed:', e); }
   // 刷新动态内容
-  if (typeof loadFlights === 'function') loadFlights();
-  if (typeof loadStats === 'function') loadStats();
+  try { if (typeof loadFlights === 'function') loadFlights(); } catch (e) { console.error('[i18n] loadFlights failed:', e); }
+  try { if (typeof loadStats === 'function') loadStats(); } catch (e) { console.error('[i18n] loadStats failed:', e); }
 }
 
 // BCP 47 语言标签映射

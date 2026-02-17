@@ -91,14 +91,20 @@ document.addEventListener('click', (e) => {
 });
 
 // ==================== 初始化 ====================
-document.addEventListener('DOMContentLoaded', () => {
-    initTheme();
-    initHomeMap();
-    loadAirports();
-    loadAirlines();
-    loadFlights();
-    initTabs();
-    applyI18n();
+document.addEventListener('DOMContentLoaded', async () => {
+    const steps = [
+        ['initTheme', initTheme],
+        ['initHomeMap', initHomeMap],
+        ['loadAirports', loadAirports],
+        ['loadAirlines', loadAirlines],
+        ['initTabs', initTabs],
+        ['applyI18n', applyI18n],
+    ];
+    for (const [name, fn] of steps) {
+        try { await fn(); } catch (e) { console.error(`[SkyTrace] ${name} failed:`, e); }
+    }
+    // loadFlights depends on airports/airlines being loaded
+    try { await loadFlights(); } catch (e) { console.error('[SkyTrace] loadFlights failed:', e); }
 });
 
 // ==================== 首页地图 (仅待出行) ====================
@@ -427,9 +433,9 @@ async function loadFlights() {
     try {
         flights = await (await fetch('/api/flights')).json();
         filteredFlights = [...flights];
-        renderFlightsList();
-        renderHomeRoutes();
-        initTimeFilterDefaults();
+        try { renderFlightsList(); } catch (e) { console.error('[SkyTrace] renderFlightsList failed:', e); }
+        try { renderHomeRoutes(); } catch (e) { console.error('[SkyTrace] renderHomeRoutes failed:', e); }
+        try { initTimeFilterDefaults(); } catch (e) { console.error('[SkyTrace] initTimeFilterDefaults failed:', e); }
         // 如果行程地图已初始化，刷新
         if (fmapInited) {
             renderFmapYearPills();
