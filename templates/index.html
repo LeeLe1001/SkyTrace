@@ -1,500 +1,500 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>SkyTrace - ∏ˆ»À∫Ω¬√π‹¿Ì</title>
-
-    <!-- PWA -->
-    <link rel="manifest" href="/static/manifest.json">
-    <meta name="theme-color" content="#3b82f6">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="SkyTrace">
-    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
-
-    <!-- Leaflet CSS (±æµÿ) -->
-    <link rel="stylesheet" href="/static/lib/leaflet.css" />
-
-    <link rel="stylesheet" href="/static/css/style.css?v=16">
-
-    <!-- »´æ÷¥ÌŒÛ≤∂ªÒ + º”‘ÿ÷∏ æ∆˜ -->
-    <style>
-        #loading-indicator{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg-primary,#0f172a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99998;color:#94a3b8;font-size:14px;}
-        #loading-indicator .spinner-lg{width:40px;height:40px;border:3px solid #334155;border-top-color:#3b82f6;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:12px;}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        #debug-banner{position:fixed;top:0;left:0;right:0;background:#dc2626;color:#fff;padding:8px 12px;font-size:12px;z-index:99999;display:none;max-height:120px;overflow:auto;font-family:monospace;}
-    </style>
-    <script>
-        window._skyErrors = [];
-        window.onerror = function(msg, url, line, col, err) {
-            window._skyErrors.push(msg + ' @ ' + (url||'').split('/').pop() + ':' + line);
-            var el = document.getElementById('debug-banner');
-            if (el) { el.style.display = 'block'; el.innerHTML = '&#10060; º”‘ÿ¥ÌŒÛ:<br>' + window._skyErrors.join('<br>'); }
-        };
-    </script>
-
-    <!-- i18n ∂‡”Ô—‘ (‘⁄ app.js ÷Æ«∞º”‘ÿ) -->
-    <script src="/static/js/i18n.js?v=16"></script>
-</head>
-<body>
-    <!-- º”‘ÿ÷∏ æ∆˜ -->
-    <div id="loading-indicator"><div class="spinner-lg"></div><span>&#9992;&#65039; SkyTrace º”‘ÿ÷–...</span></div>
-    <!-- ¥ÌŒÛ∫·∑˘ -->
-    <div id="debug-banner"></div>
-    <!-- ¿Îœﬂƒ£ Ω∫·∑˘ -->
-    <div id="offline-banner">
-        <span class="offline-icon">&#128225;</span>
-        <span id="offline-banner-text" data-i18n="offlineBanner">µ±«∞¥¶”⁄¿Îœﬂƒ£ Ω£¨≤ø∑÷π¶ƒ‹≤ªø…”√</span>
-    </div>
-
-    <!-- ∂•≤øµº∫Ω -->
-    <header class="header">
-        <div class="header-content">
-            <div class="logo">
-                <span class="logo-icon">&#9992;&#65039;</span>
-                <span class="logo-text">SkyTrace</span>
-            </div>
-            <nav class="nav-tabs">
-                <button class="nav-tab active" data-tab="home"><span class="nav-tab-icon">&#127968;</span><span data-i18n="navHome"> ◊“≥</span></button>
-                <button class="nav-tab" data-tab="flights"><span class="nav-tab-icon">&#128203;</span><span data-i18n="navFlights">––≥Ã</span></button>
-                <button class="nav-tab" data-tab="calendar"><span class="nav-tab-icon">&#128197;</span><span data-i18n="navCalendar">»’¿˙</span></button>
-            </nav>
-            <div class="header-actions">
-                <button class="btn-settings" onclick="openSettings()" data-i18n-title="settingsTitle" title="…Ë÷√">&#9881;&#65039;</button>
-            </div>
-        </div>
-    </header>
-
-    <!-- ÷˜ƒ⁄»›«¯ -->
-    <main class="main-content">
-        <!-- ====================  ◊“≥: Ωˆ¥˝≥ˆ––∫Ωœﬂ ==================== -->
-        <section id="home-view" class="view active view-enter">
-            <div id="home-map"></div>
-            <div class="home-flights-overlay" id="home-flights-overlay">
-                <div class="home-overlay-handle"></div>
-                <div class="home-overlay-header">
-                    <span class="home-overlay-title" data-i18n="nearestTrip">◊ÓΩ¸≥ˆ––</span>
-                    <div class="home-overlay-right">
-                        <span class="home-overlay-count" id="home-overlay-count">0</span>
-                        <span class="home-overlay-expand-hint" id="ho-expand-hint">&#9650;</span>
-                    </div>
-                </div>
-                <div class="home-nearest-card" id="home-nearest-card"></div>
-                <div class="home-overlay-list" id="home-overlay-list"></div>
-            </div>
-        </section>
-
-        <!-- ==================== ––≥Ã (◊”±Í«©: ¡–±Ì/µÿÕº/Õ≥º∆) ==================== -->
-        <section id="flights-view" class="view">
-            <div class="flights-container">
-                <div class="flights-sub-nav">
-                    <button class="flights-sub-tab active" data-subtab="list">&#128203; <span data-i18n="subList">¡–±Ì</span></button>
-                    <button class="flights-sub-tab" data-subtab="fmap">&#128506;&#65039; <span data-i18n="subMap">µÿÕº</span></button>
-                    <button class="flights-sub-tab" data-subtab="fstats">&#128200; <span data-i18n="subStats">Õ≥º∆</span></button>
-                </div>
-
-                <!-- ¡–±Ì◊”“≥ -->
-                <div class="flights-sub-view active view-enter" id="flights-list-subview">
-                    <div class="flights-header">
-                        <h2 data-i18n="myTrips">Œ“µƒ––≥Ã</h2>
-                        <div class="flights-search-box">
-                            <input type="text" id="flights-search-input" placeholder="?? À—À˜»˝◊÷¬Î..." maxlength="3" oninput="searchFlightsByAirport(this.value)">
-                            <button class="flights-search-clear" id="flights-search-clear" onclick="clearFlightSearch()" style="display:none">?</button>
-                        </div>
-                        <div class="filter-tabs">
-                            <button class="filter-tab" data-filter="all" data-i18n="filterAll">»´≤ø</button>
-                            <button class="filter-tab active" data-filter="upcoming" data-i18n="filterUpcoming">¥˝≥ˆ––</button>
-                            <button class="filter-tab" data-filter="completed" data-i18n="filterCompleted">“—ÕÍ≥…</button>
-                        </div>
-                    </div>
-                    <div class="time-filter">
-                        <div class="time-filter-header">
-                            <div class="time-filter-left" onclick="toggleTimeFilter()">
-                                <span data-i18n="timeFilter">&#128197; »’∆⁄…∏—°</span>
-                                <span class="time-filter-arrow" id="time-filter-toggle">&#9660;</span>
-                            </div>
-                            <button class="btn-sort-toggle" id="sort-toggle-btn" style="display:none" onclick="_allSortOrder = _allSortOrder === 'newest' ? 'oldest' : 'newest'; renderFlightsList('all');">°˝ ◊Ó–¬”≈œ»</button>
-                            <button class="btn-connect-inline" onclick="toggleConnectMode()" id="btn-connect">
-                                <span class="connect-icon">&#9745;</span>
-                                <span data-i18n="multiSelect">∂‡—°</span>
-                            </button>
-                        </div>
-                        <div class="time-filter-body" id="time-filter-body">
-                            <div class="time-filter-row">
-                                <div class="time-filter-group">
-                                    <label data-i18n="startDate">ø™ º»’∆⁄</label>
-                                    <input type="date" id="filter-start-date" onchange="applyTimeFilter()">
-                                </div>
-                                <div class="time-filter-group">
-                                    <label data-i18n="endDate">Ω· ¯»’∆⁄</label>
-                                    <input type="date" id="filter-end-date" onchange="applyTimeFilter()">
-                                </div>
-                                <button class="btn-filter-reset" onclick="resetTimeFilter()" data-i18n="reset">÷ÿ÷√</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flights-list" id="flights-list"></div>
-                </div>
-
-                <!-- µÿÕº◊”“≥ -->
-                <div class="flights-sub-view" id="flights-map-subview">
-                    <div class="fmap-wrapper">
-                        <div id="flights-map" class="flights-full-map"></div>
-                        <button class="fmap-toggle-filter" id="fmap-toggle-filter" onclick="toggleFmapFilter()">&#128269; …∏—°</button>
-                        <div class="fmap-filter-bar hidden" id="fmap-filter-bar">
-                            <div class="fmap-status-pills">
-                                <button class="fmap-pill active" data-fmap-status="all" data-i18n="filterAll">»´≤ø</button>
-                                <button class="fmap-pill" data-fmap-status="upcoming" data-i18n="filterUpcoming">¥˝≥ˆ––</button>
-                                <button class="fmap-pill" data-fmap-status="completed" data-i18n="filterCompleted">“—ÕÍ≥…</button>
-                            </div>
-                            <div class="fmap-right-controls">
-                                <div class="fmap-year-pills" id="fmap-year-pills"></div>
-                                <div class="fmap-date-range">
-                                    <input type="date" id="fmap-start" onchange="applyFlightsMapFilter()">
-                                    <span data-i18n="to">÷¡</span>
-                                    <input type="date" id="fmap-end" onchange="applyFlightsMapFilter()">
-                                    <button class="fmap-reset-btn" onclick="resetFlightsMapFilter()" data-i18n="reset">÷ÿ÷√</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="fmap-stats-card">
-                            <div class="stat-item">
-                                <span class="stat-value" id="fmap-stat-flights">0</span>
-                                <span class="stat-label" data-i18n="flights">∫Ω∞‡</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-value" id="fmap-stat-distance">0</span>
-                                <span class="stat-label" data-i18n="km">π´¿Ô</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-value" id="fmap-stat-airports">0</span>
-                                <span class="stat-label" data-i18n="airports">ª˙≥°</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Õ≥º∆◊”“≥ -->
-                <div class="flights-sub-view" id="flights-stats-subview">
-                    <div class="stats-container">
-                        <div class="stats-header-row">
-                            <h2 data-i18n="flightStats">∑…––Õ≥º∆</h2>
-                            <div class="stats-header-controls">
-                                <div class="year-selector" id="year-selector"></div>
-                                <button class="btn-share-stats" onclick="exportAnnualReport()" data-i18n-title="shareReport">
-                                    &#128228; <span data-i18n="shareReport">…˙≥…∑…––±®∏Ê</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="stats-grid">
-                            <div class="stats-card large">
-                                <div class="stats-icon">&#128747;</div>
-                                <div class="stats-info">
-                                    <span class="stats-value" id="total-flights">0</span>
-                                    <span class="stats-label" data-i18n="totalFlights">◊‹∫Ω∞‡ ˝</span>
-                                </div>
-                            </div>
-                            <div class="stats-card large">
-                                <div class="stats-icon">&#127757;</div>
-                                <div class="stats-info">
-                                    <span class="stats-value" id="total-distance">0</span>
-                                    <span class="stats-label" data-i18n="totalDistance">◊‹∑…––¿Ô≥Ã (km)</span>
-                                </div>
-                            </div>
-                            <div class="stats-card">
-                                <div class="stats-icon">&#9201;&#65039;</div>
-                                <div class="stats-info">
-                                    <span class="stats-value" id="total-hours">0</span>
-                                    <span class="stats-label" data-i18n="totalHours">∑…–– ±≥§ (h)</span>
-                                </div>
-                            </div>
-                            <div class="stats-card">
-                                <div class="stats-icon">&#127970;</div>
-                                <div class="stats-info">
-                                    <span class="stats-value" id="visited-airports">0</span>
-                                    <span class="stats-label" data-i18n="visitedAirports">µΩ∑√ª˙≥°</span>
-                                </div>
-                            </div>
-                            <div class="stats-card">
-                                <div class="stats-icon">&#127760;</div>
-                                <div class="stats-info">
-                                    <span class="stats-value" id="visited-countries">0</span>
-                                    <span class="stats-label" data-i18n="visitedCountries">µΩ∑√π˙º“/µÿ«¯</span>
-                                </div>
-                            </div>
-                            <div class="stats-card">
-                                <div class="stats-icon">&#127769;</div>
-                                <div class="stats-info">
-                                    <span class="stats-value" id="earth-rounds">0</span>
-                                    <span class="stats-label" data-i18n="earthRounds">»∆µÿ«Ú»¶ ˝</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="fun-stats-section" id="fun-stats-section">
-                            <h3 class="fun-stats-title">&#10024; <span data-i18n="funInsights">»§Œ∂∂¥≤Ï</span></h3>
-                            <div class="fun-stats-grid" id="fun-stats-grid"></div>
-                        </div>
-                        <div class="rankings-section" id="rankings-section">
-                            <div class="ranking-card">
-                                <h4 data-i18n="topRoutes">◊Ó≥£∑…∫Ωœﬂ</h4>
-                                <div class="ranking-list" id="top-routes-list"></div>
-                            </div>
-                            <div class="ranking-card">
-                                <h4 data-i18n="topAirlines">≥£”√∫Ωø’π´Àæ</h4>
-                                <div class="ranking-list" id="top-airlines-list"></div>
-                            </div>
-                        </div>
-                        <div class="chart-section" id="chart-section">
-                            <h3>&#128200; <span data-i18n="monthlyChart">‘¬∂»∑…––</span></h3>
-                            <div class="month-selector" id="month-selector"></div>
-                            <div class="monthly-chart" id="monthly-chart"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ==================== »’¿˙ ”Õº ==================== -->
-        <section id="calendar-view" class="view">
-            <div class="calendar-container">
-                <div class="calendar-header">
-                    <h2 data-i18n="navCalendar">&#128197; »’¿˙</h2>
-                    <div class="calendar-nav">
-                        <button class="btn-cal-nav btn-cal-year" onclick="changeCalendarYear(-1)" title="…œ“ªƒÍ">&laquo;</button>
-                        <button class="btn-cal-nav" onclick="changeCalendarMonth(-1)">&#9664;</button>
-                        <span class="calendar-month-label" id="calendar-month-label" onclick="showYearPicker()"></span>
-                        <div class="year-picker-dropdown" id="year-picker-dropdown"></div>
-                        <button class="btn-cal-nav" onclick="changeCalendarMonth(1)">&#9654;</button>
-                        <button class="btn-cal-nav btn-cal-year" onclick="changeCalendarYear(1)" title="œ¬“ªƒÍ">&raquo;</button>
-                        <button class="btn-cal-today" onclick="goCalendarToday()" data-i18n="calToday">ΩÒÃÏ</button>
-                    </div>
-                </div>
-                <div class="calendar-weekdays" id="calendar-weekdays"></div>
-                <div class="calendar-grid" id="calendar-grid"></div>
-                <div class="calendar-flight-detail" id="calendar-flight-detail"></div>
-            </div>
-        </section>
-    </main>
-
-    <!-- ÃÌº”/±‡º≠∫Ω∞‡ƒ£Ã¨øÚ -->
-    <div class="modal-overlay" id="flight-modal" onclick="if(event.target===this)closeModal()">
-        <div class="modal">
-            <div class="modal-header">
-                <button class="modal-back" onclick="closeModal()">&#8592;</button>
-                <h3 id="modal-title" data-i18n="addTripTitle">ÃÌº”––≥Ã</h3>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
-            </div>
-            <form id="flight-form" onsubmit="saveFlight(event)">
-                <input type="hidden" id="flight-id">
-                <div class="smart-lookup">
-                    <div class="smart-lookup-header">
-                        <span class="smart-lookup-icon">&#9992;&#65039;</span>
-                        <span data-i18n="smartLookupHint"> ‰»Î∫Ω∞‡∫≈◊‘∂Ø ∂±∫Ωœﬂ–≈œ¢</span>
-                        <span class="api-badge" id="api-badge" style="display:none" data-i18n="apiBadgeConnected">API“—¡¨Ω”</span>
-                    </div>
-                    <div class="smart-lookup-row">
-                        <div class="form-group">
-                            <label data-i18n="flightNo">∫Ω∞‡∫≈ *</label>
-                            <input type="text" id="flight-no" data-i18n-placeholder="flightNoPlaceholder" placeholder="»Á CA1301" required autocomplete="off">
-                        </div>
-                    </div>
-                    <div class="smart-lookup-row" style="margin-top:10px;">
-                        <div class="form-group">
-                            <label data-i18n="departureDate">≥ˆ∑¢»’∆⁄ *</label>
-                            <input type="date" id="flight-date" required>
-                        </div>
-                        <button type="button" class="btn-lookup" onclick="lookupFlight()">
-                            <span class="btn-lookup-text" data-i18n="lookup">≤È—Ø</span>
-                            <span class="btn-lookup-loading" style="display:none;"><span class="spinner"></span> <span data-i18n="lookupLoading">≤È—Ø÷–</span></span>
-                        </button>
-                    </div>
-                    <div class="lookup-status" id="lookup-status"></div>
-                </div>
-                <div class="form-divider"></div>
-                <div class="form-row">
-                    <div class="form-group"><label data-i18n="airline">∫Ωø’π´Àæ</label><input type="text" id="airline" data-i18n-placeholder="autoDetect" placeholder="◊‘∂Ø ∂±"></div>
-                    <div class="form-group"><label data-i18n="aircraftType">ª˙–Õ</label><input type="text" id="aircraft" placeholder="A350-900"></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label data-i18n="depAirport">≥ˆ∑¢ª˙≥° *</label><input type="text" id="departure" placeholder="PEK" required oninput="searchAirport(this, 'dep-suggestions')" onchange="_showAirportHint('departure')"><div class="suggestions" id="dep-suggestions"></div><span class="airport-hint" id="departure-hint"></span></div>
-                    <div class="form-group"><label data-i18n="arrAirport">µΩ¥Ôª˙≥° *</label><input type="text" id="arrival" placeholder="SHA" required oninput="searchAirport(this, 'arr-suggestions')" onchange="_showAirportHint('arrival')"><div class="suggestions" id="arr-suggestions"></div><span class="airport-hint" id="arrival-hint"></span></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label data-i18n="depTime">≥ˆ∑¢ ±º‰ *</label><input type="time" id="dep-time" required></div>
-                    <div class="form-group"><label data-i18n="arrTime">µΩ¥Ô ±º‰ *</label>
-                        <div class="arr-time-row">
-                            <input type="time" id="arr-time" required>
-                            <label class="day-offset-toggle" title="øÁ»’µΩ¥Ô" onclick="_cycleDayOffset()">
-                                <select id="arr-day-offset" class="day-offset-select" style="display:none;">
-                                    <option value="0">+0</option>
-                                    <option value="1">+1</option>
-                                    <option value="2">+2</option>
-                                    <option value="-1">-1</option>
-                                </select>
-                                <span class="day-offset-badge" id="day-offset-badge">+0</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label data-i18n="seat">◊˘Œª</label><input type="text" id="seat" placeholder="32A"></div>
-                    <div class="form-group"><label data-i18n="cabin">≤’Œª</label>
-                        <select id="cabin-class">
-                            <option value="economy" data-i18n="cabinEconomy">æ≠º√≤’</option>
-                            <option value="premium_economy" data-i18n="cabinPremiumEconomy">≥¨º∂æ≠º√≤’</option>
-                            <option value="business" data-i18n="cabinBusiness">π´ŒÒ≤’</option>
-                            <option value="first" data-i18n="cabinFirst">Õ∑µ»≤’</option>
-                        </select>
-                    </div>
-                </div>
-                <!-- ø…—°∏ﬂº∂◊÷∂Œ -->
-                <div class="advanced-fields-toggle">
-                    <label class="advanced-toggle-label">
-                        <input type="checkbox" id="show-advanced-fields" onchange="_toggleAdvancedFields(this.checked)">
-                        <span data-i18n="advancedFields">∏¸∂‡—°œÓ£®æ≠Õ£/∫Ω’æ¬•/µ«ª˙ø⁄£©</span>
-                        <span class="advanced-toggle-arrow" id="advanced-toggle-arrow">®ã</span>
-                    </label>
-                </div>
-                <div class="advanced-fields" id="advanced-fields" style="display:none;">
-                    <div class="form-row">
-                        <div class="form-group"><label data-i18n="stopoverAirport">æ≠Õ£ª˙≥°</label><input type="text" id="stopover" placeholder="KMG" oninput="searchAirport(this, 'stopover-suggestions')" onchange="_showAirportHint('stopover')"><div class="suggestions" id="stopover-suggestions"></div><span class="airport-hint" id="stopover-hint"></span></div>
-                        <div class="form-group"><label data-i18n="depGate">≥ˆ∑¢µ«ª˙ø⁄</label><input type="text" id="dep-gate" placeholder="A12"></div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group"><label data-i18n="depTerminal">≥ˆ∑¢∫Ω’æ¬•</label><input type="text" id="dep-terminal" placeholder="T2"></div>
-                        <div class="form-group"><label data-i18n="arrTerminal">µΩ¥Ô∫Ω’æ¬•</label><input type="text" id="arr-terminal" placeholder="T1"></div>
-                    </div>
-                </div>
-                <div class="form-group"><label data-i18n="notes">±∏◊¢</label><textarea id="notes" data-i18n-placeholder="notesPlaceholder" placeholder="ÃÌº”±∏◊¢..."></textarea></div>
-                <div class="form-actions">
-                    <button type="button" class="btn-secondary" onclick="closeModal()" data-i18n="cancel">»°œ˚</button>
-                    <button type="submit" class="btn-primary" data-i18n="save">±£¥Ê</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ∫Ω∞‡œÍ«Èƒ£Ã¨øÚ -->
-    <div class="modal-overlay" id="detail-modal" onclick="if(event.target===this)closeDetailModal()">
-        <div class="modal modal-detail">
-            <div class="modal-header">
-                <button class="modal-back" onclick="closeDetailModal()">&#8592;</button>
-                <h3 data-i18n="flightDetail">∫Ω∞‡œÍ«È</h3>
-                <button class="modal-close" onclick="closeDetailModal()">&times;</button>
-            </div>
-            <div class="detail-content" id="detail-content"></div>
-            <div class="detail-actions">
-                <button class="btn-secondary" onclick="editFlight()">&#9999;&#65039; <span data-i18n="edit">±‡º≠</span></button>
-                <button class="btn-share" onclick="shareFlightCard()" data-i18n-title="shareCard">&#128228;</button>
-                <button class="btn-primary" onclick="closeDetailModal()" data-i18n="close">πÿ±’</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- …Ë÷√ƒ£Ã¨øÚ -->
-    <div class="modal-overlay" id="settings-modal" onclick="if(event.target===this)closeSettings()">
-        <div class="modal modal-settings">
-            <div class="modal-header">
-                <button class="modal-back" onclick="closeSettings()">&#8592;</button>
-                <h3 data-i18n="settingsTitle">&#9881;&#65039; …Ë÷√</h3>
-                <button class="modal-close" onclick="closeSettings()">&times;</button>
-            </div>
-            <div class="settings-content">
-                <div class="settings-section">
-                    <h4 class="settings-section-title" data-i18n="settingsGeneral">&#127912; Õ®”√…Ë÷√</h4>
-                    <div class="settings-row">
-                        <div class="settings-row-label" data-i18n="settingsLanguage">”Ô—‘</div>
-                        <div class="settings-lang-options" id="settings-lang-options">
-                            <button class="settings-lang-btn active" data-lang="zh" onclick="switchLangFromSettings('zh')">÷–Œƒ</button>
-                            <button class="settings-lang-btn" data-lang="en" onclick="switchLangFromSettings('en')">EN</button>
-                            <button class="settings-lang-btn" data-lang="ja" onclick="switchLangFromSettings('ja')">»’±æ’Z</button>
-                            <button class="settings-lang-btn" data-lang="ko" onclick="switchLangFromSettings('ko')">???</button>
-                            <button class="settings-lang-btn" data-lang="es" onclick="switchLangFromSettings('es')">ES</button>
-                        </div>
-                    </div>
-                    <div class="settings-row">
-                        <div class="settings-row-label" data-i18n="settingsTheme">Õ‚π€</div>
-                        <button class="settings-theme-btn" onclick="toggleTheme()" id="settings-theme-btn">
-                            <span class="settings-theme-icon" id="settings-theme-icon">&#127769;</span>
-                            <span class="settings-theme-text" id="settings-theme-text" data-i18n="themeDark">…Ó…´ƒ£ Ω</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="settings-section">
-                    <h4 class="settings-section-title" data-i18n="settingsApi">&#9992;&#65039; API …Ë÷√</h4>
-                    <div class="settings-intro">
-                        <p data-i18n="settingsIntro">≈‰÷√∫Ω∞‡ ˝æ›API∫Û£¨ ‰»Î∫Ω∞‡∫≈º¥ø…<strong>◊‘∂Ø ∂±</strong>≥ˆ∑¢/µΩ¥Ôª˙≥°°¢ ±º‰°¢ª˙–Õµ»–≈œ¢°£</p>
-                        <p class="settings-hint" data-i18n="settingsHint">÷ß≥÷“‘œ¬√‚∑—API£®»Œ—°“ª∏ˆº¥ø…£©£∫</p>
-                    </div>
-                </div>
-                <div class="api-card">
-                    <div class="api-card-header"><div class="api-info"><span class="api-name">AviationStack</span><span class="api-tier" data-i18n="apiTierAvstack">√‚∑— 500¥Œ/‘¬</span></div><span class="api-status" id="avstack-status" data-i18n="apiNotConfigured">Œ¥≈‰÷√</span></div>
-                    <div class="api-card-body"><input type="text" id="aviationstack-key" placeholder="Access Key"><div class="api-actions"><a href="https://aviationstack.com/signup/free" target="_blank" class="api-link" data-i18n="getApiKey">ªÒ»°√‚∑—Key &#8594;</a><button class="btn-test" onclick="testApi('aviationstack')" data-i18n="testConnection">≤‚ ‘¡¨Ω”</button></div></div>
-                    <div class="api-test-result" id="avstack-result"></div>
-                </div>
-                <div class="api-card">
-                    <div class="api-card-header"><div class="api-info"><span class="api-name">AirLabs</span><span class="api-tier" data-i18n="apiTierAirlabs">√‚∑— 1000¥Œ/‘¬</span></div><span class="api-status" id="airlabs-status" data-i18n="apiNotConfigured">Œ¥≈‰÷√</span></div>
-                    <div class="api-card-body"><input type="text" id="airlabs-key" placeholder="API Key"><div class="api-actions"><a href="https://airlabs.co/signup" target="_blank" class="api-link" data-i18n="getApiKey">ªÒ»°√‚∑—Key &#8594;</a><button class="btn-test" onclick="testApi('airlabs')" data-i18n="testConnection">≤‚ ‘¡¨Ω”</button></div></div>
-                    <div class="api-test-result" id="airlabs-result"></div>
-                </div>
-                <div class="api-card">
-                    <div class="api-card-header"><div class="api-info"><span class="api-name">AeroDataBox</span><span class="api-tier" data-i18n="apiTierAerodata">RapidAPI √‚∑—∞Ê</span></div><span class="api-status" id="aerodata-status" data-i18n="apiNotConfigured">Œ¥≈‰÷√</span></div>
-                    <div class="api-card-body"><input type="text" id="aerodata-key" placeholder="RapidAPI Key"><div class="api-actions"><a href="https://rapidapi.com/aedbx-aedbx/api/aerodatabox" target="_blank" class="api-link" data-i18n="getApiKey">ªÒ»°√‚∑—Key &#8594;</a><button class="btn-test" onclick="testApi('aerodata')" data-i18n="testConnection">≤‚ ‘¡¨Ω”</button></div></div>
-                    <div class="api-test-result" id="aerodata-result"></div>
-                </div>
-                <div class="settings-footer">
-                    <div class="cache-info"><span><span data-i18n="localCache">&#128230; ±æµÿª∫¥Ê:</span> <strong id="cache-count">0</strong> <span data-i18n="cacheUnit">Ãı∫Ω∞‡ ˝æ›</span></span></div>
-                    <div class="settings-actions"><button class="btn-secondary" onclick="closeSettings()" data-i18n="cancel">»°œ˚</button><button class="btn-primary" onclick="saveSettings()" data-i18n="saveSettings">±£¥Ê…Ë÷√</button></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ∑÷œÌø®∆¨ƒ£Ã¨øÚ -->
-    <div class="modal-overlay" id="share-modal" onclick="if(event.target===this)closeShareModal()">
-        <div class="modal modal-share">
-            <div class="modal-header">
-                <button class="modal-back" onclick="closeShareModal()">&#8592;</button>
-                <h3 data-i18n="shareCard">∑…––ø®∆¨</h3>
-                <button class="modal-close" onclick="closeShareModal()">&times;</button>
-            </div>
-            <div class="share-content" id="share-content"><div class="share-card" id="share-card"></div></div>
-            <div class="share-actions">
-                <button class="btn-primary" onclick="downloadShareCard()" data-i18n="downloadImage">&#128190; ±£¥ÊÕº∆¨</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ∏°∂ØÃÌº”∞¥≈• (»´æ÷∂®Œª£¨≤ª ‹ view transform ”∞œÏ) -->
-    <button class="btn-add-float" id="fab-add" onclick="openAddModal()" data-i18n-title="addTrip" title="ÃÌº”––≥Ã">+</button>
-
-    <!-- “∆∂Ø∂Àµ◊≤øµº∫Ω -->
-    <nav class="mobile-nav">
-        <button class="mobile-nav-tab active" data-tab="home"><span class="mobile-nav-icon">&#127968;</span><span data-i18n="navHome"> ◊“≥</span></button>
-        <button class="mobile-nav-tab" data-tab="flights"><span class="mobile-nav-icon">&#128203;</span><span data-i18n="navFlights">––≥Ã</span></button>
-        <button class="mobile-nav-tab" data-tab="calendar"><span class="mobile-nav-icon">&#128197;</span><span data-i18n="navCalendar">»’¿˙</span></button>
-    </nav>
-
-    <!-- JS “¿¿µ (»´≤ø±æµÿªØ£¨ŒﬁCDN“¿¿µ) -->
-    <script src="/static/lib/leaflet.js"></script>
-    <script src="/static/lib/arc.js"></script>
-    <script src="/static/lib/html2canvas.min.js"></script>
-    <script src="/static/js/app.js?v=16"></script>
-    <script>
-        // ≥πµ◊«Â≥˝ Service Worker ∫ÕÀ˘”–ª∫¥Ê
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js?v=16', { scope: '/' })
-                .then(reg => {
-                    console.log('[SW] noop SW registered, will clear all caches');
-                    reg.update();
-                })
-                .catch(err => console.log('[SW] reg failed:', err));
-            caches.keys().then(names => names.forEach(n => {
-                console.log('[SW] Deleting cache:', n);
-                caches.delete(n);
-            }));
-        }
-    </script>
-</body>
-</html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>SkyTrace - ‰∏™‰∫∫Ëà™ÊóÖÁÆ°ÁêÜ</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SkyTrace">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+
+    <!-- Leaflet CSS (Êú¨Âú∞) -->
+    <link rel="stylesheet" href="/static/lib/leaflet.css" />
+
+    <link rel="stylesheet" href="/static/css/style.css?v=16">
+
+    <!-- ÂÖ®Â±ÄÈîôËØØÊçïËé∑ + Âä†ËΩΩÊåáÁ§∫Âô® -->
+    <style>
+        #loading-indicator{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg-primary,#0f172a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99998;color:#94a3b8;font-size:14px;}
+        #loading-indicator .spinner-lg{width:40px;height:40px;border:3px solid #334155;border-top-color:#3b82f6;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:12px;}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        #debug-banner{position:fixed;top:0;left:0;right:0;background:#dc2626;color:#fff;padding:8px 12px;font-size:12px;z-index:99999;display:none;max-height:120px;overflow:auto;font-family:monospace;}
+    </style>
+    <script>
+        window._skyErrors = [];
+        window.onerror = function(msg, url, line, col, err) {
+            window._skyErrors.push(msg + ' @ ' + (url||'').split('/').pop() + ':' + line);
+            var el = document.getElementById('debug-banner');
+            if (el) { el.style.display = 'block'; el.innerHTML = '&#10060; Âä†ËΩΩÈîôËØØ:<br>' + window._skyErrors.join('<br>'); }
+        };
+    </script>
+
+    <!-- i18n Â§öËØ≠Ë®Ä (Âú® app.js ‰πãÂâçÂä†ËΩΩ) -->
+    <script src="/static/js/i18n.js?v=16"></script>
+</head>
+<body>
+    <!-- Âä†ËΩΩÊåáÁ§∫Âô® -->
+    <div id="loading-indicator"><div class="spinner-lg"></div><span>&#9992;&#65039; SkyTrace Âä†ËΩΩ‰∏≠...</span></div>
+    <!-- ÈîôËØØÊ®™ÂπÖ -->
+    <div id="debug-banner"></div>
+    <!-- Á¶ªÁ∫øÊ®°ÂºèÊ®™ÂπÖ -->
+    <div id="offline-banner">
+        <span class="offline-icon">&#128225;</span>
+        <span id="offline-banner-text" data-i18n="offlineBanner">ÂΩìÂâçÂ§Ñ‰∫éÁ¶ªÁ∫øÊ®°ÂºèÔºåÈÉ®ÂàÜÂäüËÉΩ‰∏çÂèØÁî®</span>
+    </div>
+
+    <!-- È°∂ÈÉ®ÂØºËà™ -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">&#9992;&#65039;</span>
+                <span class="logo-text">SkyTrace</span>
+            </div>
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="home"><span class="nav-tab-icon">&#127968;</span><span data-i18n="navHome">È¶ñÈ°µ</span></button>
+                <button class="nav-tab" data-tab="flights"><span class="nav-tab-icon">&#128203;</span><span data-i18n="navFlights">Ë°åÁ®ã</span></button>
+                <button class="nav-tab" data-tab="calendar"><span class="nav-tab-icon">&#128197;</span><span data-i18n="navCalendar">Êó•ÂéÜ</span></button>
+            </nav>
+            <div class="header-actions">
+                <button class="btn-settings" onclick="openSettings()" data-i18n-title="settingsTitle" title="ËÆæÁΩÆ">&#9881;&#65039;</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ‰∏ªÂÜÖÂÆπÂå∫ -->
+    <main class="main-content">
+        <!-- ==================== È¶ñÈ°µ: ‰ªÖÂæÖÂá∫Ë°åËà™Á∫ø ==================== -->
+        <section id="home-view" class="view active view-enter">
+            <div id="home-map"></div>
+            <div class="home-flights-overlay" id="home-flights-overlay">
+                <div class="home-overlay-handle"></div>
+                <div class="home-overlay-header">
+                    <span class="home-overlay-title" data-i18n="nearestTrip">ÊúÄËøëÂá∫Ë°å</span>
+                    <div class="home-overlay-right">
+                        <span class="home-overlay-count" id="home-overlay-count">0</span>
+                        <span class="home-overlay-expand-hint" id="ho-expand-hint">&#9650;</span>
+                    </div>
+                </div>
+                <div class="home-nearest-card" id="home-nearest-card"></div>
+                <div class="home-overlay-list" id="home-overlay-list"></div>
+            </div>
+        </section>
+
+        <!-- ==================== Ë°åÁ®ã (Â≠êÊ†áÁ≠æ: ÂàóË°®/Âú∞Âõæ/ÁªüËÆ°) ==================== -->
+        <section id="flights-view" class="view">
+            <div class="flights-container">
+                <div class="flights-sub-nav">
+                    <button class="flights-sub-tab active" data-subtab="list">&#128203; <span data-i18n="subList">ÂàóË°®</span></button>
+                    <button class="flights-sub-tab" data-subtab="fmap">&#128506;&#65039; <span data-i18n="subMap">Âú∞Âõæ</span></button>
+                    <button class="flights-sub-tab" data-subtab="fstats">&#128200; <span data-i18n="subStats">ÁªüËÆ°</span></button>
+                </div>
+
+                <!-- ÂàóË°®Â≠êÈ°µ -->
+                <div class="flights-sub-view active view-enter" id="flights-list-subview">
+                    <div class="flights-header">
+                        <h2 data-i18n="myTrips">ÊàëÁöÑË°åÁ®ã</h2>
+                        <div class="flights-search-box">
+                            <input type="text" id="flights-search-input" placeholder="?? ÊêúÁ¥¢‰∏âÂ≠óÁ†Å..." maxlength="3" oninput="searchFlightsByAirport(this.value)">
+                            <button class="flights-search-clear" id="flights-search-clear" onclick="clearFlightSearch()" style="display:none">?</button>
+                        </div>
+                        <div class="filter-tabs">
+                            <button class="filter-tab" data-filter="all" data-i18n="filterAll">ÂÖ®ÈÉ®</button>
+                            <button class="filter-tab active" data-filter="upcoming" data-i18n="filterUpcoming">ÂæÖÂá∫Ë°å</button>
+                            <button class="filter-tab" data-filter="completed" data-i18n="filterCompleted">Â∑≤ÂÆåÊàê</button>
+                        </div>
+                    </div>
+                    <div class="time-filter">
+                        <div class="time-filter-header">
+                            <div class="time-filter-left" onclick="toggleTimeFilter()">
+                                <span data-i18n="timeFilter">&#128197; Êó•ÊúüÁ≠õÈÄâ</span>
+                                <span class="time-filter-arrow" id="time-filter-toggle">&#9660;</span>
+                            </div>
+                            <button class="btn-sort-toggle" id="sort-toggle-btn" style="display:none" onclick="_allSortOrder = _allSortOrder === 'newest' ? 'oldest' : 'newest'; renderFlightsList('all');">‚Üì ÊúÄÊñ∞‰ºòÂÖà</button>
+                            <button class="btn-connect-inline" onclick="toggleConnectMode()" id="btn-connect">
+                                <span class="connect-icon">&#9745;</span>
+                                <span data-i18n="multiSelect">Â§öÈÄâ</span>
+                            </button>
+                        </div>
+                        <div class="time-filter-body" id="time-filter-body">
+                            <div class="time-filter-row">
+                                <div class="time-filter-group">
+                                    <label data-i18n="startDate">ÂºÄÂßãÊó•Êúü</label>
+                                    <input type="date" id="filter-start-date" onchange="applyTimeFilter()">
+                                </div>
+                                <div class="time-filter-group">
+                                    <label data-i18n="endDate">ÁªìÊùüÊó•Êúü</label>
+                                    <input type="date" id="filter-end-date" onchange="applyTimeFilter()">
+                                </div>
+                                <button class="btn-filter-reset" onclick="resetTimeFilter()" data-i18n="reset">ÈáçÁΩÆ</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flights-list" id="flights-list"></div>
+                </div>
+
+                <!-- Âú∞ÂõæÂ≠êÈ°µ -->
+                <div class="flights-sub-view" id="flights-map-subview">
+                    <div class="fmap-wrapper">
+                        <div id="flights-map" class="flights-full-map"></div>
+                        <button class="fmap-toggle-filter" id="fmap-toggle-filter" onclick="toggleFmapFilter()">&#128269; Á≠õÈÄâ</button>
+                        <div class="fmap-filter-bar hidden" id="fmap-filter-bar">
+                            <div class="fmap-status-pills">
+                                <button class="fmap-pill active" data-fmap-status="all" data-i18n="filterAll">ÂÖ®ÈÉ®</button>
+                                <button class="fmap-pill" data-fmap-status="upcoming" data-i18n="filterUpcoming">ÂæÖÂá∫Ë°å</button>
+                                <button class="fmap-pill" data-fmap-status="completed" data-i18n="filterCompleted">Â∑≤ÂÆåÊàê</button>
+                            </div>
+                            <div class="fmap-right-controls">
+                                <div class="fmap-year-pills" id="fmap-year-pills"></div>
+                                <div class="fmap-date-range">
+                                    <input type="date" id="fmap-start" onchange="applyFlightsMapFilter()">
+                                    <span data-i18n="to">Ëá≥</span>
+                                    <input type="date" id="fmap-end" onchange="applyFlightsMapFilter()">
+                                    <button class="fmap-reset-btn" onclick="resetFlightsMapFilter()" data-i18n="reset">ÈáçÁΩÆ</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fmap-stats-card">
+                            <div class="stat-item">
+                                <span class="stat-value" id="fmap-stat-flights">0</span>
+                                <span class="stat-label" data-i18n="flights">Ëà™Áè≠</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="fmap-stat-distance">0</span>
+                                <span class="stat-label" data-i18n="km">ÂÖ¨Èáå</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="fmap-stat-airports">0</span>
+                                <span class="stat-label" data-i18n="airports">Êú∫Âú∫</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ÁªüËÆ°Â≠êÈ°µ -->
+                <div class="flights-sub-view" id="flights-stats-subview">
+                    <div class="stats-container">
+                        <div class="stats-header-row">
+                            <h2 data-i18n="flightStats">È£ûË°åÁªüËÆ°</h2>
+                            <div class="stats-header-controls">
+                                <div class="year-selector" id="year-selector"></div>
+                                <button class="btn-share-stats" onclick="exportAnnualReport()" data-i18n-title="shareReport">
+                                    &#128228; <span data-i18n="shareReport">ÁîüÊàêÈ£ûË°åÊä•Âëä</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stats-card large">
+                                <div class="stats-icon">&#128747;</div>
+                                <div class="stats-info">
+                                    <span class="stats-value" id="total-flights">0</span>
+                                    <span class="stats-label" data-i18n="totalFlights">ÊÄªËà™Áè≠Êï∞</span>
+                                </div>
+                            </div>
+                            <div class="stats-card large">
+                                <div class="stats-icon">&#127757;</div>
+                                <div class="stats-info">
+                                    <span class="stats-value" id="total-distance">0</span>
+                                    <span class="stats-label" data-i18n="totalDistance">ÊÄªÈ£ûË°åÈáåÁ®ã (km)</span>
+                                </div>
+                            </div>
+                            <div class="stats-card">
+                                <div class="stats-icon">&#9201;&#65039;</div>
+                                <div class="stats-info">
+                                    <span class="stats-value" id="total-hours">0</span>
+                                    <span class="stats-label" data-i18n="totalHours">È£ûË°åÊó∂Èïø (h)</span>
+                                </div>
+                            </div>
+                            <div class="stats-card">
+                                <div class="stats-icon">&#127970;</div>
+                                <div class="stats-info">
+                                    <span class="stats-value" id="visited-airports">0</span>
+                                    <span class="stats-label" data-i18n="visitedAirports">Âà∞ËÆøÊú∫Âú∫</span>
+                                </div>
+                            </div>
+                            <div class="stats-card">
+                                <div class="stats-icon">&#127760;</div>
+                                <div class="stats-info">
+                                    <span class="stats-value" id="visited-countries">0</span>
+                                    <span class="stats-label" data-i18n="visitedCountries">Âà∞ËÆøÂõΩÂÆ∂/Âú∞Âå∫</span>
+                                </div>
+                            </div>
+                            <div class="stats-card">
+                                <div class="stats-icon">&#127769;</div>
+                                <div class="stats-info">
+                                    <span class="stats-value" id="earth-rounds">0</span>
+                                    <span class="stats-label" data-i18n="earthRounds">ÁªïÂú∞ÁêÉÂúàÊï∞</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fun-stats-section" id="fun-stats-section">
+                            <h3 class="fun-stats-title">&#10024; <span data-i18n="funInsights">Ë∂£Âë≥Ê¥ûÂØü</span></h3>
+                            <div class="fun-stats-grid" id="fun-stats-grid"></div>
+                        </div>
+                        <div class="rankings-section" id="rankings-section">
+                            <div class="ranking-card">
+                                <h4 data-i18n="topRoutes">ÊúÄÂ∏∏È£ûËà™Á∫ø</h4>
+                                <div class="ranking-list" id="top-routes-list"></div>
+                            </div>
+                            <div class="ranking-card">
+                                <h4 data-i18n="topAirlines">Â∏∏Áî®Ëà™Á©∫ÂÖ¨Âè∏</h4>
+                                <div class="ranking-list" id="top-airlines-list"></div>
+                            </div>
+                        </div>
+                        <div class="chart-section" id="chart-section">
+                            <h3>&#128200; <span data-i18n="monthlyChart">ÊúàÂ∫¶È£ûË°å</span></h3>
+                            <div class="month-selector" id="month-selector"></div>
+                            <div class="monthly-chart" id="monthly-chart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== Êó•ÂéÜËßÜÂõæ ==================== -->
+        <section id="calendar-view" class="view">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <h2 data-i18n="navCalendar">&#128197; Êó•ÂéÜ</h2>
+                    <div class="calendar-nav">
+                        <button class="btn-cal-nav btn-cal-year" onclick="changeCalendarYear(-1)" title="‰∏ä‰∏ÄÂπ¥">&laquo;</button>
+                        <button class="btn-cal-nav" onclick="changeCalendarMonth(-1)">&#9664;</button>
+                        <span class="calendar-month-label" id="calendar-month-label" onclick="showYearPicker()"></span>
+                        <div class="year-picker-dropdown" id="year-picker-dropdown"></div>
+                        <button class="btn-cal-nav" onclick="changeCalendarMonth(1)">&#9654;</button>
+                        <button class="btn-cal-nav btn-cal-year" onclick="changeCalendarYear(1)" title="‰∏ã‰∏ÄÂπ¥">&raquo;</button>
+                        <button class="btn-cal-today" onclick="goCalendarToday()" data-i18n="calToday">‰ªäÂ§©</button>
+                    </div>
+                </div>
+                <div class="calendar-weekdays" id="calendar-weekdays"></div>
+                <div class="calendar-grid" id="calendar-grid"></div>
+                <div class="calendar-flight-detail" id="calendar-flight-detail"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Ê∑ªÂä†/ÁºñËæëËà™Áè≠Ê®°ÊÄÅÊ°Ü -->
+    <div class="modal-overlay" id="flight-modal" onclick="if(event.target===this)closeModal()">
+        <div class="modal">
+            <div class="modal-header">
+                <button class="modal-back" onclick="closeModal()">&#8592;</button>
+                <h3 id="modal-title" data-i18n="addTripTitle">Ê∑ªÂä†Ë°åÁ®ã</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="flight-form" onsubmit="saveFlight(event)">
+                <input type="hidden" id="flight-id">
+                <div class="smart-lookup">
+                    <div class="smart-lookup-header">
+                        <span class="smart-lookup-icon">&#9992;&#65039;</span>
+                        <span data-i18n="smartLookupHint">ËæìÂÖ•Ëà™Áè≠Âè∑Ëá™Âä®ËØÜÂà´Ëà™Á∫ø‰ø°ÊÅØ</span>
+                        <span class="api-badge" id="api-badge" style="display:none" data-i18n="apiBadgeConnected">APIÂ∑≤ËøûÊé•</span>
+                    </div>
+                    <div class="smart-lookup-row">
+                        <div class="form-group">
+                            <label data-i18n="flightNo">Ëà™Áè≠Âè∑ *</label>
+                            <input type="text" id="flight-no" data-i18n-placeholder="flightNoPlaceholder" placeholder="Â¶Ç CA1301" required autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="smart-lookup-row" style="margin-top:10px;">
+                        <div class="form-group">
+                            <label data-i18n="departureDate">Âá∫ÂèëÊó•Êúü *</label>
+                            <input type="date" id="flight-date" required>
+                        </div>
+                        <button type="button" class="btn-lookup" onclick="lookupFlight()">
+                            <span class="btn-lookup-text" data-i18n="lookup">Êü•ËØ¢</span>
+                            <span class="btn-lookup-loading" style="display:none;"><span class="spinner"></span> <span data-i18n="lookupLoading">Êü•ËØ¢‰∏≠</span></span>
+                        </button>
+                    </div>
+                    <div class="lookup-status" id="lookup-status"></div>
+                </div>
+                <div class="form-divider"></div>
+                <div class="form-row">
+                    <div class="form-group"><label data-i18n="airline">Ëà™Á©∫ÂÖ¨Âè∏</label><input type="text" id="airline" data-i18n-placeholder="autoDetect" placeholder="Ëá™Âä®ËØÜÂà´"></div>
+                    <div class="form-group"><label data-i18n="aircraftType">Êú∫Âûã</label><input type="text" id="aircraft" placeholder="A350-900"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label data-i18n="depAirport">Âá∫ÂèëÊú∫Âú∫ *</label><input type="text" id="departure" placeholder="PEK" required oninput="searchAirport(this, 'dep-suggestions')" onchange="_showAirportHint('departure')"><div class="suggestions" id="dep-suggestions"></div><span class="airport-hint" id="departure-hint"></span></div>
+                    <div class="form-group"><label data-i18n="arrAirport">Âà∞ËææÊú∫Âú∫ *</label><input type="text" id="arrival" placeholder="SHA" required oninput="searchAirport(this, 'arr-suggestions')" onchange="_showAirportHint('arrival')"><div class="suggestions" id="arr-suggestions"></div><span class="airport-hint" id="arrival-hint"></span></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label data-i18n="depTime">Âá∫ÂèëÊó∂Èó¥ *</label><input type="time" id="dep-time" required></div>
+                    <div class="form-group"><label data-i18n="arrTime">Âà∞ËææÊó∂Èó¥ *</label>
+                        <div class="arr-time-row">
+                            <input type="time" id="arr-time" required>
+                            <label class="day-offset-toggle" title="Ë∑®Êó•Âà∞Ëææ" onclick="_cycleDayOffset()">
+                                <select id="arr-day-offset" class="day-offset-select" style="display:none;">
+                                    <option value="0">+0</option>
+                                    <option value="1">+1</option>
+                                    <option value="2">+2</option>
+                                    <option value="-1">-1</option>
+                                </select>
+                                <span class="day-offset-badge" id="day-offset-badge">+0</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label data-i18n="seat">Â∫ß‰Ωç</label><input type="text" id="seat" placeholder="32A"></div>
+                    <div class="form-group"><label data-i18n="cabin">Ëà±‰Ωç</label>
+                        <select id="cabin-class">
+                            <option value="economy" data-i18n="cabinEconomy">ÁªèÊµéËà±</option>
+                            <option value="premium_economy" data-i18n="cabinPremiumEconomy">Ë∂ÖÁ∫ßÁªèÊµéËà±</option>
+                            <option value="business" data-i18n="cabinBusiness">ÂÖ¨Âä°Ëà±</option>
+                            <option value="first" data-i18n="cabinFirst">Â§¥Á≠âËà±</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- ÂèØÈÄâÈ´òÁ∫ßÂ≠óÊÆµ -->
+                <div class="advanced-fields-toggle">
+                    <label class="advanced-toggle-label">
+                        <input type="checkbox" id="show-advanced-fields" onchange="_toggleAdvancedFields(this.checked)">
+                        <span data-i18n="advancedFields">Êõ¥Â§öÈÄâÈ°πÔºàÁªèÂÅú/Ëà™Á´ôÊ•º/ÁôªÊú∫Âè£Ôºâ</span>
+                        <span class="advanced-toggle-arrow" id="advanced-toggle-arrow">‚ñº</span>
+                    </label>
+                </div>
+                <div class="advanced-fields" id="advanced-fields" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group"><label data-i18n="stopoverAirport">ÁªèÂÅúÊú∫Âú∫</label><input type="text" id="stopover" placeholder="KMG" oninput="searchAirport(this, 'stopover-suggestions')" onchange="_showAirportHint('stopover')"><div class="suggestions" id="stopover-suggestions"></div><span class="airport-hint" id="stopover-hint"></span></div>
+                        <div class="form-group"><label data-i18n="depGate">Âá∫ÂèëÁôªÊú∫Âè£</label><input type="text" id="dep-gate" placeholder="A12"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label data-i18n="depTerminal">Âá∫ÂèëËà™Á´ôÊ•º</label><input type="text" id="dep-terminal" placeholder="T2"></div>
+                        <div class="form-group"><label data-i18n="arrTerminal">Âà∞ËææËà™Á´ôÊ•º</label><input type="text" id="arr-terminal" placeholder="T1"></div>
+                    </div>
+                </div>
+                <div class="form-group"><label data-i18n="notes">Â§áÊ≥®</label><textarea id="notes" data-i18n-placeholder="notesPlaceholder" placeholder="Ê∑ªÂä†Â§áÊ≥®..."></textarea></div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal()" data-i18n="cancel">ÂèñÊ∂à</button>
+                    <button type="submit" class="btn-primary" data-i18n="save">‰øùÂ≠ò</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ëà™Áè≠ËØ¶ÊÉÖÊ®°ÊÄÅÊ°Ü -->
+    <div class="modal-overlay" id="detail-modal" onclick="if(event.target===this)closeDetailModal()">
+        <div class="modal modal-detail">
+            <div class="modal-header">
+                <button class="modal-back" onclick="closeDetailModal()">&#8592;</button>
+                <h3 data-i18n="flightDetail">Ëà™Áè≠ËØ¶ÊÉÖ</h3>
+                <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+            </div>
+            <div class="detail-content" id="detail-content"></div>
+            <div class="detail-actions">
+                <button class="btn-secondary" onclick="editFlight()">&#9999;&#65039; <span data-i18n="edit">ÁºñËæë</span></button>
+                <button class="btn-share" onclick="shareFlightCard()" data-i18n-title="shareCard">&#128228;</button>
+                <button class="btn-primary" onclick="closeDetailModal()" data-i18n="close">ÂÖ≥Èó≠</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ËÆæÁΩÆÊ®°ÊÄÅÊ°Ü -->
+    <div class="modal-overlay" id="settings-modal" onclick="if(event.target===this)closeSettings()">
+        <div class="modal modal-settings">
+            <div class="modal-header">
+                <button class="modal-back" onclick="closeSettings()">&#8592;</button>
+                <h3 data-i18n="settingsTitle">&#9881;&#65039; ËÆæÁΩÆ</h3>
+                <button class="modal-close" onclick="closeSettings()">&times;</button>
+            </div>
+            <div class="settings-content">
+                <div class="settings-section">
+                    <h4 class="settings-section-title" data-i18n="settingsGeneral">&#127912; ÈÄöÁî®ËÆæÁΩÆ</h4>
+                    <div class="settings-row">
+                        <div class="settings-row-label" data-i18n="settingsLanguage">ËØ≠Ë®Ä</div>
+                        <div class="settings-lang-options" id="settings-lang-options">
+                            <button class="settings-lang-btn active" data-lang="zh" onclick="switchLangFromSettings('zh')">‰∏≠Êñá</button>
+                            <button class="settings-lang-btn" data-lang="en" onclick="switchLangFromSettings('en')">EN</button>
+                            <button class="settings-lang-btn" data-lang="ja" onclick="switchLangFromSettings('ja')">Êó•Êú¨Ë™û</button>
+                            <button class="settings-lang-btn" data-lang="ko" onclick="switchLangFromSettings('ko')">???</button>
+                            <button class="settings-lang-btn" data-lang="es" onclick="switchLangFromSettings('es')">ES</button>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-label" data-i18n="settingsTheme">Â§ñËßÇ</div>
+                        <button class="settings-theme-btn" onclick="toggleTheme()" id="settings-theme-btn">
+                            <span class="settings-theme-icon" id="settings-theme-icon">&#127769;</span>
+                            <span class="settings-theme-text" id="settings-theme-text" data-i18n="themeDark">Ê∑±Ëâ≤Ê®°Âºè</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4 class="settings-section-title" data-i18n="settingsApi">&#9992;&#65039; API ËÆæÁΩÆ</h4>
+                    <div class="settings-intro">
+                        <p data-i18n="settingsIntro">ÈÖçÁΩÆËà™Áè≠Êï∞ÊçÆAPIÂêéÔºåËæìÂÖ•Ëà™Áè≠Âè∑Âç≥ÂèØ<strong>Ëá™Âä®ËØÜÂà´</strong>Âá∫Âèë/Âà∞ËææÊú∫Âú∫„ÄÅÊó∂Èó¥„ÄÅÊú∫ÂûãÁ≠â‰ø°ÊÅØ„ÄÇ</p>
+                        <p class="settings-hint" data-i18n="settingsHint">ÊîØÊåÅ‰ª•‰∏ãÂÖçË¥πAPIÔºà‰ªªÈÄâ‰∏Ä‰∏™Âç≥ÂèØÔºâÔºö</p>
+                    </div>
+                </div>
+                <div class="api-card">
+                    <div class="api-card-header"><div class="api-info"><span class="api-name">AviationStack</span><span class="api-tier" data-i18n="apiTierAvstack">ÂÖçË¥π 500Ê¨°/Êúà</span></div><span class="api-status" id="avstack-status" data-i18n="apiNotConfigured">Êú™ÈÖçÁΩÆ</span></div>
+                    <div class="api-card-body"><input type="text" id="aviationstack-key" placeholder="Access Key"><div class="api-actions"><a href="https://aviationstack.com/signup/free" target="_blank" class="api-link" data-i18n="getApiKey">Ëé∑ÂèñÂÖçË¥πKey &#8594;</a><button class="btn-test" onclick="testApi('aviationstack')" data-i18n="testConnection">ÊµãËØïËøûÊé•</button></div></div>
+                    <div class="api-test-result" id="avstack-result"></div>
+                </div>
+                <div class="api-card">
+                    <div class="api-card-header"><div class="api-info"><span class="api-name">AirLabs</span><span class="api-tier" data-i18n="apiTierAirlabs">ÂÖçË¥π 1000Ê¨°/Êúà</span></div><span class="api-status" id="airlabs-status" data-i18n="apiNotConfigured">Êú™ÈÖçÁΩÆ</span></div>
+                    <div class="api-card-body"><input type="text" id="airlabs-key" placeholder="API Key"><div class="api-actions"><a href="https://airlabs.co/signup" target="_blank" class="api-link" data-i18n="getApiKey">Ëé∑ÂèñÂÖçË¥πKey &#8594;</a><button class="btn-test" onclick="testApi('airlabs')" data-i18n="testConnection">ÊµãËØïËøûÊé•</button></div></div>
+                    <div class="api-test-result" id="airlabs-result"></div>
+                </div>
+                <div class="api-card">
+                    <div class="api-card-header"><div class="api-info"><span class="api-name">AeroDataBox</span><span class="api-tier" data-i18n="apiTierAerodata">RapidAPI ÂÖçË¥πÁâà</span></div><span class="api-status" id="aerodata-status" data-i18n="apiNotConfigured">Êú™ÈÖçÁΩÆ</span></div>
+                    <div class="api-card-body"><input type="text" id="aerodata-key" placeholder="RapidAPI Key"><div class="api-actions"><a href="https://rapidapi.com/aedbx-aedbx/api/aerodatabox" target="_blank" class="api-link" data-i18n="getApiKey">Ëé∑ÂèñÂÖçË¥πKey &#8594;</a><button class="btn-test" onclick="testApi('aerodata')" data-i18n="testConnection">ÊµãËØïËøûÊé•</button></div></div>
+                    <div class="api-test-result" id="aerodata-result"></div>
+                </div>
+                <div class="settings-footer">
+                    <div class="cache-info"><span><span data-i18n="localCache">&#128230; Êú¨Âú∞ÁºìÂ≠ò:</span> <strong id="cache-count">0</strong> <span data-i18n="cacheUnit">Êù°Ëà™Áè≠Êï∞ÊçÆ</span></span></div>
+                    <div class="settings-actions"><button class="btn-secondary" onclick="closeSettings()" data-i18n="cancel">ÂèñÊ∂à</button><button class="btn-primary" onclick="saveSettings()" data-i18n="saveSettings">‰øùÂ≠òËÆæÁΩÆ</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ÂàÜ‰∫´Âç°ÁâáÊ®°ÊÄÅÊ°Ü -->
+    <div class="modal-overlay" id="share-modal" onclick="if(event.target===this)closeShareModal()">
+        <div class="modal modal-share">
+            <div class="modal-header">
+                <button class="modal-back" onclick="closeShareModal()">&#8592;</button>
+                <h3 data-i18n="shareCard">È£ûË°åÂç°Áâá</h3>
+                <button class="modal-close" onclick="closeShareModal()">&times;</button>
+            </div>
+            <div class="share-content" id="share-content"><div class="share-card" id="share-card"></div></div>
+            <div class="share-actions">
+                <button class="btn-primary" onclick="downloadShareCard()" data-i18n="downloadImage">&#128190; ‰øùÂ≠òÂõæÁâá</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ÊµÆÂä®Ê∑ªÂä†ÊåâÈíÆ (ÂÖ®Â±ÄÂÆö‰ΩçÔºå‰∏çÂèó view transform ÂΩ±Âìç) -->
+    <button class="btn-add-float" id="fab-add" onclick="openAddModal()" data-i18n-title="addTrip" title="Ê∑ªÂä†Ë°åÁ®ã">+</button>
+
+    <!-- ÁßªÂä®Á´ØÂ∫ïÈÉ®ÂØºËà™ -->
+    <nav class="mobile-nav">
+        <button class="mobile-nav-tab active" data-tab="home"><span class="mobile-nav-icon">&#127968;</span><span data-i18n="navHome">È¶ñÈ°µ</span></button>
+        <button class="mobile-nav-tab" data-tab="flights"><span class="mobile-nav-icon">&#128203;</span><span data-i18n="navFlights">Ë°åÁ®ã</span></button>
+        <button class="mobile-nav-tab" data-tab="calendar"><span class="mobile-nav-icon">&#128197;</span><span data-i18n="navCalendar">Êó•ÂéÜ</span></button>
+    </nav>
+
+    <!-- JS ‰æùËµñ (ÂÖ®ÈÉ®Êú¨Âú∞ÂåñÔºåÊó†CDN‰æùËµñ) -->
+    <script src="/static/lib/leaflet.js"></script>
+    <script src="/static/lib/arc.js"></script>
+    <script src="/static/lib/html2canvas.min.js"></script>
+    <script src="/static/js/app.js?v=16"></script>
+    <script>
+        // ÂΩªÂ∫ïÊ∏ÖÈô§ Service Worker ÂíåÊâÄÊúâÁºìÂ≠ò
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js?v=16', { scope: '/' })
+                .then(reg => {
+                    console.log('[SW] noop SW registered, will clear all caches');
+                    reg.update();
+                })
+                .catch(err => console.log('[SW] reg failed:', err));
+            caches.keys().then(names => names.forEach(n => {
+                console.log('[SW] Deleting cache:', n);
+                caches.delete(n);
+            }));
+        }
+    </script>
+</body>
+</html>

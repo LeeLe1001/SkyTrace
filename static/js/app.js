@@ -159,25 +159,24 @@ const LOGO_JXCK = 'https://raw.githubusercontent.com/Jxck-S/airline-logos/main/f
 const LOGO_JXCK_RB = 'https://raw.githubusercontent.com/Jxck-S/airline-logos/main/radarbox_logos/';
 const LOGO_LOCAL = '/static/img/airlines/';
 
-// ==================== 航空联盟映射 (2026-01) ====================
+// ==================== 航空联盟映射 (2026-02) ====================
 const AIRLINE_ALLIANCE = {
     // Star Alliance 星空联盟
     'CA':'star','ZH':'star','NH':'star','SQ':'star','UA':'star','AC':'star',
     'LH':'star','TK':'star','OS':'star','LX':'star','LO':'star',
     'ET':'star','TP':'star','MS':'star','NZ':'star','OZ':'star','SA':'star',
     'TG':'star','BR':'star','A3':'star','AI':'star','AV':'star','SN':'star',
-    'HO':'star','OU':'star','CM':'star',
-    // SkyTeam 天合联盟 (SAS于2024底从星空联盟转入)
+    'OU':'star','CM':'star',
+    // SkyTeam 天合联盟 (SAS于2024.9从星空联盟转入)
     'MU':'skyteam','FM':'skyteam','MF':'skyteam','KE':'skyteam','DL':'skyteam',
-    'AF':'skyteam','KL':'skyteam','AZ':'skyteam','AR':'skyteam','AM':'skyteam',
+    'AF':'skyteam','KL':'skyteam','AR':'skyteam','AM':'skyteam',
     'VN':'skyteam','CI':'skyteam','RO':'skyteam','ME':'skyteam','KQ':'skyteam',
-    'SK':'skyteam','SV':'skyteam','GA':'skyteam','OK':'skyteam','UX':'skyteam',
-    'VS':'skyteam',
-    // Oneworld 寰宇一家
+    'SK':'skyteam','SV':'skyteam','GA':'skyteam','UX':'skyteam','VS':'skyteam',
+    // Oneworld 寰宇一家 (阿曼航空/斐济航空/夏威夷航空为近期新成员)
     'BA':'oneworld','AA':'oneworld','CX':'oneworld','JL':'oneworld','QF':'oneworld',
     'IB':'oneworld','AY':'oneworld','RJ':'oneworld','MH':'oneworld','QR':'oneworld',
     'AS':'oneworld','AT':'oneworld','UL':'oneworld','FJ':'oneworld','WY':'oneworld',
-    'EI':'oneworld',
+    'HA':'oneworld',
 };
 function getAllianceBadgeHtml(flightNo) {
     const iata = (flightNo || '').match(/^([A-Z0-9]{2})/i)?.[1]?.toUpperCase();
