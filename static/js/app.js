@@ -245,54 +245,40 @@ function renderHomeRoutes() {
     renderHomeFlightOverlay(upcoming);
 }
 
-// ==================== 首页覆盖层拖拽展开/收起 + 水平轮播 ====================
+// ==================== 首页覆盖层: 悬浮最近航班 + 可展开列表 ====================
 let _hoExpanded = false;
 let _hoDragStartY = 0;
 let _hoStartH = 0;
+
 function initHomeOverlayDrag() {
     const el = document.getElementById('home-flights-overlay');
     if (!el || el._dragInited) return;
     el._dragInited = true;
     const handle = el.querySelector('.home-overlay-handle');
     const header = el.querySelector('.home-overlay-header');
-    // Click header: if faded/collapsed, expand; otherwise toggle
-    if (header) header.addEventListener('click', () => {
-        if (el.classList.contains('faded') || el.offsetHeight < 70) {
-            expandHomeOverlay();
-        } else {
-            toggleHomeOverlay();
-        }
-    });
+
+    // Click header or handle to toggle expand
+    const toggleClick = () => {
+        if (_hoExpanded) collapseHomeOverlay(); else expandHomeOverlay();
+    };
+    if (header) header.addEventListener('click', toggleClick);
+
     // Touch drag on handle
     if (handle) {
         handle.addEventListener('touchstart', e => {
             _hoDragStartY = e.touches[0].clientY;
             _hoStartH = el.offsetHeight;
             el.style.transition = 'none';
-            el.classList.remove('faded');
-            el.style.opacity = '1';
         }, {passive: true});
         handle.addEventListener('touchmove', e => {
             const dy = _hoDragStartY - e.touches[0].clientY;
-            const newH = Math.max(20, Math.min(window.innerHeight * 0.85, _hoStartH + dy));
+            const newH = Math.max(60, Math.min(window.innerHeight * 0.85, _hoStartH + dy));
             el.style.maxHeight = newH + 'px';
-            // Fade when close to minimum
-            if (newH < 60) {
-                el.style.opacity = String(Math.max(0.4, newH / 60));
-            } else {
-                el.style.opacity = '1';
-            }
         }, {passive: true});
         handle.addEventListener('touchend', () => {
             el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
             const h = el.offsetHeight;
-            if (h < 60) {
-                // Fade out to minimum
-                el.style.maxHeight = '40px';
-                el.style.opacity = '0.5';
-                el.classList.add('faded');
-                _hoExpanded = false;
-            } else if (h > window.innerHeight * 0.3) {
+            if (h > window.innerHeight * 0.3) {
                 expandHomeOverlay();
             } else {
                 collapseHomeOverlay();
@@ -302,181 +288,131 @@ function initHomeOverlayDrag() {
     // Start collapsed
     collapseHomeOverlay();
 }
-function toggleHomeOverlay() {
-    if (_hoExpanded) collapseHomeOverlay(); else expandHomeOverlay();
-}
+
 function expandHomeOverlay() {
     _hoExpanded = true;
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
-    el.classList.remove('faded');
     el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
     el.style.maxHeight = '75vh';
-    el.style.opacity = '1';
     el.classList.add('expanded');
+    // Fade out the nearest card, show the full list
+    const nearest = el.querySelector('.home-nearest-card');
+    const list = el.querySelector('.home-overlay-list');
+    if (nearest) nearest.style.opacity = '0';
+    if (list) { list.style.opacity = '1'; list.style.pointerEvents = 'auto'; }
+    const hint = document.getElementById('ho-expand-hint');
+    if (hint) hint.textContent = '▼';
 }
+
 function collapseHomeOverlay() {
     _hoExpanded = false;
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
-    el.classList.remove('faded');
     el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
-    el.style.maxHeight = '155px';
-    el.style.opacity = '1';
+    el.style.maxHeight = '220px';
     el.classList.remove('expanded');
+    // Show nearest card, fade the full list
+    const nearest = el.querySelector('.home-nearest-card');
+    const list = el.querySelector('.home-overlay-list');
+    if (nearest) nearest.style.opacity = '1';
+    if (list) { list.style.opacity = '0.3'; list.style.pointerEvents = 'none'; }
+    const hint = document.getElementById('ho-expand-hint');
+    if (hint) hint.textContent = '▲';
 }
 
 function renderHomeFlightOverlay(upcoming) {
     const countEl = document.getElementById('home-overlay-count');
-    const listEl = document.getElementById('home-overlay-list');
     const overlayEl = document.getElementById('home-flights-overlay');
-    if (!countEl || !listEl || !overlayEl) return;
+    const nearestEl = document.getElementById('home-nearest-card');
+    const listEl = document.getElementById('home-overlay-list');
+    if (!countEl || !overlayEl || !nearestEl || !listEl) return;
 
     const sorted = upcoming.sort((a, b) => a.date.localeCompare(b.date) || (a.dep_time || '').localeCompare(b.dep_time || ''));
     countEl.textContent = sorted.length;
 
     if (sorted.length === 0) {
-        listEl.innerHTML = `<div class="home-overlay-empty">✈️ ${t('emptyTrips')}</div>`;
+        nearestEl.innerHTML = `<div class="home-overlay-empty">✈️ ${t('emptyTrips')}</div>`;
+        listEl.innerHTML = '';
         initHomeOverlayDrag();
         return;
     }
 
-    // Group connected flights into carousel slides
-    const slides = [];
-    const grouped = new Set();
-    sorted.forEach(f => {
-        if (grouped.has(f.id)) return;
-        if (f.connected_group) {
-            const group = sorted.filter(g => g.connected_group === f.connected_group);
-            group.forEach(g => grouped.add(g.id));
-            slides.push({ isGroup: true, flights: group, ids: group.map(g => g.id) });
-        } else {
-            grouped.add(f.id);
-            slides.push({ isGroup: false, flights: [f], ids: [f.id] });
-        }
-    });
+    // Determine nearest flight(s) — single or connected group
+    const first = sorted[0];
+    let nearestFlights;
+    if (first.connected_group) {
+        nearestFlights = sorted.filter(f => f.connected_group === first.connected_group);
+    } else {
+        nearestFlights = [first];
+    }
 
-    let html = '<div class="ho-carousel-spacer"></div>';
-    slides.forEach((slide, idx) => {
-        const flightIds = slide.ids.join(',');
-        html += `<div class="ho-carousel-slide" data-flight-ids="${flightIds}" data-slide-idx="${idx}">`;
-        slide.flights.forEach(f => { html += renderHoCard(f); });
-        html += `</div>`;
+    // Render nearest card (floating)
+    nearestEl.innerHTML = nearestFlights.map(f => renderHomeCard(f)).join('');
+
+    // Highlight nearest route on map
+    const nearestIds = nearestFlights.map(f => f.id);
+    highlightRouteForSlide(nearestIds);
+
+    // Render full list (same format as flights page, grouped by date)
+    const grouped = groupConnectedFlights(sorted);
+    const dateGroups = {};
+    grouped.forEach(item => {
+        const date = item.isGroup ? item.flights[0].date : item.date;
+        if (!dateGroups[date]) dateGroups[date] = [];
+        dateGroups[date].push(item);
     });
-    html += '<div class="ho-carousel-spacer"></div>';
+    const sortedDates = Object.keys(dateGroups).sort((a, b) => a.localeCompare(b));
+    let html = '';
+    sortedDates.forEach(date => {
+        html += `<div class="flights-date-header">${formatDate(date)}</div>`;
+        html += dateGroups[date].map(item => {
+            if (item.isGroup) {
+                return `<div class="connected-group"><div class="connected-group-header"><span class="connected-badge">🔗 ${t('connectedFlight')}</span></div>${item.flights.map(f => renderHomeCard(f)).join('')}</div>`;
+            }
+            return renderHomeCard(item);
+        }).join('');
+    });
     listEl.innerHTML = html;
 
-    // Init drag and carousel
     initHomeOverlayDrag();
-    requestAnimationFrame(() => initCarouselScroll());
 }
 
-function renderHoCard(f) {
-    const depAirport = f.dep_airport || {};
-    const arrAirport = f.arr_airport || {};
-    const statusInfo = f.status_info || {};
-    let countdown = '';
-    let countdownClass = '';
-    if (statusInfo.countdown) {
-        countdown = renderCountdown(statusInfo.countdown);
-        countdownClass = 'imminent';
-    } else {
-        const now = new Date();
-        const depDate = new Date(f.date + 'T00:00:00');
-        const days = Math.ceil((depDate - now) / (1000 * 60 * 60 * 24));
-        if (days <= 0) { countdown = t('today') || '今天'; countdownClass = 'imminent'; }
-        else if (days === 1) { countdown = t('tomorrow') || '明天'; countdownClass = 'imminent'; }
-        else if (days <= 7) { countdown = `${days}${t('daysUnit') || '天'}`; countdownClass = 'soon'; }
-        else { countdown = `${days}${t('daysUnit') || '天'}`; }
+/** Home card: reuses flight-card styling with date omitted */
+function renderHomeCard(flight) {
+    const depAirport = flight.dep_airport || {};
+    const arrAirport = flight.arr_airport || {};
+    const statusInfo = flight.status_info || {};
+
+    let duration = '';
+    if (flight.dep_time && flight.arr_time) {
+        const dep = new Date(`2000-01-01 ${flight.dep_time}`);
+        let arr = new Date(`2000-01-01 ${flight.arr_time}`);
+        if (arr < dep) arr.setDate(arr.getDate() + 1);
+        const diff = (arr - dep) / 1000 / 60;
+        duration = `${Math.floor(diff / 60)}h ${Math.round(diff % 60)}m`;
     }
-    const airlineName = (typeof translateAirline === 'function') ? translateAirline(f.airline || '') : (f.airline || '');
-    const depT = f.dep_terminal ? `<span class="ho-terminal">T${f.dep_terminal}</span>` : '';
-    const arrT = f.arr_terminal ? `<span class="ho-terminal">T${f.arr_terminal}</span>` : '';
-    const logo = getAirlineLogoHtml(f.flight_no);
-    return `<div class="ho-card" onclick="showFlightDetail('${f.id}')">
-        <div class="ho-card-top">
-            <div class="ho-card-flight">
-                ${logo}
-                <span class="ho-flight-no">${f.flight_no}</span>
-                <span class="ho-airline">${airlineName}</span>
-            </div>
-            <div class="ho-countdown ${countdownClass}">${countdown}</div>
+
+    const statusClass = statusInfo.status === 'completed' ? 'completed' : statusInfo.status === 'checkin_open' ? 'checkin_open' : statusInfo.status === 'boarding' ? 'boarding' : 'upcoming';
+    const depTerminal = flight.dep_terminal ? `<span class="terminal-tag">T${flight.dep_terminal}</span>` : '';
+    const arrTerminal = flight.arr_terminal ? `<span class="terminal-tag">T${flight.arr_terminal}</span>` : '';
+    const logo = getAirlineLogoHtml(flight.flight_no);
+
+    return `<div class="flight-card" onclick="showFlightDetail('${flight.id}')">
+        <div class="flight-card-header"><div class="flight-info">${logo}<span class="flight-no">${flight.flight_no}</span></div><span class="flight-status ${statusClass}">${getStatusText(statusInfo)}</span></div>
+        <div class="flight-route">
+            <div class="route-point departure"><div class="airport-code">${flight.departure} ${depTerminal}</div><div class="airport-city">${getAirportCity(depAirport)}</div><div class="route-time">${flight.dep_time}</div></div>
+            <div class="route-line"><div class="route-line-graphic"></div><div class="route-duration">${duration}</div><div class="route-distance">${(flight.distance || 0).toLocaleString()} km</div></div>
+            <div class="route-point arrival"><div class="airport-code">${flight.arrival} ${arrTerminal}</div><div class="airport-city">${getAirportCity(arrAirport)}</div><div class="route-time">${flight.arr_time}</div></div>
         </div>
-        <div class="ho-route">
-            <div class="ho-point">
-                <div class="ho-code">${f.departure} ${depT}</div>
-                <div class="ho-time">${f.dep_time || '--:--'}</div>
-                <div class="ho-city">${getAirportCity(depAirport)}</div>
-            </div>
-            <div class="ho-line">
-                <div class="ho-line-track"><div class="ho-line-dot start"></div><div class="ho-line-bar"></div><div class="ho-line-plane">✈</div><div class="ho-line-dot end"></div></div>
-                <div class="ho-date">${formatDate(f.date)}</div>
-            </div>
-            <div class="ho-point right">
-                <div class="ho-code">${f.arrival} ${arrT}</div>
-                <div class="ho-time">${f.arr_time || '--:--'}</div>
-                <div class="ho-city">${getAirportCity(arrAirport)}</div>
-            </div>
-        </div>
+        ${statusInfo.countdown ? `<div class="flight-countdown">${renderCountdown(statusInfo.countdown)}</div>` : ''}
     </div>`;
 }
 
-// ==================== 轮播滚动 + 航线高亮 ====================
-function initCarouselScroll() {
-    const list = document.getElementById('home-overlay-list');
-    if (!list || list._carouselInited) return;
-    list._carouselInited = true;
-
-    let scrollTimer = null;
-    list.addEventListener('scroll', () => {
-        if (scrollTimer) cancelAnimationFrame(scrollTimer);
-        scrollTimer = requestAnimationFrame(() => updateCarouselFade());
-    }, { passive: true });
-
-    // Initial fade + highlight
-    setTimeout(() => updateCarouselFade(), 50);
-}
-
-function updateCarouselFade() {
-    const list = document.getElementById('home-overlay-list');
-    if (!list) return;
-    const slides = list.querySelectorAll('.ho-carousel-slide');
-    if (slides.length === 0) return;
-
-    const listRect = list.getBoundingClientRect();
-    const centerX = listRect.left + listRect.width / 2;
-
-    let closestSlide = null;
-    let closestDist = Infinity;
-
-    slides.forEach(slide => {
-        const slideRect = slide.getBoundingClientRect();
-        const slideCenter = slideRect.left + slideRect.width / 2;
-        const dist = Math.abs(slideCenter - centerX);
-        const norm = dist / listRect.width;
-
-        const opacity = Math.max(0.3, 1 - norm * 2.2);
-        const scale = Math.max(0.92, 1 - norm * 0.12);
-        slide.style.opacity = opacity;
-        slide.style.transform = `scale(${scale})`;
-
-        if (dist < closestDist) {
-            closestDist = dist;
-            closestSlide = slide;
-        }
-    });
-
-    if (closestSlide && closestSlide !== _currentCenterSlide) {
-        _currentCenterSlide = closestSlide;
-        const flightIds = (closestSlide.dataset.flightIds || '').split(',').filter(Boolean);
-        highlightRouteForSlide(flightIds);
-    }
-}
-
+// ==================== 航线高亮 ====================
 function highlightRouteForSlide(targetIds) {
     if (!homeMap || Object.keys(homeRoutesByFlight).length === 0) return;
 
-    // Dim all route lines
     Object.entries(homeRoutesByFlight).forEach(([id, layers]) => {
         const isTarget = targetIds.includes(id);
         layers.forEach((l, i) => {
@@ -492,7 +428,6 @@ function highlightRouteForSlide(targetIds) {
         });
     });
 
-    // Keep markers visible
     homeArcLayers.forEach(l => {
         if (l instanceof L.CircleMarker && l.setStyle) {
             l.setStyle({ fillOpacity: 0.7, opacity: 0.7 });
@@ -992,16 +927,18 @@ function renderFlightCard(flight) {
     const depGate = showGate ? `<div class="gate-info">${t('gateLabel')}: ${flight.dep_gate || t('gatePending')}</div>` : '';
     const logo = getAirlineLogoHtml(flight.flight_no);
 
-    return `<div class="flight-card ${isSelected ? 'selected-connect' : ''}" onclick="${connectMode ? `toggleConnectSelect('${flight.id}')` : `showFlightDetail('${flight.id}')`}">
+    return `<div class="flight-card ${isSelected ? 'selected-connect' : ''} ${connectMode ? 'connect-mode' : ''}" onclick="${connectMode ? `toggleConnectSelect('${flight.id}')` : `showFlightDetail('${flight.id}')`}">
         ${connectMode ? `<div class="connect-checkbox">${isSelected ? '☑' : '☐'}</div>` : ''}
-        <div class="flight-card-header"><div class="flight-info">${logo}<span class="flight-no">${flight.flight_no}</span><span class="flight-date">${formatDate(flight.date)}</span></div><span class="flight-status ${statusClass}">${getStatusText(statusInfo)}</span></div>
-        <div class="flight-route">
-            <div class="route-point departure"><div class="airport-code">${flight.departure} ${depTerminal}</div><div class="airport-city">${getAirportCity(depAirport)}</div><div class="route-time">${flight.dep_time}</div>${depGate}</div>
-            <div class="route-line"><div class="route-line-graphic"></div><div class="route-duration">${duration}</div><div class="route-distance">${(flight.distance || 0).toLocaleString()} km</div></div>
-            <div class="route-point arrival"><div class="airport-code">${flight.arrival} ${arrTerminal}</div><div class="airport-city">${getAirportCity(arrAirport)}</div><div class="route-time">${flight.arr_time}</div></div>
+        <div class="flight-card-body">
+            <div class="flight-card-header"><div class="flight-info">${logo}<span class="flight-no">${flight.flight_no}</span></div><span class="flight-status ${statusClass}">${getStatusText(statusInfo)}</span></div>
+            <div class="flight-route">
+                <div class="route-point departure"><div class="airport-code">${flight.departure} ${depTerminal}</div><div class="airport-city">${getAirportCity(depAirport)}</div><div class="route-time">${flight.dep_time}</div>${depGate}</div>
+                <div class="route-line"><div class="route-line-graphic"></div><div class="route-duration">${duration}</div><div class="route-distance">${(flight.distance || 0).toLocaleString()} km</div></div>
+                <div class="route-point arrival"><div class="airport-code">${flight.arrival} ${arrTerminal}</div><div class="airport-city">${getAirportCity(arrAirport)}</div><div class="route-time">${flight.arr_time}</div></div>
+            </div>
+            ${statusInfo.status === 'in_flight' ? `<div class="flight-progress-bar"><div class="fill" style="width:${statusInfo.progress || 0}%"></div></div>` : ''}
+            ${statusInfo.countdown ? `<div class="flight-countdown">${renderCountdown(statusInfo.countdown)}</div>` : ''}
         </div>
-        ${statusInfo.status === 'in_flight' ? `<div class="flight-progress-bar"><div class="fill" style="width:${statusInfo.progress || 0}%"></div></div>` : ''}
-        ${statusInfo.countdown ? `<div class="flight-countdown">${renderCountdown(statusInfo.countdown)}</div>` : ''}
     </div>`;
 }
 

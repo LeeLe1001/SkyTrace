@@ -16,7 +16,7 @@
     <!-- Leaflet CSS (本地) -->
     <link rel="stylesheet" href="/static/lib/leaflet.css" />
     
-    <link rel="stylesheet" href="/static/css/style.css?v=8">
+    <link rel="stylesheet" href="/static/css/style.css?v=9">
     
     <!-- 全局错误捕获 + 加载指示器 -->
     <style>
@@ -36,7 +36,7 @@
     </script>
     
     <!-- i18n 多语言 (在 app.js 之前加载) -->
-    <script src="/static/js/i18n.js?v=8"></script>
+    <script src="/static/js/i18n.js?v=9"></script>
 </head>
 <body>
     <!-- 加载指示器 -->
@@ -76,6 +76,7 @@
                         <span class="home-overlay-expand-hint" id="ho-expand-hint">▲</span>
                     </div>
                 </div>
+                <div class="home-nearest-card" id="home-nearest-card"></div>
                 <div class="home-overlay-list" id="home-overlay-list"></div>
             </div>
         </section>
@@ -447,13 +448,13 @@
     <script src="/static/lib/leaflet.js"></script>
     <script src="/static/lib/arc.js"></script>
     <script src="/static/lib/html2canvas.min.js"></script>
-    <script src="/static/js/app.js?v=8"></script>
+    <script src="/static/js/app.js?v=9"></script>
     <script>
         // 彻底清除 Service Worker 和所有缓存
         // 不再注册新的 SW，避免缓存问题
         if ('serviceWorker' in navigator) {
             // 注册一个 noop SW 来替换旧的（触发 skipWaiting）
-            navigator.serviceWorker.register('/sw.js?v=8', { scope: '/' })
+            navigator.serviceWorker.register('/sw.js?v=9', { scope: '/' })
                 .then(reg => {
                     console.log('[SW] noop SW registered, will clear all caches');
                     reg.update();

@@ -462,11 +462,6 @@ body {
     color: var(--accent);
 }
 
-.flight-date {
-    font-size: 13px;
-    color: var(--text-secondary);
-}
-
 .flight-status {
     padding: 4px 12px;
     border-radius: 20px;
@@ -496,13 +491,14 @@ body {
 
 .flight-route {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: space-between;
-    gap: 20px;
+    gap: 12px;
 }
 
 .route-point {
-    flex: 1;
+    flex: 1 1 0;
+    min-width: 0;
 }
 
 .route-point.arrival {
@@ -510,15 +506,21 @@ body {
 }
 
 .airport-code {
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 700;
     letter-spacing: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .airport-city {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-secondary);
     margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .route-time {
@@ -528,10 +530,11 @@ body {
 }
 
 .route-line {
-    flex: 0 0 120px;
+    flex: 0 0 100px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 4px;
 }
 
@@ -1086,11 +1089,11 @@ body {
     }
     
     .airport-code {
-        font-size: 24px;
+        font-size: 22px;
     }
     
     .route-line {
-        flex: 0 0 80px;
+        flex: 0 0 70px;
     }
     
     .detail-code {
@@ -3016,10 +3019,26 @@ body {
     background: color-mix(in srgb, var(--accent) 8%, var(--bg-card));
 }
 
+.flight-card.connect-mode {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .connect-checkbox {
-    font-size: 20px;
-    margin-right: 8px;
+    font-size: 22px;
     color: var(--accent);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    cursor: pointer;
+}
+
+.flight-card-body {
+    flex: 1;
+    min-width: 0;
 }
 
 .connect-action-bar {
@@ -3189,18 +3208,18 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.88) 0%, rgba(10, 18, 35, 0.95) 100%);
+    background: linear-gradient(180deg, rgba(15, 30, 60, 0.92) 0%, rgba(10, 20, 45, 0.96) 100%);
     backdrop-filter: blur(24px) saturate(180%);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border-top: 1px solid rgba(59, 130, 246, 0.15);
+    border-top: 1px solid rgba(59, 130, 246, 0.2);
     z-index: 1000;
     padding: 6px 0;
     padding-bottom: max(6px, env(safe-area-inset-bottom));
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
 }
 [data-theme="light"] .mobile-nav {
-    background: linear-gradient(180deg, rgba(230, 240, 255, 0.92) 0%, rgba(220, 235, 255, 0.96) 100%);
-    border-top: 1px solid rgba(37, 99, 235, 0.12);
+    background: linear-gradient(180deg, rgba(220, 232, 255, 0.94) 0%, rgba(210, 225, 250, 0.97) 100%);
+    border-top: 1px solid rgba(37, 99, 235, 0.15);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
 }
 
@@ -3257,7 +3276,7 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    max-height: 155px;
+    max-height: 220px;
     background: var(--header-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -3268,6 +3287,7 @@ body {
     display: flex;
     flex-direction: column;
     transition: max-height 0.35s cubic-bezier(.4,0,.2,1);
+    overflow: hidden;
 }
 .home-flights-overlay.expanded {
     box-shadow: 0 -12px 60px rgba(0,0,0,0.3);
@@ -3323,38 +3343,41 @@ body {
     border-radius: 12px;
 }
 
+.home-nearest-card {
+    padding: 0 16px 8px;
+    flex-shrink: 0;
+    transition: opacity 0.3s ease;
+}
+.home-nearest-card .flight-card {
+    margin-bottom: 0;
+}
+
 .home-overlay-list {
     display: flex;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    padding: 4px 0 12px;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 4px 16px 16px;
     gap: 0;
     scrollbar-width: none;
     flex: 1;
     min-height: 0;
+    opacity: 0.3;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+.home-flights-overlay.expanded .home-overlay-list {
+    opacity: 1;
+    pointer-events: auto;
 }
 .home-overlay-list::-webkit-scrollbar {
     display: none;
 }
-.ho-carousel-spacer {
-    flex: 0 0 10%;
-    min-width: 10%;
+.home-overlay-list .flight-card {
+    margin-bottom: 12px;
 }
-.ho-carousel-slide {
-    scroll-snap-align: center;
-    flex: 0 0 82%;
-    min-width: 82%;
-    padding: 0 6px;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    will-change: opacity, transform;
-}
-.ho-carousel-slide .ho-card {
-    margin-bottom: 8px;
-}
-.ho-carousel-slide .ho-card:last-child {
-    margin-bottom: 0;
+.home-overlay-list .flights-date-header {
+    padding-top: 12px;
 }
 
 .home-overlay-empty {
@@ -3362,154 +3385,6 @@ body {
     padding: 30px 20px;
     color: var(--text-muted);
     font-size: 14px;
-}
-
-/* -- 新版航班卡片 (ho- prefix) -- */
-.ho-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 14px 16px 12px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-}
-.ho-card:hover {
-    transform: translateY(-2px);
-    border-color: var(--accent);
-    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
-}
-.ho-card:last-child { margin-bottom: 0; }
-
-.ho-card-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-.ho-card-flight {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-.ho-flight-no {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--text-primary);
-}
-.ho-airline {
-    font-size: 11px;
-    color: var(--text-muted);
-}
-.ho-countdown {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    background: var(--bg-secondary);
-    padding: 3px 10px;
-    border-radius: 10px;
-}
-.ho-countdown.imminent {
-    color: #f97316;
-    background: rgba(249, 115, 22, 0.12);
-}
-.ho-countdown.soon {
-    color: var(--accent);
-    background: rgba(59, 130, 246, 0.12);
-}
-
-/* 航线路径 */
-.ho-route {
-    display: flex;
-    align-items: flex-start;
-    gap: 0;
-}
-.ho-point {
-    flex: 0 0 auto;
-    min-width: 54px;
-}
-.ho-point.right {
-    text-align: right;
-}
-.ho-code {
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--text-primary);
-    letter-spacing: 0.5px;
-    line-height: 1.1;
-}
-.ho-time {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-top: 2px;
-}
-.ho-city {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-top: 1px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 80px;
-}
-.ho-point.right .ho-city {
-    margin-left: auto;
-}
-
-/* 航线连线 */
-.ho-line {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 6px 8px 0;
-    min-width: 0;
-}
-.ho-line-track {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    height: 16px;
-    position: relative;
-}
-.ho-line-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--accent);
-    flex-shrink: 0;
-}
-.ho-line-dot.end {
-    background: var(--text-muted);
-}
-.ho-line-bar {
-    flex: 1;
-    height: 2px;
-    background: linear-gradient(to right, var(--accent), var(--text-muted));
-    opacity: 0.4;
-    margin: 0 2px;
-}
-.ho-line-plane {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 14px;
-    color: var(--accent);
-    filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.4));
-}
-.ho-date {
-    font-size: 10px;
-    color: var(--text-muted);
-    margin-top: 4px;
-    white-space: nowrap;
-}
-.ho-terminal {
-    font-size: 11px;
-    color: var(--accent);
-    font-weight: 600;
-    margin-left: 3px;
 }
 
 /* ==================== 行程子标签 ==================== */
@@ -3990,15 +3865,20 @@ body {
     padding-top: 0;
 }
 
-/* ==================== 首页覆盖层渐隐效果 ==================== */
-.home-flights-overlay.faded {
-    opacity: 0.5;
-    pointer-events: auto;
-}
-.home-flights-overlay.faded .home-overlay-list {
+/* ==================== 首页覆盖层展开效果 ==================== */
+.home-flights-overlay.expanded .home-nearest-card {
     opacity: 0;
     pointer-events: none;
+    max-height: 0;
+    overflow: hidden;
+    padding: 0;
+    transition: opacity 0.3s, max-height 0.3s, padding 0.3s;
 }
-.home-flights-overlay.faded .home-overlay-header {
-    opacity: 0.7;
+.home-nearest-card {
+    transition: opacity 0.3s, max-height 0.35s, padding 0.3s;
+    max-height: 300px;
+}
+.home-flights-overlay.expanded .home-overlay-list {
+    opacity: 1;
+    pointer-events: auto;
 }
