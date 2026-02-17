@@ -37,7 +37,35 @@ const SKYTRACE_VERSION = 16;
 function formatTerminal(terminal) {
     if (!terminal) return '';
     if (terminal === 'MAIN') return 'MAIN';
-    return /^\d+$/.test(terminal) ? `T${terminal}` : terminal;
+    // 纯数字 → T1/T2, 单字母 A-E → Terminal A, 其他原样
+    if (/^\d+$/.test(terminal)) return `T${terminal}`;
+    if (/^[A-E]$/i.test(terminal)) return `Terminal ${terminal.toUpperCase()}`;
+    return terminal;
+}
+
+/**
+ * 修正跨反子午线(±180°)航线坐标
+ * arc.js 会将跨太平洋的大圆弧拆成多段 geometry，
+ * 但 Leaflet polyline 在 worldCopyJump 模式下仍可能截断。
+ * 此函数将每段坐标归一化，使经度连续不跳变。
+ */
+function _fixAntimeridianCoords(geometries) {
+    const segments = [];
+    geometries.forEach(geo => {
+        const coords = [];
+        geo.coords.forEach((c, i) => {
+            let lon = c[0], lat = c[1];
+            if (i > 0) {
+                const prevLon = coords[i - 1][1]; // [lat, lon] in Leaflet
+                // 如果经度跳变超过 180°，加减 360° 使其连续
+                while (lon - prevLon > 180) lon -= 360;
+                while (prevLon - lon > 180) lon += 360;
+            }
+            coords.push([lat, lon]);
+        });
+        segments.push(coords);
+    });
+    return segments;
 }
 
 /** 格式化到达时间: 跨日到达加 +1/-1/+2 标识 */
@@ -415,8 +443,8 @@ function renderHomeRoutes() {
         const flightLayers = [];
         const generator = new arc.GreatCircle({ x: dep.lon, y: dep.lat }, { x: arr.lon, y: arr.lat });
         const arcLine = generator.Arc(50);
-        arcLine.geometries.forEach(geo => {
-            const coords = geo.coords.map(c => [c[1], c[0]]);
+        const fixedSegments = _fixAntimeridianCoords(arcLine.geometries);
+        fixedSegments.forEach(coords => {
             const glow = L.polyline(coords, { color: '#3b82f6', weight: 4, opacity: 0.3 }).addTo(homeMap);
             const line = L.polyline(coords, { color: '#60a5fa', weight: 2, opacity: 0.8 }).addTo(homeMap);
             homeArcLayers.push(glow, line);
@@ -484,6 +512,13 @@ function initHomeOverlayDrag() {
             const dy = _hoDragStartY - e.touches[0].clientY;
             const newH = Math.max(56, Math.min(window.innerHeight * 0.85, _hoStartH + dy));
             el.style.maxHeight = newH + 'px';
+            // 拖动时同步更新缩放按钮位置
+            const zoomContainer = document.querySelector('#home-map .leaflet-bottom.leaflet-right');
+            if (zoomContainer) {
+                zoomContainer.style.transition = 'none';
+                zoomContainer.style.bottom = (newH + 12) + 'px';
+                zoomContainer.style.opacity = newH > window.innerHeight * 0.6 ? '0' : '1';
+            }
         }, {passive: true});
         handle.addEventListener('touchend', () => {
             el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
@@ -584,14 +619,50 @@ function minimizeHomeOverlay() {
 function _updateHomeZoomPosition() {
     const zoomContainer = document.querySelector('#home-map .leaflet-bottom.leaflet-right');
     if (!zoomContainer) return;
-    zoomContainer.style.transition = 'bottom 0.35s cubic-bezier(.4,0,.2,1)';
+    zoomContainer.style.transition = 'bottom 0.35s cubic-bezier(.4,0,.2,1), opacity 0.5s ease';
     if (_hoState === 'expanded') {
+        // 全展开: 隐藏缩放按钮
         zoomContainer.style.bottom = '76vh';
+        zoomContainer.style.opacity = '0';
+        zoomContainer.style.pointerEvents = 'none';
     } else if (_hoState === 'peek') {
-        zoomContainer.style.bottom = '290px';
+        // peek: 跟随 overlay 顶部
+        const overlay = document.getElementById('home-flights-overlay');
+        const overlayH = overlay ? overlay.offsetHeight : 280;
+        zoomContainer.style.bottom = (overlayH + 12) + 'px';
+        zoomContainer.style.opacity = '1';
+        zoomContainer.style.pointerEvents = 'auto';
+        _scheduleZoomFade();
     } else {
-        zoomContainer.style.bottom = '66px';
+        // hidden/minimized: 在 overlay 上方
+        zoomContainer.style.bottom = '76px';
+        zoomContainer.style.opacity = '1';
+        zoomContainer.style.pointerEvents = 'auto';
+        _scheduleZoomFade();
     }
+}
+
+/** 缩放按钮空闲自动减淡 */
+let _zoomFadeTimer = null;
+function _scheduleZoomFade() {
+    const zoomContainer = document.querySelector('#home-map .leaflet-bottom.leaflet-right');
+    if (!zoomContainer) return;
+    // 清除旧计时器
+    if (_zoomFadeTimer) clearTimeout(_zoomFadeTimer);
+    // 移入/点击时恢复不透明
+    const restore = () => {
+        zoomContainer.style.opacity = '1';
+        if (_zoomFadeTimer) clearTimeout(_zoomFadeTimer);
+        _zoomFadeTimer = setTimeout(() => {
+            if (_hoState !== 'expanded') zoomContainer.style.opacity = '0.35';
+        }, 3000);
+    };
+    zoomContainer.onmouseenter = restore;
+    zoomContainer.ontouchstart = restore;
+    // 3 秒后自动减淡
+    _zoomFadeTimer = setTimeout(() => {
+        if (_hoState !== 'expanded') zoomContainer.style.opacity = '0.35';
+    }, 3000);
 }
 
 function _highlightAllRoutes() {
@@ -987,8 +1058,8 @@ function renderFlightsMapRoutes() {
 
         const generator = new arc.GreatCircle({ x: dep.lon, y: dep.lat }, { x: arr.lon, y: arr.lat });
         const arcLine = generator.Arc(50);
-        arcLine.geometries.forEach(geo => {
-            const coords = geo.coords.map(c => [c[1], c[0]]);
+        const fixedSegments = _fixAntimeridianCoords(arcLine.geometries);
+        fixedSegments.forEach(coords => {
             fmapArcLayers.push(L.polyline(coords, { color: glowColor, weight: 4, opacity: 0.3 }).addTo(fmap));
             fmapArcLayers.push(L.polyline(coords, { color: color, weight: 2, opacity: 0.8 }).addTo(fmap));
         });
@@ -1017,9 +1088,9 @@ function updateFlightsMapStats() {
         visitedAirports.add(f.departure);
         visitedAirports.add(f.arrival);
     });
-    document.getElementById('fmap-stat-flights').textContent = fmapFilteredFlights.length;
-    document.getElementById('fmap-stat-distance').textContent = totalDistance.toLocaleString();
-    document.getElementById('fmap-stat-airports').textContent = visitedAirports.size;
+    animateCountUp(document.getElementById('fmap-stat-flights'), fmapFilteredFlights.length);
+    animateCountUp(document.getElementById('fmap-stat-distance'), totalDistance);
+    animateCountUp(document.getElementById('fmap-stat-airports'), visitedAirports.size);
 }
 
 // ==================== 飞行中动画 (共用) ====================
@@ -1803,11 +1874,39 @@ async function _autoConnectFlight(savedResp, flightData) {
 function searchFlightsByAirport(query) {
     const code = query.trim().toUpperCase();
     const clearBtn = document.getElementById('flights-search-clear');
+    const sugEl = document.getElementById('flights-search-suggestions');
     if (clearBtn) clearBtn.style.display = code.length > 0 ? 'flex' : 'none';
     if (code.length === 0) {
         filteredFlights = [...flights];
         renderFlightsList(currentStatusFilter);
+        if (sugEl) sugEl.classList.remove('active');
         return;
+    }
+    // 显示匹配的机场三字码建议
+    if (sugEl && code.length >= 1 && code.length < 3) {
+        // 从已有航班中获取相关机场
+        const matchedCodes = new Set();
+        flights.forEach(f => {
+            if (f.departure?.startsWith(code)) matchedCodes.add(f.departure);
+            if (f.arrival?.startsWith(code)) matchedCodes.add(f.arrival);
+            if (f.stopover?.startsWith(code)) matchedCodes.add(f.stopover);
+        });
+        // 也从全局 airports 中搜索
+        Object.keys(airports).forEach(c => {
+            if (c.startsWith(code) && !c.startsWith('_')) matchedCodes.add(c);
+        });
+        if (matchedCodes.size > 0) {
+            sugEl.innerHTML = [...matchedCodes].slice(0, 6).map(c => {
+                const a = airports[c];
+                const label = a ? `${getAirportCity(a)} · ${getAirportName(a)}` : '';
+                return `<div class="suggestion-item" onclick="document.getElementById('flights-search-input').value='${c}';searchFlightsByAirport('${c}')"><span class="suggestion-code">${c}</span><span class="suggestion-name">${label}</span></div>`;
+            }).join('');
+            sugEl.classList.add('active');
+        } else {
+            sugEl.classList.remove('active');
+        }
+    } else if (sugEl) {
+        sugEl.classList.remove('active');
     }
     if (code.length < 2) return;
     filteredFlights = flights.filter(f =>
@@ -1820,6 +1919,8 @@ function searchFlightsByAirport(query) {
 function clearFlightSearch() {
     const input = document.getElementById('flights-search-input');
     if (input) input.value = '';
+    const sugEl = document.getElementById('flights-search-suggestions');
+    if (sugEl) sugEl.classList.remove('active');
     filteredFlights = [...flights];
     renderFlightsList(currentStatusFilter);
 }

@@ -4045,6 +4045,13 @@ body.is-offline .main-content .view {
     border-radius: 10px;
     border: 1px solid var(--border-light);
     box-shadow: 0 4px 16px var(--shadow-color);
+    overflow-x: auto;
+    max-width: min(100%, 400px);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.fmap-year-pills::-webkit-scrollbar {
+    display: none;
 }
 
 .fmap-year-pill {
@@ -4057,6 +4064,8 @@ body.is-offline .main-content .view {
     cursor: pointer;
     border-radius: 6px;
     transition: all 0.2s;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .fmap-year-pill:hover {
@@ -4124,14 +4133,28 @@ body.is-offline .main-content .view {
     display: flex;
     flex-wrap: nowrap;
     white-space: nowrap;
-    gap: clamp(10px, 3vw, 24px);
+    gap: clamp(16px, 4vw, 32px);
     background: var(--map-stats-bg);
     backdrop-filter: blur(20px);
-    padding: 12px clamp(14px, 4vw, 28px);
+    padding: 12px clamp(18px, 5vw, 36px);
     border-radius: 14px;
     border: 1px solid var(--border-light);
     box-shadow: 0 8px 30px var(--shadow-color);
     z-index: 500;
+}
+.fmap-stats-card .stat-item {
+    position: relative;
+    text-align: center;
+}
+.fmap-stats-card .stat-item + .stat-item::before {
+    content: '';
+    position: absolute;
+    left: calc(clamp(-8px, -2vw, -16px) - 0.5px);
+    top: 15%;
+    height: 70%;
+    width: 1px;
+    background: var(--border-light);
+    opacity: 0.6;
 }
 .fmap-stats-card .stat-value {
     font-size: clamp(18px, 4vw, 28px);
@@ -4196,8 +4219,8 @@ body.is-offline .main-content .view {
     }
     
     .fmap-stats-card {
-        padding: 10px clamp(12px, 3vw, 18px);
-        gap: clamp(8px, 2.5vw, 16px);
+        padding: 10px clamp(14px, 3.5vw, 22px);
+        gap: clamp(14px, 3.5vw, 24px);
     }
     
     .mobile-nav {
@@ -4898,5 +4921,5 @@ body.is-offline .main-content .view {
 /* ==================== 首页缩放按钮跟随覆盖层 ==================== */
 #home-map .leaflet-bottom.leaflet-right {
     bottom: 290px;
-    transition: bottom 0.35s cubic-bezier(.4,0,.2,1);
+    transition: bottom 0.35s cubic-bezier(.4,0,.2,1), opacity 0.5s ease;
 }

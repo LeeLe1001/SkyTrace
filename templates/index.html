@@ -90,8 +90,9 @@
                     <div class="flights-header">
                         <h2 data-i18n="myTrips">我的行程</h2>
                         <div class="flights-search-box">
-                            <input type="text" id="flights-search-input" placeholder="?? 搜索三字码..." maxlength="3" oninput="searchFlightsByAirport(this.value)">
-                            <button class="flights-search-clear" id="flights-search-clear" onclick="clearFlightSearch()" style="display:none">?</button>
+                            <input type="text" id="flights-search-input" placeholder="&#128269; 搜索三字码..." maxlength="3" oninput="searchFlightsByAirport(this.value)" autocomplete="off">
+                            <button class="flights-search-clear" id="flights-search-clear" onclick="clearFlightSearch()" style="display:none">&#10005;</button>
+                            <div class="suggestions" id="flights-search-suggestions"></div>
                         </div>
                         <div class="filter-tabs">
                             <button class="filter-tab" data-filter="all" data-i18n="filterAll">全部</button>
@@ -394,7 +395,7 @@
                             <button class="settings-lang-btn active" data-lang="zh" onclick="switchLangFromSettings('zh')">中文</button>
                             <button class="settings-lang-btn" data-lang="en" onclick="switchLangFromSettings('en')">EN</button>
                             <button class="settings-lang-btn" data-lang="ja" onclick="switchLangFromSettings('ja')">日本語</button>
-                            <button class="settings-lang-btn" data-lang="ko" onclick="switchLangFromSettings('ko')">???</button>
+                            <button class="settings-lang-btn" data-lang="ko" onclick="switchLangFromSettings('ko')">한국어</button>
                             <button class="settings-lang-btn" data-lang="es" onclick="switchLangFromSettings('es')">ES</button>
                         </div>
                     </div>
