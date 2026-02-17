@@ -228,6 +228,10 @@ const I18N = {
     nextDayArrival: '+1',
     nextDayLabel: '跨日到达',
     stopoverAirport: '经停机场',
+    advancedFields: '更多选项（机型/座位/经停/航站楼/登机口）',
+    advancedFilter: '高级筛选',
+    resetDate: '重置日期',
+    searchCode: '搜索三字码',
   },
 
   // ========== English ==========
@@ -431,6 +435,10 @@ const I18N = {
     nextDayArrival: '+1',
     nextDayLabel: 'Next day arrival',
     stopoverAirport: 'Stopover Airport',
+    advancedFields: 'More Options (Aircraft/Seat/Stopover/Terminal/Gate)',
+    advancedFilter: 'Advanced Filter',
+    resetDate: 'Reset Date',
+    searchCode: 'Search IATA Code',
   },
 
   // ========== 日本語 ==========
@@ -634,6 +642,10 @@ const I18N = {
     nextDayArrival: '+1',
     nextDayLabel: '翌日到着',
     stopoverAirport: '経由空港',
+    advancedFields: '詳細オプション（機型/座席/経由/ターミナル/ゲート）',
+    advancedFilter: '詳細フィルタ',
+    resetDate: '日付リセット',
+    searchCode: 'IATAコード検索',
   },
 
   // ========== 한국어 ==========
@@ -837,6 +849,10 @@ const I18N = {
     nextDayArrival: '+1',
     nextDayLabel: '익일 도착',
     stopoverAirport: '경유 공항',
+    advancedFields: '추가 옵션 (기종/좌석/경유/터미널/게이트)',
+    advancedFilter: '상세 필터',
+    resetDate: '날짜 초기화',
+    searchCode: 'IATA 코드 검색',
   },
 
   // ========== Español ==========
@@ -1040,6 +1056,10 @@ const I18N = {
     nextDayArrival: '+1',
     nextDayLabel: 'Llegada al día siguiente',
     stopoverAirport: 'Aeropuerto de escala',
+    advancedFields: 'Más opciones (Avión/Asiento/Escala/Terminal/Puerta)',
+    advancedFilter: 'Filtro avanzado',
+    resetDate: 'Restablecer fecha',
+    searchCode: 'Buscar código IATA',
   },
 };
 
