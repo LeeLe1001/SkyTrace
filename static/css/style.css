@@ -104,19 +104,28 @@ body {
 
 .nav-tabs {
     display: flex;
-    gap: 8px;
+    gap: 4px;
 }
 
 .nav-tab {
-    padding: 8px 20px;
+    padding: 6px 18px;
     border: none;
     background: transparent;
     color: var(--text-secondary);
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
-    border-radius: 8px;
+    border-radius: 10px;
     transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.nav-tab-icon {
+    font-size: 18px;
+    line-height: 1;
 }
 
 .nav-tab:hover {
@@ -271,7 +280,6 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 12px 16px;
-    cursor: pointer;
     font-size: 13px;
     font-weight: 500;
     color: var(--text-secondary);
@@ -279,9 +287,8 @@ body {
     user-select: none;
 }
 
-.time-filter-header:hover {
+.time-filter-header:hover .time-filter-left {
     color: var(--text-primary);
-    background: var(--bg-card-hover);
 }
 
 .time-filter-arrow {
@@ -1932,19 +1939,63 @@ body {
     margin-bottom: 16px;
 }
 
+.month-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.month-nav-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.month-nav-btn:hover:not(:disabled) {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.month-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.month-nav-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 100px;
+    text-align: center;
+}
+
 .monthly-chart {
     display: flex;
     align-items: flex-end;
-    gap: 8px;
-    height: 160px;
-    padding: 20px;
+    gap: 4px;
+    min-height: 160px;
+    padding: 20px 12px;
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 16px;
+    overflow-x: auto;
 }
 
 .month-bar-col {
-    flex: 1;
+    flex: 1 0 24px;
+    min-width: 24px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1952,9 +2003,11 @@ body {
 }
 
 .month-bar-value {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--accent);
+    min-width: 16px;
+    text-align: center;
 }
 
 .month-bar {
@@ -2993,32 +3046,38 @@ body {
     font-size: 12px;
 }
 
-.btn-connect-flights {
-    width: 36px;
-    height: 36px;
+.btn-connect-inline {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 14px;
     border: 1px solid var(--border);
     background: var(--bg-card);
     color: var(--text-secondary);
-    font-size: 18px;
+    font-size: 12px;
+    font-weight: 500;
     cursor: pointer;
     border-radius: 8px;
     transition: all 0.2s;
 }
-
-.btn-connect-flights.active {
+.btn-connect-inline .connect-icon {
+    font-size: 14px;
+}
+.btn-connect-inline:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+.btn-connect-inline.active {
     background: var(--accent);
     color: #fff;
     border-color: var(--accent);
 }
 
-.btn-connect-flights:hover:not(.active) {
-    background: var(--bg-hover);
-}
-
-.flights-header-actions {
+.time-filter-left {
     display: flex;
-    gap: 8px;
     align-items: center;
+    gap: 6px;
+    cursor: pointer;
 }
 
 /* ==================== 统计展开/折叠样式 ==================== */
@@ -3171,6 +3230,16 @@ body {
     height: 100%;
     background: var(--bg-primary);
 }
+/* Leaflet attribution: keep small and out of the way */
+#home-map .leaflet-control-attribution {
+    font-size: 9px;
+    opacity: 0.5;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    z-index: 400;
+}
 
 .home-stats-overlay { display: none; }
 
@@ -3180,7 +3249,7 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    max-height: 45vh;
+    max-height: 155px;
     background: var(--header-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -3190,7 +3259,10 @@ body {
     z-index: 500;
     display: flex;
     flex-direction: column;
-    transition: max-height 0.3s ease;
+    transition: max-height 0.35s cubic-bezier(.4,0,.2,1);
+}
+.home-flights-overlay.expanded {
+    box-shadow: 0 -12px 60px rgba(0,0,0,0.3);
 }
 
 .home-overlay-handle {
@@ -3208,6 +3280,24 @@ body {
     justify-content: space-between;
     padding: 12px 20px 8px;
     flex-shrink: 0;
+    cursor: pointer;
+    user-select: none;
+}
+.home-overlay-header:hover {
+    opacity: 0.85;
+}
+.home-overlay-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.home-overlay-expand-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    transition: transform 0.3s;
+}
+.home-flights-overlay.expanded .home-overlay-expand-hint {
+    transform: rotate(180deg);
 }
 
 .home-overlay-title {
@@ -3380,6 +3470,12 @@ body {
     margin-top: 4px;
     white-space: nowrap;
 }
+.ho-terminal {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-left: 3px;
+}
 
 /* ==================== 行程子标签 ==================== */
 .flights-sub-nav {
@@ -3450,6 +3546,33 @@ body {
     gap: 10px;
     z-index: 500;
     flex-wrap: wrap;
+    transition: opacity 0.3s, transform 0.3s;
+}
+.fmap-filter-bar.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-20px);
+}
+.fmap-toggle-filter {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 501;
+    padding: 6px 14px;
+    background: var(--map-stats-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 16px var(--shadow-color);
+    transition: all 0.2s;
+}
+.fmap-toggle-filter:hover {
+    color: var(--text-primary);
+    background: var(--bg-card);
 }
 
 .fmap-status-pills {
@@ -3656,7 +3779,7 @@ body {
     }
     
     .view {
-        height: calc(100vh - 60px - 60px);
+        height: calc(100vh - 60px - 56px);
     }
     
     .home-flights-overlay {
@@ -3664,14 +3787,19 @@ body {
     }
 
     .btn-add-float {
-        bottom: 80px;
+        bottom: 76px;
+    }
+
+    /* 行程列表底部留白避免遮挡 */
+    .flights-list {
+        padding-bottom: 80px;
     }
 }
 
 /* ==================== 浮动添加按钮 ==================== */
 .btn-add-float {
     position: fixed;
-    bottom: 24px;
+    bottom: 90px;
     right: 24px;
     width: 56px;
     height: 56px;
@@ -3683,7 +3811,7 @@ body {
     font-weight: 300;
     cursor: pointer;
     box-shadow: 0 6px 24px var(--accent-glow);
-    z-index: 600;
+    z-index: 900;
     display: none;
     align-items: center;
     justify-content: center;

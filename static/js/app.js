@@ -201,6 +201,65 @@ function renderHomeRoutes() {
     renderHomeFlightOverlay(upcoming);
 }
 
+// ==================== 首页覆盖层拖拽展开/收起 ====================
+let _hoExpanded = false;
+let _hoDragStartY = 0;
+let _hoStartH = 0;
+function initHomeOverlayDrag() {
+    const el = document.getElementById('home-flights-overlay');
+    if (!el || el._dragInited) return;
+    el._dragInited = true;
+    const handle = el.querySelector('.home-overlay-handle');
+    const header = el.querySelector('.home-overlay-header');
+    // Click header to toggle
+    if (header) header.addEventListener('click', () => toggleHomeOverlay());
+    // Touch drag on handle
+    if (handle) {
+        handle.addEventListener('touchstart', e => {
+            _hoDragStartY = e.touches[0].clientY;
+            _hoStartH = el.offsetHeight;
+            el.style.transition = 'none';
+        }, {passive: true});
+        handle.addEventListener('touchmove', e => {
+            const dy = _hoDragStartY - e.touches[0].clientY;
+            const newH = Math.max(80, Math.min(window.innerHeight * 0.85, _hoStartH + dy));
+            el.style.maxHeight = newH + 'px';
+        }, {passive: true});
+        handle.addEventListener('touchend', () => {
+            el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1)';
+            const h = el.offsetHeight;
+            const threshold = window.innerHeight * 0.25;
+            if (h > threshold) { expandHomeOverlay(); } else { collapseHomeOverlay(); }
+        });
+    }
+    // Start collapsed
+    collapseHomeOverlay();
+}
+function toggleHomeOverlay() {
+    if (_hoExpanded) collapseHomeOverlay(); else expandHomeOverlay();
+}
+function expandHomeOverlay() {
+    _hoExpanded = true;
+    const el = document.getElementById('home-flights-overlay');
+    if (!el) return;
+    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1)';
+    el.style.maxHeight = '75vh';
+    el.classList.add('expanded');
+    const list = el.querySelector('.home-overlay-list');
+    if (list) list.style.overflow = 'auto';
+}
+function collapseHomeOverlay() {
+    _hoExpanded = false;
+    const el = document.getElementById('home-flights-overlay');
+    if (!el) return;
+    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1)';
+    // Show just header + 1 card (~140px)
+    el.style.maxHeight = '155px';
+    el.classList.remove('expanded');
+    const list = el.querySelector('.home-overlay-list');
+    if (list) { list.scrollTop = 0; list.style.overflow = 'hidden'; }
+}
+
 function renderHomeFlightOverlay(upcoming) {
     const countEl = document.getElementById('home-overlay-count');
     const listEl = document.getElementById('home-overlay-list');
@@ -212,6 +271,7 @@ function renderHomeFlightOverlay(upcoming) {
 
     if (sorted.length === 0) {
         listEl.innerHTML = `<div class="home-overlay-empty">✈️ ${t('emptyTrips')}</div>`;
+        initHomeOverlayDrag();
         return;
     }
 
@@ -233,7 +293,9 @@ function renderHomeFlightOverlay(upcoming) {
             else if (days <= 7) { countdown = `${days}${t('daysUnit') || '天'}`; countdownClass = 'soon'; }
             else { countdown = `${days}${t('daysUnit') || '天'}`; }
         }
-        const airlineName = f.airline || '';
+        const airlineName = (typeof translateAirline === 'function') ? translateAirline(f.airline || '') : (f.airline || '');
+        const depT = f.dep_terminal ? `<span class="ho-terminal">T${f.dep_terminal}</span>` : '';
+        const arrT = f.arr_terminal ? `<span class="ho-terminal">T${f.arr_terminal}</span>` : '';
         return `<div class="ho-card" onclick="showFlightDetail('${f.id}')">
             <div class="ho-card-top">
                 <div class="ho-card-flight">
@@ -244,7 +306,7 @@ function renderHomeFlightOverlay(upcoming) {
             </div>
             <div class="ho-route">
                 <div class="ho-point">
-                    <div class="ho-code">${f.departure}</div>
+                    <div class="ho-code">${f.departure} ${depT}</div>
                     <div class="ho-time">${f.dep_time || '--:--'}</div>
                     <div class="ho-city">${getAirportCity(depAirport)}</div>
                 </div>
@@ -253,13 +315,16 @@ function renderHomeFlightOverlay(upcoming) {
                     <div class="ho-date">${formatDate(f.date)}</div>
                 </div>
                 <div class="ho-point right">
-                    <div class="ho-code">${f.arrival}</div>
+                    <div class="ho-code">${f.arrival} ${arrT}</div>
                     <div class="ho-time">${f.arr_time || '--:--'}</div>
                     <div class="ho-city">${getAirportCity(arrAirport)}</div>
                 </div>
             </div>
         </div>`;
     }).join('');
+
+    // 初始化拖拽折叠
+    initHomeOverlayDrag();
 }
 
 // ==================== 行程地图 (全功能筛选) ====================
@@ -354,6 +419,15 @@ function resetFlightsMapFilter() {
     const allStatus = document.querySelector('.fmap-pill[data-fmap-status="all"]');
     if (allStatus) allStatus.classList.add('active');
     applyFlightsMapFilter();
+}
+
+let _fmapFilterVisible = false;
+function toggleFmapFilter() {
+    _fmapFilterVisible = !_fmapFilterVisible;
+    const bar = document.getElementById('fmap-filter-bar');
+    const btn = document.getElementById('fmap-toggle-filter');
+    if (bar) bar.classList.toggle('hidden', !_fmapFilterVisible);
+    if (btn) btn.textContent = _fmapFilterVisible ? t('fmapHideFilter') : t('fmapShowFilter');
 }
 
 function renderFlightsMapRoutes() {
@@ -568,35 +642,79 @@ function renderRankings(routes, airlinesData) {
     }
     if (airlinesData?.length > 0) {
         const maxA = airlinesData[0].count;
-        airlinesList.innerHTML = airlinesData.map((a, i) => `<div class="ranking-item"><span class="ranking-rank">${['🥇','🥈','🥉','4️⃣','5️⃣'][i]}</span><span class="ranking-name">${a.airline}</span><div class="ranking-bar-wrap"><div class="ranking-bar" style="width:${Math.round(a.count/maxA*100)}%"></div></div><span class="ranking-count">${a.count}</span></div>`).join('');
+        airlinesList.innerHTML = airlinesData.map((a, i) => `<div class="ranking-item"><span class="ranking-rank">${['🥇','🥈','🥉','4️⃣','5️⃣'][i]}</span><span class="ranking-name">${typeof translateAirline === 'function' ? translateAirline(a.airline) : a.airline}</span><div class="ranking-bar-wrap"><div class="ranking-bar" style="width:${Math.round(a.count/maxA*100)}%"></div></div><span class="ranking-count">${a.count}</span></div>`).join('');
     }
 }
 
+let _currentChartMonth = null;
+let _cachedMonthData = null;
+
 function renderMonthlyChart(monthData) {
     const container = document.getElementById('monthly-chart');
+    const selectorEl = document.getElementById('month-selector');
     if (!container || !monthData) return;
+    _cachedMonthData = monthData;
+
     const months = Object.keys(monthData).sort();
-    if (months.length === 0) { container.innerHTML = ''; return; }
-    // Determine year range and fill all months
-    const years = [...new Set(months.map(m => m.substring(0, 4)))];
-    const allMonths = [];
-    years.forEach(y => {
-        for (let m = 1; m <= 12; m++) {
-            const key = `${y}-${String(m).padStart(2, '0')}`;
-            allMonths.push(key);
-        }
-    });
-    // If all in same year, just show that year's months
-    const displayMonths = years.length === 1 ? allMonths : months;
-    const max = Math.max(...displayMonths.map(m => monthData[m] || 0));
-    const monthFlights = cachedStatsData?.fun_stats?.month_flights || {};
-    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    container.innerHTML = displayMonths.map(m => {
-        const val = monthData[m] || 0;
-        const mIdx = parseInt(m.substring(5)) - 1;
-        const label = years.length === 1 ? monthNames[mIdx] : m.substring(5);
-        return `<div class="month-bar-col${val > 0 ? ' month-bar-clickable' : ''}" ${val > 0 ? `onclick="toggleMonthDetail(this, '${m}')"` : ''}><div class="month-bar-value">${val || ''}</div><div class="month-bar" style="height:${max ? Math.round((val || 0) / max * 120) : 0}px"></div><div class="month-bar-label">${label}</div>${val > 0 ? `<div class="month-detail-popup" style="display:none">${(monthFlights[m] || []).slice(0, 8).map(f => `<div class="month-detail-item">${f.flight_no} ${f.route} <small>${f.date}</small></div>`).join('')}</div>` : ''}</div>`;
+    if (months.length === 0) { container.innerHTML = ''; if (selectorEl) selectorEl.innerHTML = ''; return; }
+
+    // Default to current month if available, or the last month with data
+    const now = new Date();
+    const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    if (!_currentChartMonth || !months.includes(_currentChartMonth)) {
+        _currentChartMonth = months.includes(currentYM) ? currentYM : months[months.length - 1];
+    }
+
+    // Render month selector nav
+    if (selectorEl) {
+        const idx = months.indexOf(_currentChartMonth);
+        const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+        const mIdx = parseInt(_currentChartMonth.substring(5)) - 1;
+        const year = _currentChartMonth.substring(0, 4);
+        const label = `${year} ${monthNames[mIdx]}`;
+        selectorEl.innerHTML = `
+            <button class="month-nav-btn" ${idx <= 0 ? 'disabled' : ''} onclick="changeChartMonth(-1)">◀</button>
+            <span class="month-nav-label">${label}</span>
+            <button class="month-nav-btn" ${idx >= months.length - 1 ? 'disabled' : ''} onclick="changeChartMonth(1)">▶</button>
+        `;
+    }
+
+    // Get day-level data for this month
+    const dayFlights = cachedStatsData?.fun_stats?.day_flights || {};
+    const ym = _currentChartMonth;
+    const yearNum = parseInt(ym.substring(0, 4));
+    const monNum = parseInt(ym.substring(5));
+    const daysInMonth = new Date(yearNum, monNum, 0).getDate();
+
+    // Build day counts
+    const dayCounts = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dayKey = `${ym}-${String(d).padStart(2, '0')}`;
+        const flightsArr = dayFlights[dayKey] || [];
+        dayCounts.push({ day: d, count: flightsArr.length, flights: flightsArr, key: dayKey });
+    }
+
+    const max = Math.max(...dayCounts.map(d => d.count), 1);
+
+    container.innerHTML = dayCounts.map(d => {
+        const val = d.count;
+        return `<div class="month-bar-col${val > 0 ? ' month-bar-clickable' : ''}" ${val > 0 ? `onclick="toggleMonthDetail(this, '${d.key}')"` : ''}>
+            <div class="month-bar-value">${val || ''}</div>
+            <div class="month-bar" style="height:${max ? Math.round(val / max * 100) : 0}px"></div>
+            <div class="month-bar-label">${d.day}</div>
+            ${val > 0 ? `<div class="month-detail-popup" style="display:none">${d.flights.slice(0, 8).map(f => `<div class="month-detail-item">${f.flight_no} ${f.route} <small>${f.date}</small></div>`).join('')}</div>` : ''}
+        </div>`;
     }).join('');
+}
+
+function changeChartMonth(dir) {
+    if (!_cachedMonthData) return;
+    const months = Object.keys(_cachedMonthData).sort();
+    const idx = months.indexOf(_currentChartMonth);
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= months.length) return;
+    _currentChartMonth = months[newIdx];
+    renderMonthlyChart(_cachedMonthData);
 }
 
 // ==================== 时间筛选 (列表用) ====================
@@ -791,7 +909,7 @@ function showFlightDetail(flightId) {
         <div class="detail-info-grid">
             <div class="detail-info-item"><div class="detail-info-label">${t('flightNoLabel')}</div><div class="detail-info-value">${flight.flight_no}</div></div>
             <div class="detail-info-item"><div class="detail-info-label">${t('dateLabel')}</div><div class="detail-info-value">${formatDate(flight.date)}</div></div>
-            <div class="detail-info-item"><div class="detail-info-label">${t('airlineLabel')}</div><div class="detail-info-value">${flight.airline || '-'}</div></div>
+            <div class="detail-info-item"><div class="detail-info-label">${t('airlineLabel')}</div><div class="detail-info-value">${typeof translateAirline === 'function' ? translateAirline(flight.airline) : (flight.airline || '-')}</div></div>
             <div class="detail-info-item"><div class="detail-info-label">${t('aircraftLabel')}</div><div class="detail-info-value">${flight.aircraft || '-'}</div></div>
             <div class="detail-info-item"><div class="detail-info-label">${t('seatLabel')}</div><div class="detail-info-value">${flight.seat || '-'}</div></div>
             <div class="detail-info-item"><div class="detail-info-label">${t('cabinLabel')}</div><div class="detail-info-value">${getCabinText(flight.class)}</div></div>
@@ -1141,7 +1259,7 @@ function shareFlightCard() {
     const flight = flights.find(f => f.id === currentFlightId);
     if (!flight) return;
     const dep = flight.dep_airport || {}, arr = flight.arr_airport || {};
-    document.getElementById('share-card').innerHTML = `<div class="share-card-inner"><div class="share-card-header"><span class="share-logo">✈️ SkyTrace</span><span class="share-date">${formatDate(flight.date)}</span></div><div class="share-route"><div class="share-point"><div class="share-code">${flight.departure}</div><div class="share-city">${getAirportCity(dep)}</div><div class="share-time">${flight.dep_time}</div></div><div class="share-arrow"><div class="share-flight-no">${flight.flight_no}</div><div class="share-line">───── ✈ ─────</div><div class="share-distance">${(flight.distance || 0).toLocaleString()} km</div></div><div class="share-point"><div class="share-code">${flight.arrival}</div><div class="share-city">${getAirportCity(arr)}</div><div class="share-time">${flight.arr_time}</div></div></div><div class="share-details"><div class="share-detail-item"><span class="share-detail-label">${t('airlineLabel')}</span><span>${flight.airline || '-'}</span></div><div class="share-detail-item"><span class="share-detail-label">${t('aircraftLabel')}</span><span>${flight.aircraft || '-'}</span></div><div class="share-detail-item"><span class="share-detail-label">${t('cabinLabel')}</span><span>${getCabinText(flight.class)}</span></div><div class="share-detail-item"><span class="share-detail-label">${t('seatLabel')}</span><span>${flight.seat || '-'}</span></div></div><div class="share-footer"><span>Generated by SkyTrace</span><span>${new Date().toLocaleDateString(getLocale())}</span></div></div>`;
+    document.getElementById('share-card').innerHTML = `<div class="share-card-inner"><div class="share-card-header"><span class="share-logo">✈️ SkyTrace</span><span class="share-date">${formatDate(flight.date)}</span></div><div class="share-route"><div class="share-point"><div class="share-code">${flight.departure}</div><div class="share-city">${getAirportCity(dep)}</div><div class="share-time">${flight.dep_time}</div></div><div class="share-arrow"><div class="share-flight-no">${flight.flight_no}</div><div class="share-line">───── ✈ ─────</div><div class="share-distance">${(flight.distance || 0).toLocaleString()} km</div></div><div class="share-point"><div class="share-code">${flight.arrival}</div><div class="share-city">${getAirportCity(arr)}</div><div class="share-time">${flight.arr_time}</div></div></div><div class="share-details"><div class="share-detail-item"><span class="share-detail-label">${t('airlineLabel')}</span><span>${typeof translateAirline === 'function' ? translateAirline(flight.airline) : (flight.airline || '-')}</span></div><div class="share-detail-item"><span class="share-detail-label">${t('aircraftLabel')}</span><span>${flight.aircraft || '-'}</span></div><div class="share-detail-item"><span class="share-detail-label">${t('cabinLabel')}</span><span>${getCabinText(flight.class)}</span></div><div class="share-detail-item"><span class="share-detail-label">${t('seatLabel')}</span><span>${flight.seat || '-'}</span></div></div><div class="share-footer"><span>Generated by SkyTrace</span><span>${new Date().toLocaleDateString(getLocale())}</span></div></div>`;
     document.getElementById('share-modal').classList.add('active');
 }
 function closeShareModal() { document.getElementById('share-modal').classList.remove('active'); }

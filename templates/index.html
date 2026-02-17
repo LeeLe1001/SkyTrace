@@ -52,9 +52,9 @@
                 <span class="logo-text">SkyTrace</span>
             </div>
             <nav class="nav-tabs">
-                <button class="nav-tab active" data-tab="home" data-i18n="navHome">🏠 首页</button>
-                <button class="nav-tab" data-tab="flights" data-i18n="navFlights">📋 行程</button>
-                <button class="nav-tab" data-tab="calendar" data-i18n="navCalendar">📅 日历</button>
+                <button class="nav-tab active" data-tab="home"><span class="nav-tab-icon">🏠</span><span data-i18n="navHome">首页</span></button>
+                <button class="nav-tab" data-tab="flights"><span class="nav-tab-icon">📋</span><span data-i18n="navFlights">行程</span></button>
+                <button class="nav-tab" data-tab="calendar"><span class="nav-tab-icon">📅</span><span data-i18n="navCalendar">日历</span></button>
             </nav>
             <div class="header-actions">
                 <button class="btn-settings" onclick="openSettings()" data-i18n-title="settingsTitle" title="设置">⚙️</button>
@@ -71,7 +71,10 @@
                 <div class="home-overlay-handle"></div>
                 <div class="home-overlay-header">
                     <span class="home-overlay-title" data-i18n="filterUpcoming">待出行</span>
-                    <span class="home-overlay-count" id="home-overlay-count">0</span>
+                    <div class="home-overlay-right">
+                        <span class="home-overlay-count" id="home-overlay-count">0</span>
+                        <span class="home-overlay-expand-hint" id="ho-expand-hint">▲</span>
+                    </div>
                 </div>
                 <div class="home-overlay-list" id="home-overlay-list"></div>
             </div>
@@ -90,9 +93,6 @@
                 <div class="flights-sub-view active" id="flights-list-subview">
                     <div class="flights-header">
                         <h2 data-i18n="myTrips">我的行程</h2>
-                        <div class="flights-header-actions">
-                            <button class="btn-connect-flights" onclick="toggleConnectMode()" id="btn-connect" data-i18n-title="connectFlights" title="联程">🔗</button>
-                        </div>
                         <div class="filter-tabs">
                             <button class="filter-tab" data-filter="all" data-i18n="filterAll">全部</button>
                             <button class="filter-tab active" data-filter="upcoming" data-i18n="filterUpcoming">待出行</button>
@@ -100,9 +100,15 @@
                         </div>
                     </div>
                     <div class="time-filter">
-                        <div class="time-filter-header" onclick="toggleTimeFilter()">
-                            <span data-i18n="timeFilter">📅 日期筛选</span>
-                            <span class="time-filter-arrow" id="time-filter-toggle">▼</span>
+                        <div class="time-filter-header">
+                            <div class="time-filter-left" onclick="toggleTimeFilter()">
+                                <span data-i18n="timeFilter">📅 日期筛选</span>
+                                <span class="time-filter-arrow" id="time-filter-toggle">▼</span>
+                            </div>
+                            <button class="btn-connect-inline" onclick="toggleConnectMode()" id="btn-connect">
+                                <span class="connect-icon">🔗</span>
+                                <span data-i18n="connectFlights">关联行程</span>
+                            </button>
                         </div>
                         <div class="time-filter-body" id="time-filter-body">
                             <div class="time-filter-row">
@@ -126,7 +132,8 @@
                 <div class="flights-sub-view" id="flights-map-subview">
                     <div class="fmap-wrapper">
                         <div id="flights-map" class="flights-full-map"></div>
-                        <div class="fmap-filter-bar">
+                        <button class="fmap-toggle-filter" id="fmap-toggle-filter" onclick="toggleFmapFilter()">🔍 筛选</button>
+                        <div class="fmap-filter-bar hidden" id="fmap-filter-bar">
                             <div class="fmap-status-pills">
                                 <button class="fmap-pill active" data-fmap-status="all" data-i18n="filterAll">全部</button>
                                 <button class="fmap-pill" data-fmap-status="upcoming" data-i18n="filterUpcoming">待出行</button>
@@ -231,6 +238,7 @@
                         </div>
                         <div class="chart-section" id="chart-section">
                             <h3>📊 <span data-i18n="monthlyChart">月度飞行</span></h3>
+                            <div class="month-selector" id="month-selector"></div>
                             <div class="monthly-chart" id="monthly-chart"></div>
                         </div>
                     </div>

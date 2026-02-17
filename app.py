@@ -896,17 +896,23 @@ def get_stats():
 
     # 月度航班明细
     month_flights_detail = {}
+    day_flights_detail = {}
     for flight in flights:
         d = flight.get('date', '')
         if len(d) >= 7:
             m = d[:7]
             if m not in month_flights_detail:
                 month_flights_detail[m] = []
-            month_flights_detail[m].append({
+            flight_info = {
                 'flight_no': flight.get('flight_no', ''),
                 'route': f"{flight.get('departure','')}-{flight.get('arrival','')}",
                 'date': flight.get('date', ''),
-            })
+            }
+            month_flights_detail[m].append(flight_info)
+            if len(d) >= 10:
+                if d not in day_flights_detail:
+                    day_flights_detail[d] = []
+                day_flights_detail[d].append(flight_info)
 
     # 7. 平均飞行距离/时长
     avg_distance = round(total_distance / len(flights)) if flights else 0
@@ -945,6 +951,7 @@ def get_stats():
         'weekday_distribution': weekday_counts,
         'weekday_flights': weekday_flights_detail,
         'month_flights': month_flights_detail,
+        'day_flights': day_flights_detail,
         'avg_distance': avg_distance,
         'avg_hours': avg_hours,
     }
