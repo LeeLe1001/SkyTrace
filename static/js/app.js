@@ -25,6 +25,47 @@ let connectMode = false;
 let selectedConnectIds = new Set();
 let currentStatsYear = 'all';
 let cachedStatsData = null;
+let homeRoutesByFlight = {};
+let _currentCenterSlide = null;
+
+// ==================== 航空公司 Logo 映射 (IATA → soaring-symbols slug) ====================
+const AIRLINE_LOGO_MAP = {
+    'A3':'aegean-airlines','EI':'aer-lingus','AR':'aerolineas-argentinas','AM':'aeromexico',
+    'ZB':'air-albania','AH':'air-algerie','KC':'air-astana','AC':'air-canada',
+    'EN':'air-dolomiti','UX':'air-europa','AF':'air-france','AI':'air-india',
+    'MK':'air-mauritius','NZ':'air-new-zealand','JU':'air-serbia','TS':'air-transat',
+    'AK':'airasia','KT':'airasia','FD':'airasia','QZ':'airasia','Z2':'airasia',
+    'BT':'airbaltic','QP':'akasa-air','AS':'alaska-airlines','OZ':'asiana-airlines',
+    'RC':'atlantic-airways','AV':'avianca','LR':'avianca','2K':'avianca','TA':'avianca',
+    'J2':'azerbaijan-airlines','QH':'bamboo-airways','PG':'bangkok-airways',
+    'BA':'british-airways','SN':'brussels-airlines','CX':'cathay-pacific','CM':'copa-airlines',
+    'EK':'emirates','ET':'ethiopian-airlines','EY':'etihad-airways','EW':'eurowings',
+    'ZD':'ewa-air','FJ':'fiji-airways','FY':'firefly','XY':'flynas',
+    'GA':'garuda-indonesia','UO':'hk-express','IB':'iberia','FI':'icelandair',
+    '6E':'indigo','JL':'japan-airlines','JQ':'jetstar','GK':'jetstar',
+    'KQ':'kenya-airways','KL':'klm','KE':'korean-air','KU':'kuwait-airways',
+    'LA':'latam-airlines','JJ':'latam-airlines','4C':'latam-airlines','XL':'latam-airlines',
+    'LP':'latam-airlines','PZ':'latam-airlines','LO':'lot-polish-airlines','LH':'lufthansa',
+    'MH':'malaysia-airlines','UB':'myanmar-national-airlines','WY':'oman-air',
+    'ZP':'paranair','MM':'peach-aviation','PR':'philippine-airlines','QF':'qantas',
+    'QR':'qatar-airways','RX':'riyadh-air','AT':'royal-air-maroc','BI':'royal-brunei-airlines',
+    'FR':'ryanair','SV':'saudia','SK':'scandinavian-airlines','SL':'scandinavian-airlines',
+    'TR':'scoot','SQ':'singapore-airlines','WN':'southwest-airlines','JX':'starlux-airlines',
+    '9G':'sun-phuquoc-airways','LX':'swiss','TW':'tway-air','TP':'tap-air-portugal',
+    'RO':'tarom','TG':'thai-airways','HV':'transavia','TK':'turkish-airlines',
+    'UA':'united-airlines','VJ':'vietjet-air','VN':'vietnam-airlines',
+    'VS':'virgin-atlantic','VA':'virgin-australia','WS':'westjet',
+    'W6':'wizz-air','5W':'wizz-air','W9':'wizz-air','MF':'xiamenair',
+};
+const LOGO_BASE = 'https://raw.githubusercontent.com/anhthang/soaring-symbols/main/assets/';
+function getAirlineLogoHtml(flightNo) {
+    const iata = (flightNo || '').match(/^([A-Z0-9]{2})/i)?.[1]?.toUpperCase();
+    const slug = iata ? AIRLINE_LOGO_MAP[iata] : null;
+    if (slug) {
+        return `<img class="airline-logo" src="${LOGO_BASE}${slug}/icon.svg" alt="${iata}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="airline-logo-fallback" style="display:none">${iata}</span>`;
+    }
+    return iata ? `<span class="airline-logo-fallback">${iata}</span>` : '';
+}
 
 // ==================== 主题系统 ====================
 const TILE_DARK = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
@@ -153,11 +194,11 @@ function renderHomeRoutes() {
     if (!homeMap) return;
     homeArcLayers.forEach(l => { try { homeMap.removeLayer(l); } catch(e) {} });
     homeArcLayers = [];
+    homeRoutesByFlight = {};
 
     const todayStr = getLocalTodayStr();
     const upcoming = flights.filter(f => f.status_info?.status !== 'completed' && f.date >= todayStr);
     const visitedAirports = new Set();
-    // Build a map of terminal info per airport code
     const airportTerminals = {};
 
     upcoming.forEach(flight => {
@@ -166,17 +207,20 @@ function renderHomeRoutes() {
         if (!dep || !arr || !dep.lat || !arr.lat) return;
         visitedAirports.add(flight.departure);
         visitedAirports.add(flight.arrival);
-        // Collect terminal info
         if (flight.dep_terminal && !airportTerminals[flight.departure]) airportTerminals[flight.departure] = flight.dep_terminal;
         if (flight.arr_terminal && !airportTerminals[flight.arrival]) airportTerminals[flight.arrival] = flight.arr_terminal;
 
+        const flightLayers = [];
         const generator = new arc.GreatCircle({ x: dep.lon, y: dep.lat }, { x: arr.lon, y: arr.lat });
         const arcLine = generator.Arc(50, { offset: 10 });
         arcLine.geometries.forEach(geo => {
             const coords = geo.coords.map(c => [c[1], c[0]]);
-            homeArcLayers.push(L.polyline(coords, { color: '#3b82f6', weight: 4, opacity: 0.3 }).addTo(homeMap));
-            homeArcLayers.push(L.polyline(coords, { color: '#60a5fa', weight: 2, opacity: 0.8 }).addTo(homeMap));
+            const glow = L.polyline(coords, { color: '#3b82f6', weight: 4, opacity: 0.3 }).addTo(homeMap);
+            const line = L.polyline(coords, { color: '#60a5fa', weight: 2, opacity: 0.8 }).addTo(homeMap);
+            homeArcLayers.push(glow, line);
+            flightLayers.push(glow, line);
         });
+        homeRoutesByFlight[flight.id] = flightLayers;
     });
 
     visitedAirports.forEach(code => {
@@ -201,7 +245,7 @@ function renderHomeRoutes() {
     renderHomeFlightOverlay(upcoming);
 }
 
-// ==================== 首页覆盖层拖拽展开/收起 ====================
+// ==================== 首页覆盖层拖拽展开/收起 + 水平轮播 ====================
 let _hoExpanded = false;
 let _hoDragStartY = 0;
 let _hoStartH = 0;
@@ -211,25 +255,48 @@ function initHomeOverlayDrag() {
     el._dragInited = true;
     const handle = el.querySelector('.home-overlay-handle');
     const header = el.querySelector('.home-overlay-header');
-    // Click header to toggle
-    if (header) header.addEventListener('click', () => toggleHomeOverlay());
+    // Click header: if faded/collapsed, expand; otherwise toggle
+    if (header) header.addEventListener('click', () => {
+        if (el.classList.contains('faded') || el.offsetHeight < 70) {
+            expandHomeOverlay();
+        } else {
+            toggleHomeOverlay();
+        }
+    });
     // Touch drag on handle
     if (handle) {
         handle.addEventListener('touchstart', e => {
             _hoDragStartY = e.touches[0].clientY;
             _hoStartH = el.offsetHeight;
             el.style.transition = 'none';
+            el.classList.remove('faded');
+            el.style.opacity = '1';
         }, {passive: true});
         handle.addEventListener('touchmove', e => {
             const dy = _hoDragStartY - e.touches[0].clientY;
-            const newH = Math.max(80, Math.min(window.innerHeight * 0.85, _hoStartH + dy));
+            const newH = Math.max(20, Math.min(window.innerHeight * 0.85, _hoStartH + dy));
             el.style.maxHeight = newH + 'px';
+            // Fade when close to minimum
+            if (newH < 60) {
+                el.style.opacity = String(Math.max(0.4, newH / 60));
+            } else {
+                el.style.opacity = '1';
+            }
         }, {passive: true});
         handle.addEventListener('touchend', () => {
-            el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1)';
+            el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
             const h = el.offsetHeight;
-            const threshold = window.innerHeight * 0.25;
-            if (h > threshold) { expandHomeOverlay(); } else { collapseHomeOverlay(); }
+            if (h < 60) {
+                // Fade out to minimum
+                el.style.maxHeight = '40px';
+                el.style.opacity = '0.5';
+                el.classList.add('faded');
+                _hoExpanded = false;
+            } else if (h > window.innerHeight * 0.3) {
+                expandHomeOverlay();
+            } else {
+                collapseHomeOverlay();
+            }
         });
     }
     // Start collapsed
@@ -242,22 +309,21 @@ function expandHomeOverlay() {
     _hoExpanded = true;
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
-    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1)';
+    el.classList.remove('faded');
+    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
     el.style.maxHeight = '75vh';
+    el.style.opacity = '1';
     el.classList.add('expanded');
-    const list = el.querySelector('.home-overlay-list');
-    if (list) list.style.overflow = 'auto';
 }
 function collapseHomeOverlay() {
     _hoExpanded = false;
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
-    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1)';
-    // Show just header + 1 card (~140px)
+    el.classList.remove('faded');
+    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
     el.style.maxHeight = '155px';
+    el.style.opacity = '1';
     el.classList.remove('expanded');
-    const list = el.querySelector('.home-overlay-list');
-    if (list) { list.scrollTop = 0; list.style.overflow = 'hidden'; }
 }
 
 function renderHomeFlightOverlay(upcoming) {
@@ -275,56 +341,163 @@ function renderHomeFlightOverlay(upcoming) {
         return;
     }
 
-    listEl.innerHTML = sorted.map(f => {
-        const depAirport = f.dep_airport || {};
-        const arrAirport = f.arr_airport || {};
-        const statusInfo = f.status_info || {};
-        let countdown = '';
-        let countdownClass = '';
-        if (statusInfo.countdown) {
-            countdown = renderCountdown(statusInfo.countdown);
-            countdownClass = 'imminent';
+    // Group connected flights into carousel slides
+    const slides = [];
+    const grouped = new Set();
+    sorted.forEach(f => {
+        if (grouped.has(f.id)) return;
+        if (f.connected_group) {
+            const group = sorted.filter(g => g.connected_group === f.connected_group);
+            group.forEach(g => grouped.add(g.id));
+            slides.push({ isGroup: true, flights: group, ids: group.map(g => g.id) });
         } else {
-            const now = new Date();
-            const depDate = new Date(f.date + 'T00:00:00');
-            const days = Math.ceil((depDate - now) / (1000 * 60 * 60 * 24));
-            if (days <= 0) { countdown = t('today') || '今天'; countdownClass = 'imminent'; }
-            else if (days === 1) { countdown = t('tomorrow') || '明天'; countdownClass = 'imminent'; }
-            else if (days <= 7) { countdown = `${days}${t('daysUnit') || '天'}`; countdownClass = 'soon'; }
-            else { countdown = `${days}${t('daysUnit') || '天'}`; }
+            grouped.add(f.id);
+            slides.push({ isGroup: false, flights: [f], ids: [f.id] });
         }
-        const airlineName = (typeof translateAirline === 'function') ? translateAirline(f.airline || '') : (f.airline || '');
-        const depT = f.dep_terminal ? `<span class="ho-terminal">T${f.dep_terminal}</span>` : '';
-        const arrT = f.arr_terminal ? `<span class="ho-terminal">T${f.arr_terminal}</span>` : '';
-        return `<div class="ho-card" onclick="showFlightDetail('${f.id}')">
-            <div class="ho-card-top">
-                <div class="ho-card-flight">
-                    <span class="ho-flight-no">${f.flight_no}</span>
-                    <span class="ho-airline">${airlineName}</span>
-                </div>
-                <div class="ho-countdown ${countdownClass}">${countdown}</div>
-            </div>
-            <div class="ho-route">
-                <div class="ho-point">
-                    <div class="ho-code">${f.departure} ${depT}</div>
-                    <div class="ho-time">${f.dep_time || '--:--'}</div>
-                    <div class="ho-city">${getAirportCity(depAirport)}</div>
-                </div>
-                <div class="ho-line">
-                    <div class="ho-line-track"><div class="ho-line-dot start"></div><div class="ho-line-bar"></div><div class="ho-line-plane">✈</div><div class="ho-line-dot end"></div></div>
-                    <div class="ho-date">${formatDate(f.date)}</div>
-                </div>
-                <div class="ho-point right">
-                    <div class="ho-code">${f.arrival} ${arrT}</div>
-                    <div class="ho-time">${f.arr_time || '--:--'}</div>
-                    <div class="ho-city">${getAirportCity(arrAirport)}</div>
-                </div>
-            </div>
-        </div>`;
-    }).join('');
+    });
 
-    // 初始化拖拽折叠
+    let html = '<div class="ho-carousel-spacer"></div>';
+    slides.forEach((slide, idx) => {
+        const flightIds = slide.ids.join(',');
+        html += `<div class="ho-carousel-slide" data-flight-ids="${flightIds}" data-slide-idx="${idx}">`;
+        slide.flights.forEach(f => { html += renderHoCard(f); });
+        html += `</div>`;
+    });
+    html += '<div class="ho-carousel-spacer"></div>';
+    listEl.innerHTML = html;
+
+    // Init drag and carousel
     initHomeOverlayDrag();
+    requestAnimationFrame(() => initCarouselScroll());
+}
+
+function renderHoCard(f) {
+    const depAirport = f.dep_airport || {};
+    const arrAirport = f.arr_airport || {};
+    const statusInfo = f.status_info || {};
+    let countdown = '';
+    let countdownClass = '';
+    if (statusInfo.countdown) {
+        countdown = renderCountdown(statusInfo.countdown);
+        countdownClass = 'imminent';
+    } else {
+        const now = new Date();
+        const depDate = new Date(f.date + 'T00:00:00');
+        const days = Math.ceil((depDate - now) / (1000 * 60 * 60 * 24));
+        if (days <= 0) { countdown = t('today') || '今天'; countdownClass = 'imminent'; }
+        else if (days === 1) { countdown = t('tomorrow') || '明天'; countdownClass = 'imminent'; }
+        else if (days <= 7) { countdown = `${days}${t('daysUnit') || '天'}`; countdownClass = 'soon'; }
+        else { countdown = `${days}${t('daysUnit') || '天'}`; }
+    }
+    const airlineName = (typeof translateAirline === 'function') ? translateAirline(f.airline || '') : (f.airline || '');
+    const depT = f.dep_terminal ? `<span class="ho-terminal">T${f.dep_terminal}</span>` : '';
+    const arrT = f.arr_terminal ? `<span class="ho-terminal">T${f.arr_terminal}</span>` : '';
+    const logo = getAirlineLogoHtml(f.flight_no);
+    return `<div class="ho-card" onclick="showFlightDetail('${f.id}')">
+        <div class="ho-card-top">
+            <div class="ho-card-flight">
+                ${logo}
+                <span class="ho-flight-no">${f.flight_no}</span>
+                <span class="ho-airline">${airlineName}</span>
+            </div>
+            <div class="ho-countdown ${countdownClass}">${countdown}</div>
+        </div>
+        <div class="ho-route">
+            <div class="ho-point">
+                <div class="ho-code">${f.departure} ${depT}</div>
+                <div class="ho-time">${f.dep_time || '--:--'}</div>
+                <div class="ho-city">${getAirportCity(depAirport)}</div>
+            </div>
+            <div class="ho-line">
+                <div class="ho-line-track"><div class="ho-line-dot start"></div><div class="ho-line-bar"></div><div class="ho-line-plane">✈</div><div class="ho-line-dot end"></div></div>
+                <div class="ho-date">${formatDate(f.date)}</div>
+            </div>
+            <div class="ho-point right">
+                <div class="ho-code">${f.arrival} ${arrT}</div>
+                <div class="ho-time">${f.arr_time || '--:--'}</div>
+                <div class="ho-city">${getAirportCity(arrAirport)}</div>
+            </div>
+        </div>
+    </div>`;
+}
+
+// ==================== 轮播滚动 + 航线高亮 ====================
+function initCarouselScroll() {
+    const list = document.getElementById('home-overlay-list');
+    if (!list || list._carouselInited) return;
+    list._carouselInited = true;
+
+    let scrollTimer = null;
+    list.addEventListener('scroll', () => {
+        if (scrollTimer) cancelAnimationFrame(scrollTimer);
+        scrollTimer = requestAnimationFrame(() => updateCarouselFade());
+    }, { passive: true });
+
+    // Initial fade + highlight
+    setTimeout(() => updateCarouselFade(), 50);
+}
+
+function updateCarouselFade() {
+    const list = document.getElementById('home-overlay-list');
+    if (!list) return;
+    const slides = list.querySelectorAll('.ho-carousel-slide');
+    if (slides.length === 0) return;
+
+    const listRect = list.getBoundingClientRect();
+    const centerX = listRect.left + listRect.width / 2;
+
+    let closestSlide = null;
+    let closestDist = Infinity;
+
+    slides.forEach(slide => {
+        const slideRect = slide.getBoundingClientRect();
+        const slideCenter = slideRect.left + slideRect.width / 2;
+        const dist = Math.abs(slideCenter - centerX);
+        const norm = dist / listRect.width;
+
+        const opacity = Math.max(0.3, 1 - norm * 2.2);
+        const scale = Math.max(0.92, 1 - norm * 0.12);
+        slide.style.opacity = opacity;
+        slide.style.transform = `scale(${scale})`;
+
+        if (dist < closestDist) {
+            closestDist = dist;
+            closestSlide = slide;
+        }
+    });
+
+    if (closestSlide && closestSlide !== _currentCenterSlide) {
+        _currentCenterSlide = closestSlide;
+        const flightIds = (closestSlide.dataset.flightIds || '').split(',').filter(Boolean);
+        highlightRouteForSlide(flightIds);
+    }
+}
+
+function highlightRouteForSlide(targetIds) {
+    if (!homeMap || Object.keys(homeRoutesByFlight).length === 0) return;
+
+    // Dim all route lines
+    Object.entries(homeRoutesByFlight).forEach(([id, layers]) => {
+        const isTarget = targetIds.includes(id);
+        layers.forEach((l, i) => {
+            if (l.setStyle) {
+                if (isTarget) {
+                    if (i % 2 === 0) l.setStyle({ color: '#3b82f6', weight: 5, opacity: 0.5 });
+                    else l.setStyle({ color: '#60a5fa', weight: 3, opacity: 1 });
+                } else {
+                    if (i % 2 === 0) l.setStyle({ opacity: 0.08, weight: 3 });
+                    else l.setStyle({ opacity: 0.15, weight: 1.5 });
+                }
+            }
+        });
+    });
+
+    // Keep markers visible
+    homeArcLayers.forEach(l => {
+        if (l instanceof L.CircleMarker && l.setStyle) {
+            l.setStyle({ fillOpacity: 0.7, opacity: 0.7 });
+        }
+    });
 }
 
 // ==================== 行程地图 (全功能筛选) ====================
@@ -760,7 +933,6 @@ function renderFlightsList(filter = currentStatusFilter) {
         displayFlights = filteredFlights.filter(f => f.status_info?.status === 'completed');
         displayFlights.sort((a, b) => b.date.localeCompare(a.date) || (b.dep_time || '').localeCompare(a.dep_time || ''));
     } else {
-        // "全部" - 从新到旧
         displayFlights = [...filteredFlights].sort((a, b) => b.date.localeCompare(a.date) || (b.dep_time || '').localeCompare(a.dep_time || ''));
     }
 
@@ -771,12 +943,31 @@ function renderFlightsList(filter = currentStatusFilter) {
         return;
     }
 
-    container.innerHTML = groupedFlights.map(item => {
-        if (item.isGroup) {
-            return `<div class="connected-group"><div class="connected-group-header"><span class="connected-badge">🔗 ${t('connectedFlight')}</span><button class="btn-disconnect" onclick="event.stopPropagation();disconnectGroup('${item.groupId}')" title="${t('disconnect')}">✕</button></div>${item.flights.map(f => renderFlightCard(f)).join('')}</div>`;
-        }
-        return renderFlightCard(item);
-    }).join('');
+    // Group by date
+    const dateGroups = {};
+    groupedFlights.forEach(item => {
+        const date = item.isGroup ? item.flights[0].date : item.date;
+        if (!dateGroups[date]) dateGroups[date] = [];
+        dateGroups[date].push(item);
+    });
+
+    const sortedDates = Object.keys(dateGroups).sort((a, b) => {
+        if (filter === 'upcoming') return a.localeCompare(b);
+        return b.localeCompare(a);
+    });
+
+    let html = '';
+    sortedDates.forEach(date => {
+        html += `<div class="flights-date-header">${formatDate(date)}</div>`;
+        html += dateGroups[date].map(item => {
+            if (item.isGroup) {
+                return `<div class="connected-group"><div class="connected-group-header"><span class="connected-badge">🔗 ${t('connectedFlight')}</span><button class="btn-disconnect" onclick="event.stopPropagation();disconnectGroup('${item.groupId}')" title="${t('disconnect')}">✕</button></div>${item.flights.map(f => renderFlightCard(f)).join('')}</div>`;
+            }
+            return renderFlightCard(item);
+        }).join('');
+    });
+
+    container.innerHTML = html;
 }
 
 function renderFlightCard(flight) {
@@ -799,10 +990,11 @@ function renderFlightCard(flight) {
     const arrTerminal = flight.arr_terminal ? `<span class="terminal-tag">T${flight.arr_terminal}</span>` : '';
     const showGate = statusInfo.status !== 'completed';
     const depGate = showGate ? `<div class="gate-info">${t('gateLabel')}: ${flight.dep_gate || t('gatePending')}</div>` : '';
+    const logo = getAirlineLogoHtml(flight.flight_no);
 
     return `<div class="flight-card ${isSelected ? 'selected-connect' : ''}" onclick="${connectMode ? `toggleConnectSelect('${flight.id}')` : `showFlightDetail('${flight.id}')`}">
         ${connectMode ? `<div class="connect-checkbox">${isSelected ? '☑' : '☐'}</div>` : ''}
-        <div class="flight-card-header"><div class="flight-info"><span class="flight-no">${flight.flight_no}</span><span class="flight-date">${formatDate(flight.date)}</span></div><span class="flight-status ${statusClass}">${getStatusText(statusInfo)}</span></div>
+        <div class="flight-card-header"><div class="flight-info">${logo}<span class="flight-no">${flight.flight_no}</span><span class="flight-date">${formatDate(flight.date)}</span></div><span class="flight-status ${statusClass}">${getStatusText(statusInfo)}</span></div>
         <div class="flight-route">
             <div class="route-point departure"><div class="airport-code">${flight.departure} ${depTerminal}</div><div class="airport-city">${getAirportCity(depAirport)}</div><div class="route-time">${flight.dep_time}</div>${depGate}</div>
             <div class="route-line"><div class="route-line-graphic"></div><div class="route-duration">${duration}</div><div class="route-distance">${(flight.distance || 0).toLocaleString()} km</div></div>

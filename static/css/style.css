@@ -453,7 +453,7 @@ body {
 .flight-info {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
 }
 
 .flight-no {
@@ -1126,6 +1126,7 @@ body {
     .time-filter-row {
         flex-direction: column;
         gap: 10px;
+        align-items: stretch;
     }
 
     .btn-filter-reset {
@@ -3188,12 +3189,19 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background: var(--header-bg);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.88) 0%, rgba(10, 18, 35, 0.95) 100%);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-top: 1px solid rgba(59, 130, 246, 0.15);
     z-index: 1000;
     padding: 6px 0;
     padding-bottom: max(6px, env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+[data-theme="light"] .mobile-nav {
+    background: linear-gradient(180deg, rgba(230, 240, 255, 0.92) 0%, rgba(220, 235, 255, 0.96) 100%);
+    border-top: 1px solid rgba(37, 99, 235, 0.12);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .mobile-nav-tab {
@@ -3316,10 +3324,37 @@ body {
 }
 
 .home-overlay-list {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 0 12px;
+    gap: 0;
+    scrollbar-width: none;
     flex: 1;
-    overflow-y: auto;
-    padding: 4px 16px 16px;
-    scrollbar-width: thin;
+    min-height: 0;
+}
+.home-overlay-list::-webkit-scrollbar {
+    display: none;
+}
+.ho-carousel-spacer {
+    flex: 0 0 10%;
+    min-width: 10%;
+}
+.ho-carousel-slide {
+    scroll-snap-align: center;
+    flex: 0 0 82%;
+    min-width: 82%;
+    padding: 0 6px;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    will-change: opacity, transform;
+}
+.ho-carousel-slide .ho-card {
+    margin-bottom: 8px;
+}
+.ho-carousel-slide .ho-card:last-child {
+    margin-bottom: 0;
 }
 
 .home-overlay-empty {
@@ -3354,8 +3389,8 @@ body {
 }
 .ho-card-flight {
     display: flex;
-    align-items: baseline;
-    gap: 8px;
+    align-items: center;
+    gap: 6px;
 }
 .ho-flight-no {
     font-size: 15px;
@@ -3909,4 +3944,61 @@ body {
 
 .settings-theme-icon {
     font-size: 18px;
+}
+
+/* ==================== 航空公司 Logo ==================== */
+.airline-logo {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+.airline-logo-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    flex-shrink: 0;
+    letter-spacing: -0.5px;
+}
+.flight-card .airline-logo,
+.flight-card .airline-logo-fallback {
+    width: 20px;
+    height: 20px;
+    font-size: 8px;
+}
+
+/* ==================== 航班列表日期分组 ==================== */
+.flights-date-header {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 16px 0 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+}
+.flights-date-header:first-child {
+    padding-top: 0;
+}
+
+/* ==================== 首页覆盖层渐隐效果 ==================== */
+.home-flights-overlay.faded {
+    opacity: 0.5;
+    pointer-events: auto;
+}
+.home-flights-overlay.faded .home-overlay-list {
+    opacity: 0;
+    pointer-events: none;
+}
+.home-flights-overlay.faded .home-overlay-header {
+    opacity: 0.7;
 }
