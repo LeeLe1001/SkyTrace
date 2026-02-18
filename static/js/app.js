@@ -566,7 +566,7 @@ function expandHomeOverlay() {
     const nearest = el.querySelector('.home-nearest-card');
     const list = el.querySelector('.home-overlay-list');
     if (nearest) { nearest.style.maxHeight = '0'; nearest.style.opacity = '0'; nearest.style.overflow = 'hidden'; nearest.style.padding = '0'; nearest.style.margin = '0'; }
-    if (list) { list.style.opacity = '1'; list.style.pointerEvents = 'auto'; list.style.height = 'auto'; }
+    if (list) { list.style.opacity = '1'; list.style.pointerEvents = 'auto'; list.style.height = 'auto'; list.scrollTop = 0; }
     // 展开箭头向下
     const hint = el.querySelector('.home-overlay-expand-hint');
     if (hint) hint.textContent = '▼';
