@@ -548,6 +548,11 @@ def service_worker():
     return send_from_directory('.', 'sw.js', mimetype='application/javascript')
 
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory('.', 'favicon.ico', mimetype='image/x-icon')
+
+
 @app.route('/debug')
 def debug_page():
     """纯内联诊断页面 - 不依赖任何外部资源"""

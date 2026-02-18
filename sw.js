@@ -27,6 +27,8 @@ const PRECACHE_URLS = [
   './static/lib/leaflet-heat.js',
   './static/icons/icon-192.png',
   './static/icons/icon-512.png',
+  './static/icons/apple-touch-icon.png',
+  './favicon.ico',
   './static/manifest.json',
   './data/airports.json',
   './data/airlines.json',
