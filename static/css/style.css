@@ -3275,10 +3275,12 @@ body.is-offline .main-content {
 
 /* ==================== PWA Standalone Mode ==================== */
 @media all and (display-mode: standalone) {
+    html {
+        position: fixed;
+        inset: 0;
+    }
     html, body {
-        height: 100vh;
-        height: 100dvh;
-        height: -webkit-fill-available;
+        height: 100%;
     }
     .header {
         padding-top: env(safe-area-inset-top, 20px);
@@ -3294,21 +3296,36 @@ body.is-offline .main-content {
         padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 }
-/* iOS standalone (meta apple-mobile-web-app-capable) 专用 */
-body.is-standalone {
-    height: 100vh !important;
-    height: 100dvh !important;
-    height: -webkit-fill-available !important;
+/* iOS / Android PWA 底部空白终极修复: 背景色延伸超出屏幕边缘 */
+@media all and (display-mode: standalone) {
+    body::before {
+        content: '';
+        position: fixed;
+        top: -100px;
+        left: -100px;
+        right: -100px;
+        bottom: -100px;
+        background: var(--bg-primary);
+        z-index: -1;
+        pointer-events: none;
+    }
 }
-body.is-standalone::after {
+/* 同时兼容 navigator.standalone (iOS meta tag 方式) */
+body.is-standalone {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+body.is-standalone::before {
     content: '';
     position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: env(safe-area-inset-bottom, 34px);
+    top: -100px;
+    left: -100px;
+    right: -100px;
+    bottom: -100px;
     background: var(--bg-primary);
-    z-index: 999;
+    z-index: -1;
     pointer-events: none;
 }
 body.is-standalone .mobile-nav {
