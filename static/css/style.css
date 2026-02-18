@@ -56,6 +56,7 @@ html {
     height: 100%;
     overflow: hidden;
     overscroll-behavior: none;
+    background: var(--bg-primary);
 }
 
 body {
@@ -4514,10 +4515,22 @@ body.fmap-fullscreen-active .flights-sub-view {
         display: flex;
     }
 
-    .main-content {
-        bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    /* 视图用 padding-bottom 避让底部导航栏 (导航悬浮在内容上方) */
+    .view {
+        padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
     }
-    
+    #home-view,
+    #map-view,
+    #flights-view {
+        padding-bottom: 0;
+    }
+    .flights-sub-view.active {
+        padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    }
+    #flights-map-subview.active {
+        padding-bottom: 0;
+    }
+
     .home-flights-overlay {
         bottom: calc(56px + env(safe-area-inset-bottom, 0px));
         border-radius: 20px 20px 0 0;
