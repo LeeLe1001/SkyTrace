@@ -4143,6 +4143,8 @@ body.fmap-fullscreen-active .flights-sub-view {
     overflow: visible !important;
     contain: none !important;
     animation: none !important;
+    /* animation:none 移除了 forwards 填充，需要手动还原到动画终态 */
+    opacity: 1 !important;
 }
 .fmap-fullscreen .flights-full-map {
     width: 100% !important;

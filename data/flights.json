@@ -2880,7 +2880,8 @@
       "stopover": "",
       "arr_day_offset": 0,
       "status": "scheduled",
-      "id": "3ad3ceb2"
+      "id": "3ad3ceb2",
+      "connected_group": "d8564423"
     },
     {
       "flight_no": "HH867",
@@ -2900,7 +2901,8 @@
       "stopover": "",
       "arr_day_offset": 1,
       "status": "scheduled",
-      "id": "c09c2a81"
+      "id": "c09c2a81",
+      "connected_group": "d8564423"
     },
     {
       "id": "fbc084bf",
@@ -3288,8 +3290,7 @@
       "class": "economy",
       "notes": "",
       "stopover": "",
-      "status": "scheduled",
-      "connected_group": "7d4c5774"
+      "status": "scheduled"
     },
     {
       "id": "test_antimeridian_02",
@@ -3309,8 +3310,7 @@
       "class": "economy",
       "notes": "",
       "stopover": "",
-      "status": "scheduled",
-      "connected_group": "7d4c5774"
+      "status": "scheduled"
     },
     {
       "id": "test_antimeridian_03",
@@ -3330,8 +3330,7 @@
       "class": "economy",
       "notes": "",
       "stopover": "",
-      "status": "scheduled",
-      "connected_group": "7d4c5774"
+      "status": "scheduled"
     }
   ]
 }
