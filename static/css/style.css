@@ -1340,24 +1340,6 @@ body.is-offline .main-content .view {
 .detail-boarding-row:last-child {
     border-bottom: none;
 }
-.detail-terminal-row {
-    display: flex;
-    gap: 0;
-}
-.detail-terminal-col {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0;
-}
-.detail-terminal-col:first-child {
-    padding-right: 14px;
-    border-right: 1px solid var(--border);
-}
-.detail-terminal-col:last-child {
-    padding-left: 14px;
-}
 .detail-boarding-label {
     font-size: 13px;
     color: var(--text-muted);

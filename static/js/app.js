@@ -59,14 +59,22 @@ function _fixAntimeridianCoords(geometries) {
             let lon = c[0], lat = c[1];
             if (allCoords.length > 0) {
                 const prevLon = allCoords[allCoords.length - 1][1];
-                // 将经度平移到与前一点最近的位置
                 while (lon - prevLon > 180) lon -= 360;
                 while (prevLon - lon > 180) lon += 360;
             }
             allCoords.push([lat, lon]);
         });
     });
-    return allCoords.length > 1 ? [allCoords] : [];
+    if (allCoords.length < 2) return [];
+    // 检查是否跨越反子午线（有坐标超出 [-180,180]）
+    const minLon = Math.min(...allCoords.map(c => c[1]));
+    const maxLon = Math.max(...allCoords.map(c => c[1]));
+    if (minLon >= -180 && maxLon <= 180) return [allCoords];
+    // 跨反子午线: 返回两份副本，确保两侧半球都可见
+    const result = [allCoords];
+    if (maxLon > 180) result.push(allCoords.map(c => [c[0], c[1] - 360]));
+    if (minLon < -180) result.push(allCoords.map(c => [c[0], c[1] + 360]));
+    return result;
 }
 
 /** 格式化到达时间: 跨日到达加 +1/-1/+2 标识 */
@@ -1696,6 +1704,9 @@ function openAddModal() {
     // Clear airport hints
     ['departure-hint', 'arrival-hint', 'stopover-hint'].forEach(id => { const el = document.getElementById(id); if (el) { el.textContent = ''; el.style.display = 'none'; } });
     document.getElementById('flight-modal').classList.add('active');
+    // 滚动到顶部
+    const formEl = document.getElementById('flight-form');
+    if (formEl) formEl.scrollTop = 0;
 }
 function closeModal() {
     document.getElementById('flight-modal').classList.remove('active');
@@ -1733,17 +1744,14 @@ function showFlightDetail(flightId) {
     if (flight.checkin_counter) gateRows.push(`<div class="detail-boarding-row"><span class="detail-boarding-label">${t('checkinCounter') || '值机柜台'}</span><span class="detail-boarding-value">${flight.checkin_counter}</span></div>`);
     if (flight.baggage_carousel) gateRows.push(`<div class="detail-boarding-row"><span class="detail-boarding-label">${t('baggageCarousel') || '行李转盘'}</span><span class="detail-boarding-value">${flight.baggage_carousel}</span></div>`);
 
-    // 座位/舱位/机型卡片 — 登机信息在上部单列，航站楼一行两列，乘机信息在下部网格
+    // 座位/舱位/机型卡片 — 登机信息在上部单列，乘机信息在下部网格
     const depTerminalFmt = formatTerminal(flight.dep_terminal);
     const arrTerminalFmt = formatTerminal(flight.arr_terminal);
-    // 航站楼作为一行两列放在登机信息区
-    if (depTerminalFmt || arrTerminalFmt) {
-        gateRows.push(`<div class="detail-boarding-row detail-terminal-row"><div class="detail-terminal-col"><span class="detail-boarding-label">${t('depTerminal')}</span><span class="detail-boarding-value">${depTerminalFmt || '-'}</span></div><div class="detail-terminal-col"><span class="detail-boarding-label">${t('arrTerminal')}</span><span class="detail-boarding-value">${arrTerminalFmt || '-'}</span></div></div>`);
-    }
     let seatCardHtml = `<div class="detail-card">
         <div class="detail-card-title">💺 ${t('seatInfo') || '乘机信息'}</div>
         ${gateRows.length > 0 ? `<div class="detail-boarding-section">${gateRows.join('')}</div>` : ''}
         <div class="detail-info-grid detail-info-grid-bordered">
+            ${(depTerminalFmt || arrTerminalFmt) ? `<div class="detail-info-item"><div class="detail-info-label">${t('depTerminal')}</div><div class="detail-info-value">${depTerminalFmt || '-'}</div></div><div class="detail-info-item"><div class="detail-info-label">${t('arrTerminal')}</div><div class="detail-info-value">${arrTerminalFmt || '-'}</div></div>` : ''}
             <div class="detail-info-item"><div class="detail-info-label">${t('aircraftLabel')}</div><div class="detail-info-value">${flight.aircraft || '-'}</div></div>
             <div class="detail-info-item"><div class="detail-info-label">${t('seatLabel')}</div><div class="detail-info-value">${flight.seat || '-'}</div></div>
             <div class="detail-info-item"><div class="detail-info-label">${t('cabinLabel')}</div><div class="detail-info-value">${getCabinText(flight.class)}</div></div>
@@ -1815,6 +1823,9 @@ function editFlight() {
     const advCheck = document.getElementById('show-advanced-fields');
     if (advCheck) { advCheck.checked = hasAdvanced; _toggleAdvancedFields(hasAdvanced); }
     document.getElementById('flight-modal').classList.add('active');
+    // 滚动到顶部
+    const formEl = document.getElementById('flight-form');
+    if (formEl) formEl.scrollTop = 0;
     // Trigger airport name hints
     _showAirportHint('departure'); _showAirportHint('arrival'); _showAirportHint('stopover');
 }
