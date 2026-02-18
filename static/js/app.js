@@ -16,6 +16,8 @@ let fmapStatusFilter = 'all';
 let fmapFilteredFlights = [];
 let fmapHeatLayer = null;
 let _fmapHeatmapOn = false;
+let _homeMirrorMarkers = [];
+let _fmapMirrorMarkers = [];
 
 let airports = {};
 let airlines = {};
@@ -34,7 +36,7 @@ let _currentCenterSlide = null;
 let _isOffline = false;
 let _hoState = 'peek'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
-const SKYTRACE_VERSION = 19;
+const SKYTRACE_VERSION = 20;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -449,7 +451,9 @@ function getLocalTodayStr() {
 function renderHomeRoutes() {
     if (!homeMap) return;
     homeArcLayers.forEach(l => { try { homeMap.removeLayer(l); } catch(e) {} });
+    _homeMirrorMarkers.forEach(l => { try { homeMap.removeLayer(l); } catch(e) {} });
     homeArcLayers = [];
+    _homeMirrorMarkers = [];
     homeRoutesByFlight = {};
 
     const todayStr = getLocalTodayStr();
@@ -483,16 +487,22 @@ function renderHomeRoutes() {
         const airport = airports[code];
         if (!airport) return;
         const terminalHtml = airportTerminals[code] ? `<div style="font-size:11px;color:#3b82f6;margin-top:3px;">${formatTerminal(airportTerminals[code])}</div>` : '';
-        const marker = L.marker([airport.lat, airport.lon], {
-            icon: L.divIcon({
-                className: 'airport-dot-icon',
-                html: '<div class="airport-dot"></div>',
-                iconSize: [12, 12],
-                iconAnchor: [6, 6]
-            })
-        }).addTo(homeMap);
-        marker.bindPopup(`<div style="text-align:center;padding:5px;"><div style="font-size:18px;font-weight:bold;color:#3b82f6;">${code}</div><div style="font-size:13px;color:#666;margin-top:4px;">${getAirportCity(airports[code])} · ${getAirportName(airports[code])}</div>${terminalHtml}</div>`, { className: 'airport-popup' });
+        const dotIcon = L.divIcon({
+            className: 'airport-dot-icon',
+            html: '<div class="airport-dot"></div>',
+            iconSize: [12, 12],
+            iconAnchor: [6, 6]
+        });
+        const popupHtml = `<div style="text-align:center;padding:5px;"><div style="font-size:18px;font-weight:bold;color:#3b82f6;">${code}</div><div style="font-size:13px;color:#666;margin-top:4px;">${getAirportCity(airports[code])} · ${getAirportName(airports[code])}</div>${terminalHtml}</div>`;
+        const marker = L.marker([airport.lat, airport.lon], { icon: dotIcon }).addTo(homeMap);
+        marker.bindPopup(popupHtml, { className: 'airport-popup' });
         homeArcLayers.push(marker);
+        // 反子午线镜像: 在 lon±360 处创建副本，确保跨世界副本可见
+        [-360, 360].forEach(offset => {
+            const m = L.marker([airport.lat, airport.lon + offset], { icon: dotIcon }).addTo(homeMap);
+            m.bindPopup(popupHtml, { className: 'airport-popup' });
+            _homeMirrorMarkers.push(m);
+        });
     });
 
     if (homeArcLayers.length > 0) {
@@ -989,8 +999,8 @@ function highlightRouteForSlide(targetIds) {
         });
     });
 
-    homeArcLayers.forEach(l => {
-        if (l instanceof L.Marker && !(l instanceof L.CircleMarker) && l.setOpacity) {
+    homeArcLayers.concat(_homeMirrorMarkers).forEach(l => {
+        if (l instanceof L.Marker && l.setOpacity) {
             l.setOpacity(0.7);
         }
     });
@@ -1125,6 +1135,14 @@ function toggleFmapHeatmap() {
     _fmapHeatmapOn = !_fmapHeatmapOn;
     const btn = document.getElementById('fmap-heatmap-btn');
     if (btn) btn.classList.toggle('active', _fmapHeatmapOn);
+    // 热力图开启时隐藏航线和机场标记，关闭时恢复
+    fmapArcLayers.concat(_fmapMirrorMarkers).forEach(l => {
+        if (_fmapHeatmapOn) {
+            fmap.removeLayer(l);
+        } else {
+            l.addTo(fmap);
+        }
+    });
     _updateFmapHeatLayer();
 }
 
@@ -1141,21 +1159,27 @@ function _updateFmapHeatLayer() {
         airportCount[f.arrival] = (airportCount[f.arrival] || 0) + 1;
     });
 
+    // 使用 sqrt 归一化，让低频机场也有明显颜色
+    const counts = Object.values(airportCount);
+    const maxSqrt = Math.sqrt(Math.max(...counts, 1));
+
     const heatData = [];
     Object.entries(airportCount).forEach(([code, count]) => {
         const airport = airports[code];
         if (airport?.lat && airport?.lon) {
-            heatData.push([airport.lat, airport.lon, count]);
+            const intensity = Math.sqrt(count) / maxSqrt;
+            heatData.push([airport.lat, airport.lon, intensity]);
         }
     });
 
     if (heatData.length > 0 && typeof L.heatLayer === 'function') {
         fmapHeatLayer = L.heatLayer(heatData, {
-            radius: 35,
-            blur: 25,
+            radius: 38,
+            blur: 28,
             maxZoom: 10,
-            max: Math.max(...heatData.map(d => d[2])),
-            gradient: { 0.2: '#2563eb', 0.4: '#06b6d4', 0.6: '#10b981', 0.8: '#f59e0b', 1.0: '#ef4444' }
+            max: 1.0,
+            minOpacity: 0.35,
+            gradient: { 0.0: '#3b82f6', 0.25: '#06b6d4', 0.5: '#10b981', 0.75: '#f59e0b', 1.0: '#ef4444' }
         }).addTo(fmap);
     }
 }
@@ -1178,7 +1202,9 @@ document.addEventListener('click', e => {
 
 function renderFlightsMapRoutes() {
     fmapArcLayers.forEach(l => fmap.removeLayer(l));
+    _fmapMirrorMarkers.forEach(l => fmap.removeLayer(l));
     fmapArcLayers = [];
+    _fmapMirrorMarkers = [];
     const visitedAirports = new Set();
 
     fmapFilteredFlights.forEach(flight => {
@@ -1204,20 +1230,31 @@ function renderFlightsMapRoutes() {
     visitedAirports.forEach(code => {
         const airport = airports[code];
         if (!airport) return;
-        const marker = L.marker([airport.lat, airport.lon], {
-            icon: L.divIcon({
-                className: 'airport-dot-icon',
-                html: '<div class="airport-dot"></div>',
-                iconSize: [12, 12],
-                iconAnchor: [6, 6]
-            })
-        }).addTo(fmap);
-        marker.bindPopup(`<div style="text-align:center;padding:5px;"><div style="font-size:18px;font-weight:bold;color:#3b82f6;">${code}</div><div style="font-size:13px;color:#666;margin-top:4px;">${getAirportCity(airports[code])} · ${getAirportName(airports[code])}</div></div>`, { className: 'airport-popup' });
+        const dotIcon = L.divIcon({
+            className: 'airport-dot-icon',
+            html: '<div class="airport-dot"></div>',
+            iconSize: [12, 12],
+            iconAnchor: [6, 6]
+        });
+        const popupHtml = `<div style="text-align:center;padding:5px;"><div style="font-size:18px;font-weight:bold;color:#3b82f6;">${code}</div><div style="font-size:13px;color:#666;margin-top:4px;">${getAirportCity(airports[code])} · ${getAirportName(airports[code])}</div></div>`;
+        const marker = L.marker([airport.lat, airport.lon], { icon: dotIcon }).addTo(fmap);
+        marker.bindPopup(popupHtml, { className: 'airport-popup' });
         fmapArcLayers.push(marker);
+        // 反子午线镜像
+        [-360, 360].forEach(offset => {
+            const m = L.marker([airport.lat, airport.lon + offset], { icon: dotIcon }).addTo(fmap);
+            m.bindPopup(popupHtml, { className: 'airport-popup' });
+            _fmapMirrorMarkers.push(m);
+        });
     });
 
     // 更新热力图层
     _updateFmapHeatLayer();
+
+    // 热力图模式下隐藏航线和标记
+    if (_fmapHeatmapOn) {
+        fmapArcLayers.concat(_fmapMirrorMarkers).forEach(l => fmap.removeLayer(l));
+    }
 
     if (fmapArcLayers.length > 0) {
         fmap.fitBounds(L.featureGroup(fmapArcLayers).getBounds(), { padding: [50, 50] });
