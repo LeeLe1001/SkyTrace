@@ -53,14 +53,9 @@
 }
 
 html {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
     width: 100%;
     height: 100%;
-    height: 100dvh;
+    height: -webkit-fill-available;
     overflow: hidden;
     overscroll-behavior: none;
     background: #0a0a0f;
@@ -75,8 +70,11 @@ body {
     color: var(--text-primary);
     width: 100%;
     height: 100%;
+    height: -webkit-fill-available;
     overflow: hidden;
     overscroll-behavior: none;
+    margin: 0;
+    padding: 0;
 }
 
 /* ==================== 离线模式横幅 ==================== */
@@ -227,8 +225,6 @@ body.is-offline .main-content {
     left: 0;
     right: 0;
     bottom: 0;
-    height: calc(var(--app-height, 100vh) - 60px - env(safe-area-inset-top, 0px));
-    height: calc(100dvh - 60px - env(safe-area-inset-top, 0px));
     overflow: hidden;
 }
 
@@ -3279,12 +3275,45 @@ body.is-offline .main-content {
 
 /* ==================== PWA Standalone Mode ==================== */
 @media all and (display-mode: standalone) {
+    html, body {
+        height: 100vh;
+        height: 100dvh;
+        height: -webkit-fill-available;
+    }
     .header {
         padding-top: env(safe-area-inset-top, 20px);
     }
     .modal-back {
         display: flex !important;
     }
+    /* 底部安全区背景覆盖 - 防止 PWA 模式底部空白 */
+    .mobile-nav {
+        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6px);
+    }
+    .home-flights-overlay {
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+}
+/* iOS standalone (meta apple-mobile-web-app-capable) 专用 */
+body.is-standalone {
+    height: 100vh !important;
+    height: 100dvh !important;
+    height: -webkit-fill-available !important;
+}
+body.is-standalone::after {
+    content: '';
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: env(safe-area-inset-bottom, 34px);
+    background: var(--bg-primary);
+    z-index: 999;
+    pointer-events: none;
+}
+body.is-standalone .mobile-nav {
+    z-index: 1000;
+    padding-bottom: calc(env(safe-area-inset-bottom, 34px) + 6px);
 }
 
 /* ==================== 返回键 ==================== */
@@ -3791,12 +3820,8 @@ body.is-offline .main-content {
     border-top: 1px solid rgba(59, 130, 246, 0.12);
     z-index: 1000;
     padding: 6px 0;
-    padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
-    /* 防止底部出现空白缝隙: 向下延伸额外区域 */
-    transform: translateZ(0);
-    margin-bottom: -50px;
-    padding-bottom: calc(max(6px, env(safe-area-inset-bottom, 0px)) + 50px);
 }
 [data-theme="light"] .mobile-nav {
     background: linear-gradient(0deg, #c8d7f5 0%, #dce8ff 40%, rgba(235, 242, 255, 0.82) 100%);
