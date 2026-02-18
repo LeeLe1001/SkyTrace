@@ -4,7 +4,7 @@
   "description": "个人航旅管理系统 - 追踪你的每一次飞行",
   "start_url": "../index.html",
   "display": "standalone",
-  "background_color": "#0f172a",
+  "background_color": "#0a0a0f",
   "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
   "icons": [

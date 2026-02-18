@@ -36,7 +36,7 @@ let _currentCenterSlide = null;
 let _isOffline = false;
 let _hoState = 'hidden'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
-const SKYTRACE_VERSION = 31;
+const SKYTRACE_VERSION = 32;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -325,13 +325,22 @@ const TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.p
 function initTheme() {
     const saved = localStorage.getItem('skytrace-theme') || 'dark';
     document.documentElement.setAttribute('data-theme', saved);
+    _syncThemeColors(saved);
     updateThemeIcon(saved);
+}
+
+function _syncThemeColors(theme) {
+    const bg = theme === 'light' ? '#f0f2f5' : '#0a0a0f';
+    document.documentElement.style.background = bg;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', bg);
 }
 
 function toggleTheme() {
     const current = document.documentElement.getAttribute('data-theme') || 'dark';
     const next = current === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
+    _syncThemeColors(next);
     localStorage.setItem('skytrace-theme', next);
     updateThemeIcon(next);
     updateMapTiles(next);
