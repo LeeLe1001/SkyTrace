@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="/static/css/style.css?v=32">
     <!-- 全局错误捕获 + 加载指示器 -->
     <style>
-        #loading-indicator{position:fixed;top:0;left:0;right:0;bottom:0;background:#0a0a0f;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99998;color:#94a3b8;font-size:14px;}
+        #loading-indicator{position:fixed;top:0;left:0;right:0;bottom:0;background:#0a0a0f;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99998;color:#94a3b8;font-size:14px;min-height:100vh;min-height:100dvh;min-height:-webkit-fill-available;}
         #loading-indicator .spinner-lg{width:40px;height:40px;border:3px solid #334155;border-top-color:#3b82f6;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:12px;}
         @keyframes spin{to{transform:rotate(360deg)}}
         #debug-banner{position:fixed;top:0;left:0;right:0;background:#dc2626;color:#fff;padding:8px 12px;font-size:12px;z-index:99999;display:none;max-height:120px;overflow:auto;font-family:monospace;}

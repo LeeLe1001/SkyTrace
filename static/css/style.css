@@ -54,6 +54,8 @@
 
 html {
     height: 100%;
+    height: -webkit-fill-available;
+    height: 100dvh;
     overflow: hidden;
     overscroll-behavior: none;
     background: #0a0a0f;
@@ -67,8 +69,13 @@ body {
     background: var(--bg-primary);
     color: var(--text-primary);
     height: 100%;
+    height: -webkit-fill-available;
+    height: 100dvh;
     overflow: hidden;
     overscroll-behavior: none;
+    position: fixed;
+    inset: 0;
+    width: 100%;
 }
 
 /* ==================== 离线模式横幅 ==================== */
@@ -3781,8 +3788,10 @@ body.is-offline .main-content {
     border-top: 1px solid rgba(59, 130, 246, 0.12);
     z-index: 1000;
     padding: 6px 0;
-    padding-bottom: max(6px, env(safe-area-inset-bottom));
+    padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
     box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+    /* 防止底部出现空白缝隙 */
+    transform: translateZ(0);
 }
 [data-theme="light"] .mobile-nav {
     background: linear-gradient(0deg, #c8d7f5 0%, #dce8ff 40%, rgba(235, 242, 255, 0.82) 100%);
