@@ -44,17 +44,29 @@ function formatTerminal(terminal) {
 }
 
 /**
- * 将 arc.js geometries 转为 Leaflet polyline 坐标段
- * 每段独立保留（不合并），坐标保持在 [-180,180] 内，
- * 配合 worldCopyJump 确保跨太平洋航线正确显示。
+ * 将 arc.js geometries 转为 Leaflet polyline 坐标
+ * 使用坐标平移法(±360°)使经度连续，合并为单条折线，
+ * 配合 worldCopyJump 确保跨太平洋航线完整显示。
+ *
+ * 原理: arc.js 在 ±180° 处拆线产生多段，各段经度在 [-180,180]。
+ * 第二段起始经度与前段末尾差 ~360°，直接拼会画出横跨全球的线。
+ * 本函数将后续段经度平移 ±360° 使其与前段末尾连续。
  */
 function _fixAntimeridianCoords(geometries) {
-    const segments = [];
+    const allCoords = [];
     geometries.forEach(geo => {
-        const coords = geo.coords.map(c => [c[1], c[0]]); // [lon,lat] → [lat,lon]
-        if (coords.length > 1) segments.push(coords);
+        geo.coords.forEach(c => {
+            let lon = c[0], lat = c[1];
+            if (allCoords.length > 0) {
+                const prevLon = allCoords[allCoords.length - 1][1];
+                // 将经度平移到与前一点最近的位置
+                while (lon - prevLon > 180) lon -= 360;
+                while (prevLon - lon > 180) lon += 360;
+            }
+            allCoords.push([lat, lon]);
+        });
     });
-    return segments;
+    return allCoords.length > 1 ? [allCoords] : [];
 }
 
 /** 格式化到达时间: 跨日到达加 +1/-1/+2 标识 */
@@ -1721,14 +1733,17 @@ function showFlightDetail(flightId) {
     if (flight.checkin_counter) gateRows.push(`<div class="detail-boarding-row"><span class="detail-boarding-label">${t('checkinCounter') || '值机柜台'}</span><span class="detail-boarding-value">${flight.checkin_counter}</span></div>`);
     if (flight.baggage_carousel) gateRows.push(`<div class="detail-boarding-row"><span class="detail-boarding-label">${t('baggageCarousel') || '行李转盘'}</span><span class="detail-boarding-value">${flight.baggage_carousel}</span></div>`);
 
-    // 座位/舱位/机型卡片 — 登机信息在上部单列，乘机信息在下部网格
+    // 座位/舱位/机型卡片 — 登机信息在上部单列，航站楼一行两列，乘机信息在下部网格
     const depTerminalFmt = formatTerminal(flight.dep_terminal);
     const arrTerminalFmt = formatTerminal(flight.arr_terminal);
+    // 航站楼作为一行两列放在登机信息区
+    if (depTerminalFmt || arrTerminalFmt) {
+        gateRows.push(`<div class="detail-boarding-row detail-terminal-row"><div class="detail-terminal-col"><span class="detail-boarding-label">${t('depTerminal')}</span><span class="detail-boarding-value">${depTerminalFmt || '-'}</span></div><div class="detail-terminal-col"><span class="detail-boarding-label">${t('arrTerminal')}</span><span class="detail-boarding-value">${arrTerminalFmt || '-'}</span></div></div>`);
+    }
     let seatCardHtml = `<div class="detail-card">
         <div class="detail-card-title">💺 ${t('seatInfo') || '乘机信息'}</div>
         ${gateRows.length > 0 ? `<div class="detail-boarding-section">${gateRows.join('')}</div>` : ''}
         <div class="detail-info-grid detail-info-grid-bordered">
-            ${(depTerminalFmt || arrTerminalFmt) ? `<div class="detail-info-item"><div class="detail-info-label">${t('depTerminal')}</div><div class="detail-info-value">${depTerminalFmt || '-'}</div></div><div class="detail-info-item"><div class="detail-info-label">${t('arrTerminal')}</div><div class="detail-info-value">${arrTerminalFmt || '-'}</div></div>` : ''}
             <div class="detail-info-item"><div class="detail-info-label">${t('aircraftLabel')}</div><div class="detail-info-value">${flight.aircraft || '-'}</div></div>
             <div class="detail-info-item"><div class="detail-info-label">${t('seatLabel')}</div><div class="detail-info-value">${flight.seat || '-'}</div></div>
             <div class="detail-info-item"><div class="detail-info-label">${t('cabinLabel')}</div><div class="detail-info-value">${getCabinText(flight.class)}</div></div>
