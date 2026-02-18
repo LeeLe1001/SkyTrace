@@ -964,16 +964,36 @@ def connect_flights():
 
 @app.route('/api/flights/disconnect', methods=['POST'])
 def disconnect_flights():
-    """联程: 解除联程绑定"""
+    """联程: 解除联程绑定 (支持整组解除或部分解除)"""
     body = request.json or {}
     group_id = body.get('group_id', '')
-    if not group_id:
-        return jsonify({'success': False, 'error': '缺少group_id'}), 400
+    flight_ids = body.get('flight_ids', [])
+
+    if not group_id and not flight_ids:
+        return jsonify({'success': False, 'error': '缺少group_id或flight_ids'}), 400
 
     data = load_json(FLIGHTS_FILE)
-    for f in data.get('flights', []):
-        if f.get('connected_group') == group_id:
-            f.pop('connected_group', None)
+    all_flights = data.get('flights', [])
+
+    if flight_ids:
+        # 部分解除: 只移除指定航班的 connected_group
+        affected_groups = set()
+        for f in all_flights:
+            if f['id'] in flight_ids and f.get('connected_group'):
+                affected_groups.add(f['connected_group'])
+                f.pop('connected_group', None)
+        # 清理残余: 如果某个组剩余 ≤1 个航班, 也解除
+        for gid in affected_groups:
+            remaining = [f for f in all_flights if f.get('connected_group') == gid]
+            if len(remaining) <= 1:
+                for f in remaining:
+                    f.pop('connected_group', None)
+    else:
+        # 整组解除
+        for f in all_flights:
+            if f.get('connected_group') == group_id:
+                f.pop('connected_group', None)
+
     save_json(FLIGHTS_FILE, data)
     return jsonify({'success': True})
 

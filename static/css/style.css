@@ -1092,6 +1092,20 @@ body.is-offline .main-content .view {
     color: white;
 }
 
+.btn-warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+.btn-warning:hover {
+    background: #f59e0b;
+    color: white;
+}
+
 /* 详情模态框 */
 .modal-detail {
     max-width: 500px;
@@ -4098,9 +4112,25 @@ body.is-offline .main-content .view {
     border: none !important;
     margin: 0 !important;
 }
+/* 全屏时隐藏顶部/底部导航和子标签 */
+body.fmap-fullscreen-active .header,
+body.fmap-fullscreen-active .mobile-nav,
+body.fmap-fullscreen-active .flights-sub-nav,
+body.fmap-fullscreen-active .fab-container {
+    display: none !important;
+}
+/* 破除父级 stacking context，让 z-index 9999 生效 */
+body.fmap-fullscreen-active .main-content,
+body.fmap-fullscreen-active .view,
+body.fmap-fullscreen-active .flights-container,
+body.fmap-fullscreen-active .flights-sub-view {
+    transform: none !important;
+    overflow: visible !important;
+    contain: none !important;
+}
 .fmap-fullscreen .fmap-fullscreen-btn {
     top: 16px;
-    right: 16px;
+    right: 90px;
     width: 40px;
     height: 40px;
     font-size: 22px;
@@ -4110,7 +4140,7 @@ body.is-offline .main-content .view {
 }
 .fmap-fullscreen .fmap-toggle-filter {
     top: 16px;
-    right: 68px;
+    right: 16px;
 }
 .fmap-fullscreen .fmap-filter-bar {
     top: 60px;

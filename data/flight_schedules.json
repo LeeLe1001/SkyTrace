@@ -2617,5 +2617,38 @@
     "arr_terminal": "",
     "cached_at": "2026-02-17 23:04",
     "source": "AeroDataBox"
+  },
+  "AS172": {
+    "departure": "ANC",
+    "arrival": "PHX",
+    "dep_time": "22:44",
+    "arr_time": "05:20",
+    "aircraft": "Boeing 737-900",
+    "dep_terminal": "S",
+    "arr_terminal": "3",
+    "cached_at": "2026-02-18 15:38",
+    "source": "AeroDataBox"
+  },
+  "HH867": {
+    "departure": "TAS",
+    "arrival": "PKX",
+    "dep_time": "16:00",
+    "arr_time": "00:30",
+    "aircraft": "Airbus A321",
+    "dep_terminal": "2",
+    "arr_terminal": "",
+    "cached_at": "2026-02-18 15:39",
+    "source": "AeroDataBox"
+  },
+  "CZ6027": {
+    "departure": "PKX",
+    "arrival": "TAS",
+    "dep_time": "17:20",
+    "arr_time": "21:10",
+    "aircraft": "Airbus A320",
+    "dep_terminal": "",
+    "arr_terminal": "2",
+    "cached_at": "2026-02-18 15:40",
+    "source": "AeroDataBox"
   }
 }

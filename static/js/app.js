@@ -1085,6 +1085,7 @@ function toggleFmapFullscreen() {
     const wrapper = document.getElementById('fmap-wrapper');
     const btn = document.getElementById('fmap-fullscreen-btn');
     if (!wrapper) return;
+    document.body.classList.toggle('fmap-fullscreen-active', _fmapFullscreen);
     if (_fmapFullscreen) {
         wrapper.classList.add('fmap-fullscreen');
         if (btn) btn.innerHTML = '✕';
@@ -2364,9 +2365,15 @@ function _updateConnectBar() {
     const bar = document.getElementById('connect-action-bar');
     if (!bar) return;
     const count = selectedConnectIds.size;
+    // 检查已选航班是否包含已有联程
+    const hasConnected = Array.from(selectedConnectIds).some(id => {
+        const f = flights.find(fl => fl.id === id);
+        return f && f.connected_group;
+    });
     bar.innerHTML = `<span class="connect-bar-text">${count > 0 ? (t('selectedCount') || '{0} 已选').replace('{0}', count) : t('selectFlightsHint')}</span>
         <div class="connect-bar-actions">
             <button class="btn-primary btn-sm" onclick="confirmConnect()" id="btn-confirm-connect" ${count < 2 ? 'disabled' : ''}>🔗 ${t('confirmConnect')}</button>
+            ${hasConnected ? `<button class="btn-warning btn-sm" onclick="disconnectSelected()">🔓 ${t('disconnectSelected') || t('disconnect')}</button>` : ''}
             <button class="btn-danger btn-sm" onclick="batchDeleteFlights()" id="btn-batch-delete" ${count < 1 ? 'disabled' : ''}>🗑️ ${t('deleteTrip')}</button>
             <button class="btn-secondary btn-sm" onclick="toggleConnectMode()">${t('cancel')}</button>
         </div>`;
@@ -2388,6 +2395,20 @@ async function batchDeleteFlights() {
         const bar = document.getElementById('connect-action-bar'); if (bar) bar.style.display = 'none';
         loadFlights(); loadStats();
     } catch (e) { alert(t('deleteFailed')); }
+}
+async function disconnectSelected() {
+    const ids = Array.from(selectedConnectIds).filter(id => {
+        const f = flights.find(fl => fl.id === id);
+        return f && f.connected_group;
+    });
+    if (ids.length === 0) return;
+    if (!confirm(t('confirmDisconnect'))) return;
+    try {
+        await fetch('/api/flights/disconnect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ flight_ids: ids }) });
+        connectMode = false; selectedConnectIds.clear();
+        const bar = document.getElementById('connect-action-bar'); if (bar) bar.style.display = 'none';
+        loadFlights();
+    } catch (e) {}
 }
 async function disconnectGroup(groupId) {
     if (!confirm(t('confirmDisconnect'))) return;
