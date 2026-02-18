@@ -44,27 +44,17 @@ function formatTerminal(terminal) {
 }
 
 /**
- * 修正跨反子午线(±180°)航线坐标
- * arc.js 会将跨太平洋的大圆弧拆成多段 geometry，
- * 但 Leaflet polyline 在 worldCopyJump 模式下仍可能截断。
- * 此函数将每段坐标归一化，使经度连续不跳变。
+ * 将 arc.js geometries 转为 Leaflet polyline 坐标段
+ * 每段独立保留（不合并），坐标保持在 [-180,180] 内，
+ * 配合 worldCopyJump 确保跨太平洋航线正确显示。
  */
 function _fixAntimeridianCoords(geometries) {
-    // 将 arc.js 拆分的多段 geometry 合并为一条连续折线
-    // 并归一化经度，使其跨越反子午线时不跳变
-    const coords = [];
+    const segments = [];
     geometries.forEach(geo => {
-        geo.coords.forEach(c => {
-            let lon = c[0], lat = c[1];
-            if (coords.length > 0) {
-                const prevLon = coords[coords.length - 1][1]; // [lat, lon]
-                while (lon - prevLon > 180) lon -= 360;
-                while (prevLon - lon > 180) lon += 360;
-            }
-            coords.push([lat, lon]);
-        });
+        const coords = geo.coords.map(c => [c[1], c[0]]); // [lon,lat] → [lat,lon]
+        if (coords.length > 1) segments.push(coords);
     });
-    return coords.length > 0 ? [coords] : [];
+    return segments;
 }
 
 /** 格式化到达时间: 跨日到达加 +1/-1/+2 标识 */
@@ -411,7 +401,6 @@ function initHomeMap() {
         subdomains: 'abcd',
         maxZoom: 19
     }).addTo(homeMap);
-    L.control.zoom({ position: 'bottomright' }).addTo(homeMap);
 }
 
 function getLocalTodayStr() {
