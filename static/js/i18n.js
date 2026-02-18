@@ -232,6 +232,12 @@ const I18N = {
     advancedFilter: '高级筛选',
     resetDate: '重置日期',
     searchCode: '搜索三字码',
+    longHaulFlight: '洲际飞行',
+    mediumHaulFlight: '远程飞行',
+    midRangeFlight: '中程飞行',
+    shortHaulFlight: '短途飞行',
+    fullscreen: '全屏',
+    exitFullscreen: '退出全屏',
   },
 
   // ========== English ==========
@@ -439,6 +445,12 @@ const I18N = {
     advancedFilter: 'Advanced Filter',
     resetDate: 'Reset Date',
     searchCode: 'Search IATA Code',
+    longHaulFlight: 'Intercontinental Flight',
+    mediumHaulFlight: 'Long-Haul Flight',
+    midRangeFlight: 'Medium-Haul Flight',
+    shortHaulFlight: 'Short-Haul Flight',
+    fullscreen: 'Fullscreen',
+    exitFullscreen: 'Exit Fullscreen',
   },
 
   // ========== 日本語 ==========
@@ -646,6 +658,12 @@ const I18N = {
     advancedFilter: '詳細フィルタ',
     resetDate: '日付リセット',
     searchCode: 'IATAコード検索',
+    longHaulFlight: '大陸間飛行',
+    mediumHaulFlight: '長距離飛行',
+    midRangeFlight: '中距離飛行',
+    shortHaulFlight: '短距離飛行',
+    fullscreen: '全画面',
+    exitFullscreen: '全画面解除',
   },
 
   // ========== 한국어 ==========
@@ -853,6 +871,12 @@ const I18N = {
     advancedFilter: '상세 필터',
     resetDate: '날짜 초기화',
     searchCode: 'IATA 코드 검색',
+    longHaulFlight: '대륙간 비행',
+    mediumHaulFlight: '장거리 비행',
+    midRangeFlight: '중거리 비행',
+    shortHaulFlight: '단거리 비행',
+    fullscreen: '전체 화면',
+    exitFullscreen: '전체 화면 종료',
   },
 
   // ========== Español ==========
@@ -1060,6 +1084,12 @@ const I18N = {
     advancedFilter: 'Filtro avanzado',
     resetDate: 'Restablecer fecha',
     searchCode: 'Buscar código IATA',
+    longHaulFlight: 'Vuelo Intercontinental',
+    mediumHaulFlight: 'Vuelo de Larga Distancia',
+    midRangeFlight: 'Vuelo de Media Distancia',
+    shortHaulFlight: 'Vuelo de Corta Distancia',
+    fullscreen: 'Pantalla completa',
+    exitFullscreen: 'Salir pantalla completa',
   },
 };
 

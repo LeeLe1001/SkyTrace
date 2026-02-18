@@ -928,17 +928,36 @@ def delete_flight(flight_id):
 
 @app.route('/api/flights/connect', methods=['POST'])
 def connect_flights():
-    """联程: 将多个航班绑定为一组"""
+    """联程: 将多个航班绑定为一组 (自动合并已有联程)"""
     body = request.json or {}
     flight_ids = body.get('flight_ids', [])
     if len(flight_ids) < 2:
         return jsonify({'success': False, 'error': '至少选择2个航班'}), 400
 
-    group_id = str(uuid.uuid4())[:8]
     data = load_json(FLIGHTS_FILE)
-    for f in data.get('flights', []):
+    all_flights = data.get('flights', [])
+
+    # 收集所选航班已有的 connected_group
+    existing_groups = set()
+    for f in all_flights:
+        if f['id'] in flight_ids and f.get('connected_group'):
+            existing_groups.add(f['connected_group'])
+
+    # 使用已有的 group_id 之一, 或创建新的
+    if existing_groups:
+        group_id = sorted(existing_groups)[0]
+        # 将其他组的航班也合并进来
+        for f in all_flights:
+            if f.get('connected_group') in existing_groups:
+                f['connected_group'] = group_id
+    else:
+        group_id = str(uuid.uuid4())[:8]
+
+    # 给选中的航班打上 group_id
+    for f in all_flights:
         if f['id'] in flight_ids:
             f['connected_group'] = group_id
+
     save_json(FLIGHTS_FILE, data)
     return jsonify({'success': True, 'group_id': group_id})
 

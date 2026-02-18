@@ -108,7 +108,13 @@ function _getDayOffset(flight) {
     return 0;
 }
 
-/** 计算飞行时长, 自动处理跨日 */
+/** 根据经度估算 UTC 偏移(小时), 简单近似 lon/15 */
+function _estimateUtcOffset(lon) {
+    if (lon === undefined || lon === null) return 0;
+    return Math.round(lon / 15);
+}
+
+/** 计算飞行时长, 考虑出发/到达机场时区差异 */
 function calcDuration(flight) {
     if (!flight.dep_time || !flight.arr_time) return '';
     const d1 = new Date(`2000-01-01 ${flight.dep_time}`);
@@ -116,7 +122,13 @@ function calcDuration(flight) {
     const offset = _getDayOffset(flight);
     if (offset) d2.setDate(d2.getDate() + offset);
     else if (d2 < d1) d2.setDate(d2.getDate() + 1);
-    const diff = (d2 - d1) / 1000 / 60;
+    // 时区修正: 出发/到达时间为当地时间, 需减去时区差
+    const depAirport = flight.dep_airport || airports[flight.departure] || {};
+    const arrAirport = flight.arr_airport || airports[flight.arrival] || {};
+    const depTz = _estimateUtcOffset(depAirport.lon);
+    const arrTz = _estimateUtcOffset(arrAirport.lon);
+    const tzDiffMin = (arrTz - depTz) * 60; // 到达时区比出发快多少分钟
+    const diff = (d2 - d1) / 1000 / 60 - tzDiffMin;
     if (diff <= 0) return '';
     return `${Math.floor(diff / 60)}h ${Math.round(diff % 60)}m`;
 }
@@ -1067,6 +1079,30 @@ function toggleFmapFilter() {
     if (btn) btn.textContent = _fmapFilterVisible ? t('fmapHideFilter') : t('fmapShowFilter');
 }
 
+let _fmapFullscreen = false;
+function toggleFmapFullscreen() {
+    _fmapFullscreen = !_fmapFullscreen;
+    const wrapper = document.getElementById('fmap-wrapper');
+    const btn = document.getElementById('fmap-fullscreen-btn');
+    if (!wrapper) return;
+    if (_fmapFullscreen) {
+        wrapper.classList.add('fmap-fullscreen');
+        if (btn) btn.innerHTML = '✕';
+        if (btn) btn.title = t('exitFullscreen') || '退出全屏';
+    } else {
+        wrapper.classList.remove('fmap-fullscreen');
+        if (btn) btn.innerHTML = '⛶';
+        if (btn) btn.title = t('fullscreen') || '全屏';
+    }
+    // 让 Leaflet 重新计算大小
+    setTimeout(() => { if (fmap) fmap.invalidateSize(); }, 350);
+}
+
+// ESC 退出全屏
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && _fmapFullscreen) toggleFmapFullscreen();
+});
+
 function renderFlightsMapRoutes() {
     fmapArcLayers.forEach(l => fmap.removeLayer(l));
     fmapArcLayers = [];
@@ -1502,13 +1538,23 @@ function renderFlightsList(filter = currentStatusFilter) {
         html += `<div class="flights-date-header">${formatDate(date)}</div>`;
         html += dateGroups[date].map(item => {
             if (item.isGroup) {
-                return `<div class="connected-group"><div class="connected-group-header"><span class="connected-badge">🔗 ${t('connectedFlight')}</span><button class="btn-disconnect" onclick="event.stopPropagation();disconnectGroup('${item.groupId}')" title="${t('disconnect')}">✕</button></div>${item.flights.map(f => renderFlightCard(f)).join('')}</div>`;
+                return `<div class="connected-group"><div class="connected-group-header"><span class="connected-badge">🔗 ${t('connectedFlight')}</span><button class="btn-disconnect" data-disconnect-group="${item.groupId}" title="${t('disconnect')}">✕</button></div>${item.flights.map(f => renderFlightCard(f)).join('')}</div>`;
             }
             return renderFlightCard(item);
         }).join('');
     });
 
     container.innerHTML = html;
+
+    // 使用事件委托绑定解除联程按钮
+    container.querySelectorAll('.btn-disconnect[data-disconnect-group]').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            e.preventDefault();
+            const gid = btn.dataset.disconnectGroup;
+            if (gid) disconnectGroup(gid);
+        });
+    });
 }
 
 function renderFlightCard(flight) {
@@ -2360,17 +2406,8 @@ function shareFlightCard() {
     const logo = getAirlineLogoHtml(flight.flight_no);
     const airlineName = typeof translateAirline === 'function' ? translateAirline(flight.airline) : (flight.airline || '');
 
-    // Calculate duration
-    let duration = '';
-    if (flight.dep_time && flight.arr_time) {
-        const d1 = new Date(`2000-01-01 ${flight.dep_time}`);
-        let d2 = new Date(`2000-01-01 ${flight.arr_time}`);
-        const offset = _getDayOffset(flight);
-        if (offset) d2.setDate(d2.getDate() + offset);
-        else if (d2 < d1) d2.setDate(d2.getDate() + 1);
-        const diff = (d2 - d1) / 1000 / 60;
-        if (diff > 0) duration = `${Math.floor(diff / 60)}h ${Math.round(diff % 60)}m`;
-    }
+    // Calculate duration (reuse calcDuration which handles timezone)
+    const duration = calcDuration(flight);
 
     // Fun fact based on distance
     let funFact = '';

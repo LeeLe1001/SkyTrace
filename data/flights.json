@@ -3309,7 +3309,7 @@
       "notes": "",
       "stopover": "",
       "status": "scheduled",
-      "connected_group": "7d4c5774"
+      "connected_group": "80de5cdb"
     },
     {
       "id": "test_antimeridian_03",
@@ -3329,7 +3329,8 @@
       "class": "economy",
       "notes": "",
       "stopover": "",
-      "status": "scheduled"
+      "status": "scheduled",
+      "connected_group": "80de5cdb"
     }
   ]
 }

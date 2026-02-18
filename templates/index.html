@@ -136,8 +136,9 @@
                 </div>
                 <!-- 地图子页 -->
                 <div class="flights-sub-view" id="flights-map-subview">
-                    <div class="fmap-wrapper">
+                <div class="fmap-wrapper" id="fmap-wrapper">
                         <div id="flights-map" class="flights-full-map"></div>
+                        <button class="fmap-fullscreen-btn" id="fmap-fullscreen-btn" onclick="toggleFmapFullscreen()" title="全屏">⛶</button>
                         <button class="fmap-toggle-filter" id="fmap-toggle-filter" onclick="toggleFmapFilter()">&#128269; 筛选</button>
                         <div class="fmap-filter-bar hidden" id="fmap-filter-bar">
                             <div class="fmap-status-pills">

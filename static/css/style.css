@@ -3009,9 +3009,9 @@ body.is-offline .main-content .view {
     margin-top: 2px;
 }
 .share-duration {
-    font-size: 13px;
+    font-size: 15px;
     color: #94a3b8;
-    font-weight: 500;
+    font-weight: 600;
     margin: 2px 0;
 }
 .share-fun-fact {
@@ -3480,6 +3480,8 @@ body.is-offline .main-content .view {
     justify-content: center;
     flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
+    position: relative;
+    z-index: 10;
 }
 
 .btn-disconnect:hover,
@@ -4052,6 +4054,69 @@ body.is-offline .main-content .view {
 .fmap-toggle-filter:hover {
     color: var(--text-primary);
     background: var(--bg-card);
+}
+
+/* 全屏按钮 */
+.fmap-fullscreen-btn {
+    position: absolute;
+    top: 12px;
+    right: 90px;
+    z-index: 501;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--map-stats-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    color: var(--text-secondary);
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px var(--shadow-color);
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+.fmap-fullscreen-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-card);
+}
+
+/* 全屏模式 */
+.fmap-fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: none !important;
+    z-index: 9999 !important;
+    border-radius: 0 !important;
+    border: none !important;
+    margin: 0 !important;
+}
+.fmap-fullscreen .fmap-fullscreen-btn {
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+    border-radius: 12px;
+    background: var(--bg-card);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+.fmap-fullscreen .fmap-toggle-filter {
+    top: 16px;
+    right: 68px;
+}
+.fmap-fullscreen .fmap-filter-bar {
+    top: 60px;
+}
+.fmap-fullscreen .fmap-stats-card {
+    bottom: 24px;
 }
 
 .fmap-status-pills {
@@ -4637,7 +4702,7 @@ body.is-offline .main-content .view {
     top: 22px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 10px;
+    font-size: 12px;
     color: var(--text-muted);
     white-space: nowrap;
 }
