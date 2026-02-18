@@ -245,6 +245,11 @@ body.is-offline .main-content .view {
     display: block;
     opacity: 0;
     transform: translateY(8px);
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
 }
 
 .flights-sub-view.view-enter {
@@ -298,10 +303,21 @@ body.is-offline .main-content .view {
 }
 
 /* ==================== 行程列表视图 ==================== */
-.flights-container {
+#flights-view {
+    overflow: hidden;
+}
+#flights-view .flights-container {
     max-width: 900px;
     margin: 0 auto;
     padding: 30px 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+#flights-view .flights-sub-nav {
+    flex-shrink: 0;
 }
 
 .flights-header {
@@ -4052,47 +4068,16 @@ body.is-offline .main-content .view {
     border: 1px solid var(--border);
 }
 
-/* 地图子页: 禁止外层滚动，地图撑满 */
-#flights-view:has(#flights-map-subview.active) {
-    overflow: hidden;
-}
-#flights-view:has(#flights-map-subview.active) .flights-container {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    overflow: hidden;
-}
+/* 地图子页: 地图撑满, 不滚动 */
 #flights-map-subview.active {
     display: flex;
     flex-direction: column;
-    flex: 1;
-    min-height: 0;
     overflow: hidden;
 }
 #flights-map-subview.active .fmap-wrapper {
     flex: 1;
     height: auto;
     min-height: 0;
-}
-
-/* 列表子页: sub-nav 固定在顶部，列表区域独立滚动 */
-#flights-view:has(#flights-list-subview.active) {
-    overflow: hidden;
-}
-#flights-view:has(#flights-list-subview.active) .flights-container {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    overflow: hidden;
-}
-#flights-list-subview.active {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
 }
 
 .flights-full-map {
@@ -4478,13 +4463,6 @@ body.fmap-fullscreen-active .flights-sub-view {
     
     .fmap-wrapper {
         border-radius: 12px;
-    }
-    #flights-view:has(#flights-map-subview.active) .flights-container {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        box-sizing: border-box;
-        overflow: hidden;
     }
     #flights-map-subview.active .fmap-wrapper {
         flex: 1;
