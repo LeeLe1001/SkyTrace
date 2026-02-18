@@ -90,7 +90,7 @@ body.is-offline .header {
     top: 32px;
 }
 body.is-offline .main-content .view {
-    height: calc(100vh - 60px - 32px);
+    height: calc(100vh - 60px - 32px - env(safe-area-inset-top, 0px));
 }
 
 /* ==================== 头部导航 ==================== */
@@ -99,7 +99,8 @@ body.is-offline .main-content .view {
     top: 0;
     left: 0;
     right: 0;
-    height: 60px;
+    height: calc(60px + env(safe-area-inset-top, 0px));
+    padding-top: env(safe-area-inset-top, 0px);
     background: var(--header-bg);
     backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border);
@@ -191,13 +192,13 @@ body.is-offline .main-content .view {
 
 /* ==================== 主内容 ==================== */
 .main-content {
-    padding-top: 60px;
+    padding-top: calc(60px + env(safe-area-inset-top, 0px));
     min-height: 100vh;
 }
 
 .view {
     display: none;
-    height: calc(100vh - 60px);
+    height: calc(100vh - 60px - env(safe-area-inset-top, 0px));
     overflow-y: auto;
 }
 
@@ -4197,7 +4198,7 @@ body.fmap-fullscreen-active .flights-sub-view {
     height: 100% !important;
 }
 .fmap-fullscreen .fmap-fullscreen-btn {
-    top: 16px;
+    top: calc(16px + env(safe-area-inset-top, 0px));
     right: 90px;
     width: 40px;
     height: 40px;
@@ -4207,7 +4208,7 @@ body.fmap-fullscreen-active .flights-sub-view {
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 .fmap-fullscreen .fmap-heatmap-btn {
-    top: 16px;
+    top: calc(16px + env(safe-area-inset-top, 0px));
     right: 140px;
     width: 40px;
     height: 40px;
@@ -4217,14 +4218,14 @@ body.fmap-fullscreen-active .flights-sub-view {
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 .fmap-fullscreen .fmap-toggle-filter {
-    top: 16px;
+    top: calc(16px + env(safe-area-inset-top, 0px));
     right: 16px;
 }
 .fmap-fullscreen .fmap-filter-bar {
-    top: 60px;
+    top: calc(60px + env(safe-area-inset-top, 0px));
 }
 .fmap-fullscreen .fmap-stats-card {
-    bottom: 24px;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 }
 
 .fmap-status-pills {
@@ -4458,12 +4459,11 @@ body.fmap-fullscreen-active .flights-sub-view {
     }
     
     .view {
-        height: calc(100vh - 60px - 56px);
+        height: calc(100vh - 60px - 56px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
     }
     
     .home-flights-overlay {
-        bottom: 56px;
-        padding-bottom: env(safe-area-inset-bottom, 0px);
+        bottom: calc(56px + env(safe-area-inset-bottom, 0px));
         border-radius: 20px 20px 0 0;
     }
 

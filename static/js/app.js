@@ -34,7 +34,7 @@ let _homePendingBounds = null;  // 当首页不可见时暂存 fitBounds 参数
 let _homePendingRender = false;  // 首页不可见时标记需要重新渲染
 let _currentCenterSlide = null;
 let _isOffline = false;
-let _hoState = 'peek'; // 'hidden' | 'peek' | 'expanded'
+let _hoState = 'hidden'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
 const SKYTRACE_VERSION = 21;
 
@@ -541,14 +541,14 @@ function initHomeOverlayDrag() {
     const handle = el.querySelector('.home-overlay-handle');
     const header = el.querySelector('.home-overlay-header');
 
-    // Click header or handle to cycle: peek → expanded → hidden → peek
+    // Click header or handle to cycle: hidden → peek (最近出行) → expanded (全部待出行) → hidden
     const toggleClick = () => {
-        if (_hoState === 'peek') {
-            expandHomeOverlay();
-        } else if (_hoState === 'expanded') {
-            minimizeHomeOverlay();
-        } else {
+        if (_hoState === 'hidden') {
             peekHomeOverlay();
+        } else if (_hoState === 'peek') {
+            expandHomeOverlay();
+        } else {
+            minimizeHomeOverlay();
         }
     };
     if (header) header.addEventListener('click', toggleClick);
@@ -584,8 +584,8 @@ function initHomeOverlayDrag() {
             }
         });
     }
-    // Start at peek state (showing nearest card)
-    peekHomeOverlay();
+    // Start at minimized/hidden state (just the handle bar above nav)
+    minimizeHomeOverlay();
 }
 
 function _getMobileNavH() {
