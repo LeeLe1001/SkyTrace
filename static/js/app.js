@@ -36,7 +36,7 @@ let _currentCenterSlide = null;
 let _isOffline = false;
 let _hoState = 'hidden'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
-const SKYTRACE_VERSION = 23;
+const SKYTRACE_VERSION = 24;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -293,8 +293,11 @@ function getAirlineLogoHtml(flightNo) {
         // Route remote logos through proxy for local caching
         const jxckFa = icao ? `/api/logo-proxy?url=${encodeURIComponent(LOGO_JXCK + icao + '.png')}` : '';
         const jxckRb = icao ? `/api/logo-proxy?url=${encodeURIComponent(LOGO_JXCK_RB + icao + '.png')}` : '';
-        const firstSrc = localSvg || jxckFa;
-        const chain = [localPng, jxckFa, jxckRb].filter(Boolean).join('|');
+        // Direct CDN URLs as final fallback (no CORS issue for img tags)
+        const directFa = icao ? `${LOGO_JXCK}${icao}.png` : '';
+        const directRb = icao ? `${LOGO_JXCK_RB}${icao}.png` : '';
+        const firstSrc = localSvg || jxckFa || directFa;
+        const chain = [localPng, jxckFa, jxckRb, directFa, directRb].filter(Boolean).join('|');
         return `<img class="airline-logo" src="${firstSrc}" alt="${iata}" data-chain="${chain}" onerror="_logoFallback(this)"><span class="airline-logo-fallback" style="display:none">${iata}</span>`;
     }
     return `<span class="airline-logo-fallback">${iata}</span>`;
@@ -518,15 +521,22 @@ function renderHomeRoutes() {
     });
 
     if (homeArcLayers.length > 0) {
-        const bounds = L.featureGroup(homeArcLayers).getBounds();
+        // 优先定位到最近一个待出行航班，而非所有航班
+        let targetBounds;
+        const sortedUpcoming = upcoming.filter(f => f.dep_airport?.lat && f.arr_airport?.lat).sort((a, b) => (a.date + (a.dep_time || '')).localeCompare(b.date + (b.dep_time || '')));
+        const nearestFlight = sortedUpcoming[0];
+        if (nearestFlight && homeRoutesByFlight[nearestFlight.id]?.length) {
+            targetBounds = L.featureGroup(homeRoutesByFlight[nearestFlight.id]).getBounds();
+        } else {
+            targetBounds = L.featureGroup(homeArcLayers).getBounds();
+        }
         const homeView = document.getElementById('home-view');
         if (homeView && homeView.classList.contains('active')) {
             homeMap.invalidateSize();
-            homeMap.fitBounds(bounds, { padding: [50, 50] });
+            homeMap.fitBounds(targetBounds, { padding: [50, 50] });
             _homePendingBounds = null;
         } else {
-            // 首页不可见时暂存, 切回首页后再 fitBounds
-            _homePendingBounds = bounds;
+            _homePendingBounds = targetBounds;
             _homePendingRender = true;
         }
     }
@@ -1364,12 +1374,12 @@ async function loadStats(year) {
         const stats = await (await fetch('/api/stats' + yearParam)).json();
         cachedStatsData = stats;
 
-        animateCountUp(document.getElementById('total-flights'), stats.total_flights);
-        animateCountUp(document.getElementById('total-distance'), stats.total_distance);
-        animateCountUp(document.getElementById('total-hours'), stats.total_hours);
-        animateCountUp(document.getElementById('visited-airports'), stats.visited_airports);
-        animateCountUp(document.getElementById('visited-countries'), stats.visited_countries);
-        animateCountUp(document.getElementById('earth-rounds'), stats.total_distance / 40075, {decimals: 2});
+        animateCountUp(document.getElementById('total-flights'), stats.total_flights || 0);
+        animateCountUp(document.getElementById('total-distance'), stats.total_distance || 0);
+        animateCountUp(document.getElementById('total-hours'), stats.total_hours || 0);
+        animateCountUp(document.getElementById('visited-airports'), stats.visited_airports || 0);
+        animateCountUp(document.getElementById('visited-countries'), stats.visited_countries || 0);
+        animateCountUp(document.getElementById('earth-rounds'), (stats.total_distance || 0) / 40075, {decimals: 2});
         renderYearSelector(stats.available_years);
         renderFunStats(stats.fun_stats, stats.top_routes, stats.top_airlines);
     } catch (e) { console.error('加载统计失败:', e); }
@@ -1770,7 +1780,7 @@ function animateCountUp(el, endValue, opts = {}) {
     const decimals = opts.decimals || 0;
     const numVal = typeof endValue === 'number' ? endValue : parseFloat(String(endValue).replace(/,/g, ''));
     if (isNaN(numVal) || numVal === 0) {
-        el.textContent = decimals > 0 ? numVal.toFixed(decimals) : numVal.toLocaleString();
+        el.textContent = decimals > 0 ? (isNaN(numVal) ? (0).toFixed(decimals) : numVal.toFixed(decimals)) : (isNaN(numVal) ? '0' : numVal.toLocaleString());
         return;
     }
     const startTime = performance.now();
@@ -1850,7 +1860,17 @@ function initTabs() {
                 if (viewEl) viewEl.scrollTo({ top: 0, behavior: 'smooth' });
                 if (tab.dataset.tab === 'home' && homeMap) {
                     homeMap.invalidateSize();
-                    if (homeArcLayers.length > 0) homeMap.fitBounds(L.featureGroup(homeArcLayers).getBounds(), { padding: [50, 50] });
+                    if (homeArcLayers.length > 0) {
+                        // 优先定位最近一个待出行航班
+                        const todayStr = getLocalTodayStr();
+                        const upcoming = flights.filter(f => f.status_info?.status !== 'completed' && f.date >= todayStr && f.dep_airport?.lat && f.arr_airport?.lat).sort((a, b) => (a.date + (a.dep_time || '')).localeCompare(b.date + (b.dep_time || '')));
+                        const nearest = upcoming[0];
+                        if (nearest && homeRoutesByFlight[nearest.id]?.length) {
+                            homeMap.fitBounds(L.featureGroup(homeRoutesByFlight[nearest.id]).getBounds(), { padding: [50, 50] });
+                        } else {
+                            homeMap.fitBounds(L.featureGroup(homeArcLayers).getBounds(), { padding: [50, 50] });
+                        }
+                    }
                 }
                 return;
             }
@@ -1905,6 +1925,8 @@ function initTabs() {
             else if (subtab === 'fmap') {
                 const sv = document.getElementById('flights-map-subview'); sv.classList.add('active'); requestAnimationFrame(() => sv.classList.add('view-enter'));
                 initFlightsMap();
+                // 地图子页使用 flex 布局，延迟刷新尺寸确保高度正确
+                setTimeout(() => { if (fmap) fmap.invalidateSize(); }, 200);
             }
             else if (subtab === 'fstats') {
                 const sv = document.getElementById('flights-stats-subview'); sv.classList.add('active'); requestAnimationFrame(() => sv.classList.add('view-enter'));

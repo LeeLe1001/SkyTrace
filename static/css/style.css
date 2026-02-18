@@ -4052,6 +4052,18 @@ body.is-offline .main-content .view {
     border: 1px solid var(--border);
 }
 
+/* 地图子页: 禁止外层滚动，地图撑满 */
+#flights-map-subview.active {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+#flights-map-subview.active .fmap-wrapper {
+    flex: 1;
+    height: auto;
+}
+
 .flights-full-map {
     width: 100%;
     height: 100%;
@@ -4434,9 +4446,11 @@ body.fmap-fullscreen-active .flights-sub-view {
     }
     
     .fmap-wrapper {
-        height: calc(100vh - 60px - 56px - 90px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-        height: calc(100dvh - 60px - 56px - 90px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
         border-radius: 12px;
+    }
+    #flights-map-subview.active .fmap-wrapper {
+        flex: 1;
+        height: auto;
     }
     
     .fmap-filter-bar {
@@ -4472,6 +4486,10 @@ body.fmap-fullscreen-active .flights-sub-view {
     
     .view {
         height: calc(100vh - 60px - 56px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    }
+    /* 行程地图子页: 禁止外层滚动 */
+    #flights-view:has(#flights-map-subview.active) {
+        overflow: hidden;
     }
     
     .home-flights-overlay {

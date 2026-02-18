@@ -630,7 +630,7 @@
     /** AeroDataBox via RapidAPI (HTTPS + 自定义 Header) */
     async function _queryAeroData(flightNo, date, apiKey) {
         const searchDate = date || new Date().toISOString().slice(0, 10);
-        const url = `https://aerodatabox.p.rapidapi.com/flights/number/${flightNo}/${searchDate}`;
+        const url = `https://aerodatabox.p.rapidapi.com/flights/number/${flightNo}/${searchDate}T00:00/${searchDate}T23:59`;
         const resp = await _origFetch(CORS_PROXY + encodeURIComponent(url), {
             headers: {
                 'X-RapidAPI-Key': apiKey,

@@ -375,7 +375,7 @@ def query_aerodata(flight_no, date, api_key):
         return None
     try:
         search_date = date or datetime.now().strftime('%Y-%m-%d')
-        url = f"https://aerodatabox.p.rapidapi.com/flights/number/{flight_no}/{search_date}"
+        url = f"https://aerodatabox.p.rapidapi.com/flights/number/{flight_no}/{search_date}T00:00/{search_date}T23:59"
         headers = {
             'X-RapidAPI-Key': api_key,
             'X-RapidAPI-Host': 'aerodatabox.p.rapidapi.com',
@@ -403,6 +403,11 @@ def query_aerodata(flight_no, date, api_key):
                 'flight_status': f.get('status', ''),
                 'api_source': 'AeroDataBox',
             }
+    except urllib.error.HTTPError as e:
+        body = ''
+        try: body = e.read().decode()
+        except: pass
+        print(f"[AeroDataBox] HTTP {e.code}: {body}")
     except Exception as e:
         print(f"[AeroDataBox] 查询失败: {e}")
     return None
@@ -522,7 +527,7 @@ def logo_proxy():
 
 # ==================== 页面路由 ====================
 
-APP_VERSION = 23
+APP_VERSION = 24
 
 @app.route('/api/version')
 def get_app_version():
@@ -832,6 +837,8 @@ def test_api_connection():
         return jsonify({'success': True, 'message': f'✅ 连接成功！查到 {test_fn} 航班信息'})
     elif result:
         return jsonify({'success': True, 'message': '✅ API连接成功 (测试航班暂无数据)'})
+    elif result is None:
+        return jsonify({'success': False, 'message': '❌ 连接失败，请检查密钥是否正确（详情见控制台）'})
     else:
         return jsonify({'success': False, 'message': '❌ 连接失败，请检查密钥是否正确'})
 
