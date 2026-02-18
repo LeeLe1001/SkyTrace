@@ -4053,15 +4053,27 @@ body.is-offline .main-content .view {
 }
 
 /* 地图子页: 禁止外层滚动，地图撑满 */
+#flights-view:has(#flights-map-subview.active) {
+    overflow: hidden;
+}
+#flights-view:has(#flights-map-subview.active) .flights-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
+}
 #flights-map-subview.active {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     overflow: hidden;
 }
 #flights-map-subview.active .fmap-wrapper {
     flex: 1;
     height: auto;
+    min-height: 0;
 }
 
 .flights-full-map {
@@ -4448,9 +4460,17 @@ body.fmap-fullscreen-active .flights-sub-view {
     .fmap-wrapper {
         border-radius: 12px;
     }
+    #flights-view:has(#flights-map-subview.active) .flights-container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
     #flights-map-subview.active .fmap-wrapper {
         flex: 1;
         height: auto;
+        min-height: 0;
     }
     
     .fmap-filter-bar {
@@ -4486,10 +4506,6 @@ body.fmap-fullscreen-active .flights-sub-view {
     
     .view {
         height: calc(100vh - 60px - 56px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-    }
-    /* 行程地图子页: 禁止外层滚动 */
-    #flights-view:has(#flights-map-subview.active) {
-        overflow: hidden;
     }
     
     .home-flights-overlay {

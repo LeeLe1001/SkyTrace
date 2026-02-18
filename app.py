@@ -181,6 +181,12 @@ def fill_terminal(flight_data):
         if terminal:
             flight_data['arr_terminal'] = terminal
 
+    # 3. 兜底: 仍然没有航站楼信息的, 默认填 MAIN
+    if not flight_data.get('dep_terminal'):
+        flight_data['dep_terminal'] = 'MAIN'
+    if not flight_data.get('arr_terminal'):
+        flight_data['arr_terminal'] = 'MAIN'
+
     return flight_data
 
 
@@ -527,7 +533,7 @@ def logo_proxy():
 
 # ==================== 页面路由 ====================
 
-APP_VERSION = 24
+APP_VERSION = 25
 
 @app.route('/api/version')
 def get_app_version():

@@ -546,6 +546,9 @@
             if (apiResult && apiResult.departure) {
                 Object.entries(apiResult).forEach(([k, v]) => { if (v) result[k] = v; });
                 result.source = 'api';
+                // 兜底: 缺少航站楼信息时默认 MAIN
+                if (!result.dep_terminal) result.dep_terminal = 'MAIN';
+                if (!result.arr_terminal) result.arr_terminal = 'MAIN';
                 _cacheFlightResult(flightNo, apiResult);
                 return result;
             }
@@ -558,6 +561,11 @@
                 .forEach(k => { if (local[k]) result[k] = local[k]; });
             result.source = local.source || 'local';
         }
+
+        // 兜底: 缺少航站楼信息时默认 MAIN
+        if (!result.dep_terminal) result.dep_terminal = 'MAIN';
+        if (!result.arr_terminal) result.arr_terminal = 'MAIN';
+
         return result;
     }
 
