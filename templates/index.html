@@ -13,7 +13,7 @@
     <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
     <!-- Leaflet CSS (本地) -->
     <link rel="stylesheet" href="/static/lib/leaflet.css" />
-    <link rel="stylesheet" href="/static/css/style.css?v=30">
+    <link rel="stylesheet" href="/static/css/style.css?v=31">
     <!-- 全局错误捕获 + 加载指示器 -->
     <style>
         #loading-indicator{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg-primary,#0f172a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99998;color:#94a3b8;font-size:14px;}
@@ -30,7 +30,7 @@
         };
     </script>
     <!-- i18n 多语言 (在 app.js 之前加载) -->
-    <script src="/static/js/i18n.js?v=30"></script>
+    <script src="/static/js/i18n.js?v=31"></script>
 </head>
 <body>
     <!-- 加载指示器 -->
@@ -484,11 +484,11 @@
     <script src="/static/lib/leaflet.js"></script>
     <script src="/static/lib/arc.js"></script>
     <script src="/static/lib/html2canvas.min.js"></script>
-    <script src="/static/js/app.js?v=30"></script>
+    <script src="/static/js/app.js?v=31"></script>
     <script>
         // 彻底清除 Service Worker 和所有缓存
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js?v=30', { scope: '/' })
+            navigator.serviceWorker.register('/sw.js?v=31', { scope: '/' })
                 .then(reg => {
                     console.log('[SW] noop SW registered, will clear all caches');
                     reg.update();

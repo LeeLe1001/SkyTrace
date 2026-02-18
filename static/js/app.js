@@ -36,7 +36,7 @@ let _currentCenterSlide = null;
 let _isOffline = false;
 let _hoState = 'hidden'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
-const SKYTRACE_VERSION = 30;
+const SKYTRACE_VERSION = 31;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -1892,6 +1892,12 @@ function initTabs() {
             allNavTabs.filter(t => t.dataset.tab === tab.dataset.tab).forEach(t => t.classList.add('active'));
             const targetView = document.getElementById(tab.dataset.tab + '-view');
             targetView.classList.add('active');
+            // 切换标签时重置滚动位置到顶部
+            targetView.scrollTop = 0;
+            if (tab.dataset.tab === 'flights') {
+                const activeSub = targetView.querySelector('.flights-sub-view.active');
+                if (activeSub) activeSub.scrollTop = 0;
+            }
             // Trigger enter animation
             requestAnimationFrame(() => targetView.classList.add('view-enter'));
 
