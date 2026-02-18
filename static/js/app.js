@@ -14,6 +14,8 @@ let fmapArcLayers = [];
 let fmapInited = false;
 let fmapStatusFilter = 'all';
 let fmapFilteredFlights = [];
+let fmapHeatLayer = null;
+let _fmapHeatmapOn = false;
 
 let airports = {};
 let airlines = {};
@@ -27,11 +29,12 @@ let currentStatsYear = 'all';
 let cachedStatsData = null;
 let homeRoutesByFlight = {};
 let _homePendingBounds = null;  // 当首页不可见时暂存 fitBounds 参数
+let _homePendingRender = false;  // 首页不可见时标记需要重新渲染
 let _currentCenterSlide = null;
 let _isOffline = false;
 let _hoState = 'peek'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
-const SKYTRACE_VERSION = 18;
+const SKYTRACE_VERSION = 19;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -480,8 +483,13 @@ function renderHomeRoutes() {
         const airport = airports[code];
         if (!airport) return;
         const terminalHtml = airportTerminals[code] ? `<div style="font-size:11px;color:#3b82f6;margin-top:3px;">${formatTerminal(airportTerminals[code])}</div>` : '';
-        const marker = L.circleMarker([airport.lat, airport.lon], {
-            radius: 6, fillColor: '#3b82f6', color: '#fff', weight: 2, fillOpacity: 1
+        const marker = L.marker([airport.lat, airport.lon], {
+            icon: L.divIcon({
+                className: 'airport-dot-icon',
+                html: '<div class="airport-dot"></div>',
+                iconSize: [12, 12],
+                iconAnchor: [6, 6]
+            })
         }).addTo(homeMap);
         marker.bindPopup(`<div style="text-align:center;padding:5px;"><div style="font-size:18px;font-weight:bold;color:#3b82f6;">${code}</div><div style="font-size:13px;color:#666;margin-top:4px;">${getAirportCity(airports[code])} · ${getAirportName(airports[code])}</div>${terminalHtml}</div>`, { className: 'airport-popup' });
         homeArcLayers.push(marker);
@@ -497,6 +505,7 @@ function renderHomeRoutes() {
         } else {
             // 首页不可见时暂存, 切回首页后再 fitBounds
             _homePendingBounds = bounds;
+            _homePendingRender = true;
         }
     }
 
@@ -981,8 +990,8 @@ function highlightRouteForSlide(targetIds) {
     });
 
     homeArcLayers.forEach(l => {
-        if (l instanceof L.CircleMarker && l.setStyle) {
-            l.setStyle({ fillOpacity: 0.7, opacity: 0.7 });
+        if (l instanceof L.Marker && !(l instanceof L.CircleMarker) && l.setOpacity) {
+            l.setOpacity(0.7);
         }
     });
 }
@@ -1111,6 +1120,46 @@ function toggleFmapFullscreen() {
     setTimeout(() => { if (fmap) fmap.invalidateSize(); }, 350);
 }
 
+// ==================== 热力图 ====================
+function toggleFmapHeatmap() {
+    _fmapHeatmapOn = !_fmapHeatmapOn;
+    const btn = document.getElementById('fmap-heatmap-btn');
+    if (btn) btn.classList.toggle('active', _fmapHeatmapOn);
+    _updateFmapHeatLayer();
+}
+
+function _updateFmapHeatLayer() {
+    if (!fmap) return;
+    // 移除旧热力图层
+    if (fmapHeatLayer) { fmap.removeLayer(fmapHeatLayer); fmapHeatLayer = null; }
+    if (!_fmapHeatmapOn) return;
+
+    // 统计每个机场出现次数
+    const airportCount = {};
+    fmapFilteredFlights.forEach(f => {
+        airportCount[f.departure] = (airportCount[f.departure] || 0) + 1;
+        airportCount[f.arrival] = (airportCount[f.arrival] || 0) + 1;
+    });
+
+    const heatData = [];
+    Object.entries(airportCount).forEach(([code, count]) => {
+        const airport = airports[code];
+        if (airport?.lat && airport?.lon) {
+            heatData.push([airport.lat, airport.lon, count]);
+        }
+    });
+
+    if (heatData.length > 0 && typeof L.heatLayer === 'function') {
+        fmapHeatLayer = L.heatLayer(heatData, {
+            radius: 35,
+            blur: 25,
+            maxZoom: 10,
+            max: Math.max(...heatData.map(d => d[2])),
+            gradient: { 0.2: '#2563eb', 0.4: '#06b6d4', 0.6: '#10b981', 0.8: '#f59e0b', 1.0: '#ef4444' }
+        }).addTo(fmap);
+    }
+}
+
 // ESC 退出全屏
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && _fmapFullscreen) toggleFmapFullscreen();
@@ -1155,12 +1204,20 @@ function renderFlightsMapRoutes() {
     visitedAirports.forEach(code => {
         const airport = airports[code];
         if (!airport) return;
-        const marker = L.circleMarker([airport.lat, airport.lon], {
-            radius: 6, fillColor: '#3b82f6', color: '#fff', weight: 2, fillOpacity: 1
+        const marker = L.marker([airport.lat, airport.lon], {
+            icon: L.divIcon({
+                className: 'airport-dot-icon',
+                html: '<div class="airport-dot"></div>',
+                iconSize: [12, 12],
+                iconAnchor: [6, 6]
+            })
         }).addTo(fmap);
         marker.bindPopup(`<div style="text-align:center;padding:5px;"><div style="font-size:18px;font-weight:bold;color:#3b82f6;">${code}</div><div style="font-size:13px;color:#666;margin-top:4px;">${getAirportCity(airports[code])} · ${getAirportName(airports[code])}</div></div>`, { className: 'airport-popup' });
         fmapArcLayers.push(marker);
     });
+
+    // 更新热力图层
+    _updateFmapHeatLayer();
 
     if (fmapArcLayers.length > 0) {
         fmap.fitBounds(L.featureGroup(fmapArcLayers).getBounds(), { padding: [50, 50] });
@@ -1758,6 +1815,11 @@ function initTabs() {
                             homeMap.fitBounds(_homePendingBounds, { padding: [50, 50] });
                             _homePendingBounds = null;
                         }
+                    }
+                    // 语言切换后重新渲染首页卡片
+                    if (_homePendingRender) {
+                        _homePendingRender = false;
+                        try { renderHomeRoutes(); } catch (e) { console.error('[SkyTrace] re-render home:', e); }
                     }
                 }, 100);
                 document.querySelector('.home-flights-overlay')?.style.setProperty('display', 'flex');

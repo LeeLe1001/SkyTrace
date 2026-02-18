@@ -4113,6 +4113,52 @@ body.is-offline .main-content .view {
     background: var(--bg-card);
 }
 
+/* 热力图按钮 */
+.fmap-heatmap-btn {
+    position: absolute;
+    top: 12px;
+    right: 140px;
+    z-index: 501;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--map-stats-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    color: var(--text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px var(--shadow-color);
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+.fmap-heatmap-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-card);
+}
+.fmap-heatmap-btn.active {
+    background: rgba(59, 130, 246, 0.25);
+    border-color: #3b82f6;
+    color: #60a5fa;
+}
+
+/* 机场圆点 (替代 circleMarker, 支持 worldCopyJump) */
+.airport-dot-icon {
+    background: none !important;
+    border: none !important;
+}
+.airport-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #3b82f6;
+    border: 2px solid #fff;
+    box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
+}
+
 /* 全屏模式 */
 .fmap-fullscreen {
     position: fixed !important;
@@ -4156,6 +4202,16 @@ body.fmap-fullscreen-active .flights-sub-view {
     width: 40px;
     height: 40px;
     font-size: 22px;
+    border-radius: 12px;
+    background: var(--bg-card);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+.fmap-fullscreen .fmap-heatmap-btn {
+    top: 16px;
+    right: 140px;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
     border-radius: 12px;
     background: var(--bg-card);
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
