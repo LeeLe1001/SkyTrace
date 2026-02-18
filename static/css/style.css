@@ -3466,20 +3466,26 @@ body.is-offline .main-content .view {
 }
 
 .btn-disconnect {
-    width: 24px;
-    height: 24px;
+    width: 36px;
+    height: 36px;
     border: none;
-    background: transparent;
-    color: var(--text-muted);
-    font-size: 14px;
+    background: rgba(0,0,0,0.05);
+    color: var(--text-secondary);
+    font-size: 16px;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 8px;
     transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.btn-disconnect:hover {
+.btn-disconnect:hover,
+.btn-disconnect:active {
     color: var(--danger);
-    background: var(--bg-hover);
+    background: rgba(239, 68, 68, 0.1);
 }
 
 .connected-group .flight-card {
@@ -4521,7 +4527,7 @@ body.is-offline .main-content .view {
 }
 .home-nearest-card {
     transition: opacity 0.3s, max-height 0.35s, padding 0.3s, margin 0.3s;
-    max-height: 300px;
+    max-height: 500px;
 }
 .home-flights-overlay.expanded .home-overlay-list {
     opacity: 1;
@@ -4719,22 +4725,24 @@ body.is-offline .main-content .view {
 .carousel-dots {
     display: flex;
     justify-content: center;
-    gap: 6px;
-    margin-top: 8px;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 4px 0;
 }
 
 .carousel-dot {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: var(--border);
     transition: all 0.2s;
+    cursor: pointer;
 }
 
 .carousel-dot.active {
     background: var(--accent);
-    width: 16px;
-    border-radius: 3px;
+    width: 20px;
+    border-radius: 4px;
 }
 
 /* ==================== 月度图表下拉选择器 ==================== */

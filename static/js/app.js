@@ -487,6 +487,7 @@ function renderHomeRoutes() {
 let _hoExpanded = false;
 let _hoDragStartY = 0;
 let _hoStartH = 0;
+let _hoCarouselIdx = 0;
 
 function initHomeOverlayDrag() {
     const el = document.getElementById('home-flights-overlay');
@@ -566,7 +567,16 @@ function expandHomeOverlay() {
     const nearest = el.querySelector('.home-nearest-card');
     const list = el.querySelector('.home-overlay-list');
     if (nearest) { nearest.style.maxHeight = '0'; nearest.style.opacity = '0'; nearest.style.overflow = 'hidden'; nearest.style.padding = '0'; nearest.style.margin = '0'; }
-    if (list) { list.style.opacity = '1'; list.style.pointerEvents = 'auto'; list.style.height = 'auto'; list.scrollTop = 0; }
+    if (list) {
+        list.style.opacity = '1'; list.style.pointerEvents = 'auto'; list.style.height = 'auto';
+        // 滚动到用户正在查看的联程航班
+        const pinnedCards = list.querySelectorAll('.home-list-pinned');
+        if (_hoCarouselIdx > 0 && pinnedCards[_hoCarouselIdx]) {
+            setTimeout(() => { pinnedCards[_hoCarouselIdx].scrollIntoView({ block: 'start' }); }, 50);
+        } else {
+            list.scrollTop = 0;
+        }
+    }
     // 展开箭头向下
     const hint = el.querySelector('.home-overlay-expand-hint');
     if (hint) hint.textContent = '▼';
@@ -721,16 +731,25 @@ function renderHomeFlightOverlay(upcoming) {
             <div class="home-carousel" id="nearest-carousel">${nearestFlights.map((f, i) => renderNearestSwipeCard(f, i, nearestFlights.length)).join('')}</div>
             <div class="carousel-dots">${nearestFlights.map((_, i) => `<span class="carousel-dot${i === 0 ? ' active' : ''}" data-idx="${i}"></span>`).join('')}</div>`;
         // 轮播指示器联动
+        _hoCarouselIdx = 0;
         setTimeout(() => {
             const carousel = document.getElementById('nearest-carousel');
             if (carousel) {
                 carousel.addEventListener('scroll', () => {
                     const idx = Math.round(carousel.scrollLeft / carousel.offsetWidth);
+                    _hoCarouselIdx = idx;
                     document.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
                     // 高亮对应航线
                     if (nearestFlights[idx]) highlightRouteForSlide([nearestFlights[idx].id]);
                 });
             }
+            // 点击圆点跳转到对应轮播
+            document.querySelectorAll('.carousel-dot').forEach(dot => {
+                dot.addEventListener('click', () => {
+                    const idx = parseInt(dot.dataset.idx, 10);
+                    if (carousel && !isNaN(idx)) carousel.scrollTo({ left: idx * carousel.offsetWidth, behavior: 'smooth' });
+                });
+            });
         }, 50);
     }
 
@@ -832,7 +851,7 @@ function renderNearestSwipeCard(flight, idx, total) {
     const arrTerminal = formatTerminal(flight.arr_terminal);
     const gate = flight.dep_gate ? `Gate ${flight.dep_gate}` : '';
     const statusInfo = flight.status_info || {};
-    const countdownHtml = idx === 0 && statusInfo.countdown ? `<div class="nearest-countdown">${renderCountdown(statusInfo.countdown)}</div>` : '';
+    const countdownHtml = statusInfo.countdown ? `<div class="nearest-countdown">${renderCountdown(statusInfo.countdown)}</div>` : '';
 
     const duration = calcDuration(flight);
     const stopoverHtml = renderStopoverHtml(flight);
@@ -2284,14 +2303,15 @@ function groupConnectedFlights(list) {
 }
 function toggleConnectMode() {
     connectMode = !connectMode; selectedConnectIds.clear();
-    const btn = document.getElementById('btn-connect');
     if (connectMode) {
-        if (btn) btn.classList.add('active');
+        // 自动切换到行程列表页
+        const flightsTab = document.querySelector('.mobile-nav-tab[data-tab="flights"]') || document.querySelector('.nav-tab[data-tab="flights"]');
+        if (flightsTab) flightsTab.click();
         let bar = document.getElementById('connect-action-bar');
-        if (!bar) { bar = document.createElement('div'); bar.id = 'connect-action-bar'; bar.className = 'connect-action-bar'; document.querySelector('.flights-container').appendChild(bar); }
+        if (!bar) { bar = document.createElement('div'); bar.id = 'connect-action-bar'; bar.className = 'connect-action-bar'; const subview = document.getElementById('flights-list-subview'); if (subview) subview.appendChild(bar); }
         _updateConnectBar();
         bar.style.display = 'flex';
-    } else { if (btn) btn.classList.remove('active'); const bar = document.getElementById('connect-action-bar'); if (bar) bar.style.display = 'none'; }
+    } else { const bar = document.getElementById('connect-action-bar'); if (bar) bar.style.display = 'none'; }
     renderFlightsList();
 }
 function _updateConnectBar() {
@@ -2308,7 +2328,7 @@ function _updateConnectBar() {
 function toggleConnectSelect(id) { if (selectedConnectIds.has(id)) selectedConnectIds.delete(id); else selectedConnectIds.add(id); _updateConnectBar(); renderFlightsList(); }
 async function confirmConnect() {
     if (selectedConnectIds.size < 2) return;
-    try { await fetch('/api/flights/connect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ flight_ids: Array.from(selectedConnectIds) }) }); connectMode = false; selectedConnectIds.clear(); document.getElementById('btn-connect').classList.remove('active'); const bar = document.getElementById('connect-action-bar'); if (bar) bar.style.display = 'none'; loadFlights(); } catch (e) {}
+    try { await fetch('/api/flights/connect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ flight_ids: Array.from(selectedConnectIds) }) }); connectMode = false; selectedConnectIds.clear(); const bar = document.getElementById('connect-action-bar'); if (bar) bar.style.display = 'none'; loadFlights(); } catch (e) {}
 }
 async function batchDeleteFlights() {
     if (selectedConnectIds.size < 1) return;
@@ -2319,7 +2339,6 @@ async function batchDeleteFlights() {
         const ids = Array.from(selectedConnectIds);
         for (const id of ids) { await fetch(`/api/flights/${id}`, { method: 'DELETE' }); }
         connectMode = false; selectedConnectIds.clear();
-        document.getElementById('btn-connect').classList.remove('active');
         const bar = document.getElementById('connect-action-bar'); if (bar) bar.style.display = 'none';
         loadFlights(); loadStats();
     } catch (e) { alert(t('deleteFailed')); }
