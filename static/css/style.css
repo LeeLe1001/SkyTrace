@@ -52,12 +52,19 @@
     box-sizing: border-box;
 }
 
+html {
+    height: 100%;
+    overflow: hidden;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     background: var(--bg-primary);
     color: var(--text-primary);
-    min-height: 100vh;
-    overflow-x: hidden;
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
 }
 
 /* ==================== 离线模式横幅 ==================== */
@@ -204,7 +211,8 @@ body.is-offline .main-content .view {
 /* ==================== 主内容 ==================== */
 .main-content {
     padding-top: calc(60px + env(safe-area-inset-top, 0px));
-    min-height: 100vh;
+    height: 100%;
+    overflow: hidden;
 }
 
 .view {
@@ -309,7 +317,7 @@ body.is-offline .main-content .view {
 #flights-view .flights-container {
     max-width: 900px;
     margin: 0 auto;
-    padding: 30px 20px;
+    padding: 20px 20px 0;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -1540,7 +1548,7 @@ body.is-offline .main-content .view {
     }
 
     .flights-container {
-        padding: 20px 16px;
+        padding: 16px 16px 0;
     }
 
     .time-filter-row {

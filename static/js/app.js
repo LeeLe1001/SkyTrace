@@ -36,7 +36,7 @@ let _currentCenterSlide = null;
 let _isOffline = false;
 let _hoState = 'hidden'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
-const SKYTRACE_VERSION = 27;
+const SKYTRACE_VERSION = 28;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -2425,9 +2425,13 @@ async function testApi(apiName) {
     if (!key) { resultEl.textContent = t('testEnterKey'); resultEl.className = 'api-test-result error'; return; }
     resultEl.textContent = t('testing'); resultEl.className = 'api-test-result info';
     try {
-        const result = await (await fetch('/api/settings/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ api: apiName, key }) })).json();
+        const resp = await fetch('/api/settings/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ api: apiName, key }) });
+        if (!resp.ok) { resultEl.textContent = `❌ HTTP ${resp.status}`; resultEl.className = 'api-test-result error'; return; }
+        const text = await resp.text();
+        let result;
+        try { result = JSON.parse(text); } catch (_) { resultEl.textContent = `❌ ${t('testFailed')}`; resultEl.className = 'api-test-result error'; return; }
         resultEl.textContent = result.message; resultEl.className = 'api-test-result ' + (result.success ? 'success' : 'error');
-    } catch (e) { resultEl.textContent = t('testFailed'); resultEl.className = 'api-test-result error'; }
+    } catch (e) { resultEl.textContent = `${t('testFailed')}: ${e.message || e}`; resultEl.className = 'api-test-result error'; }
 }
 
 // ==================== 强制刷新 ====================

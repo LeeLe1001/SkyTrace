@@ -533,7 +533,7 @@ def logo_proxy():
 
 # ==================== 页面路由 ====================
 
-APP_VERSION = 27
+APP_VERSION = 28
 
 @app.route('/api/version')
 def get_app_version():
@@ -822,31 +822,35 @@ def save_settings_api():
 @app.route('/api/settings/test', methods=['POST'])
 def test_api_connection():
     """测试 API 连接"""
-    body = request.json or {}
-    api_name = body.get('api', '')
-    api_key = body.get('key', '')
+    try:
+        body = request.json or {}
+        api_name = body.get('api', '')
+        api_key = body.get('key', '')
 
-    if not api_key or '****' in api_key:
-        return jsonify({'success': False, 'message': '请输入有效的API密钥'})
+        if not api_key or '****' in api_key:
+            return jsonify({'success': False, 'message': '请输入有效的API密钥'})
 
-    # 用一个常见航班号做测试
-    test_fn = 'CZ3101'
-    result = None
-    if api_name == 'aviationstack':
-        result = query_aviationstack(test_fn, '', api_key)
-    elif api_name == 'airlabs':
-        result = query_airlabs(test_fn, '', api_key)
-    elif api_name == 'aerodata':
-        result = query_aerodata(test_fn, '', api_key)
+        # 用一个常见航班号做测试
+        test_fn = 'CZ3101'
+        result = None
+        if api_name == 'aviationstack':
+            result = query_aviationstack(test_fn, '', api_key)
+        elif api_name == 'airlabs':
+            result = query_airlabs(test_fn, '', api_key)
+        elif api_name == 'aerodata':
+            result = query_aerodata(test_fn, '', api_key)
 
-    if result and result.get('departure'):
-        return jsonify({'success': True, 'message': f'✅ 连接成功！查到 {test_fn} 航班信息'})
-    elif result:
-        return jsonify({'success': True, 'message': '✅ API连接成功 (测试航班暂无数据)'})
-    elif result is None:
-        return jsonify({'success': False, 'message': '❌ 连接失败，请检查密钥是否正确（详情见控制台）'})
-    else:
-        return jsonify({'success': False, 'message': '❌ 连接失败，请检查密钥是否正确'})
+        if result and result.get('departure'):
+            return jsonify({'success': True, 'message': f'✅ 连接成功！查到 {test_fn} 航班信息'})
+        elif result:
+            return jsonify({'success': True, 'message': '✅ API连接成功 (测试航班暂无数据)'})
+        elif result is None:
+            return jsonify({'success': False, 'message': '❌ 连接失败，请检查密钥是否正确（详情见控制台）'})
+        else:
+            return jsonify({'success': False, 'message': '❌ 连接失败，请检查密钥是否正确'})
+    except Exception as e:
+        print(f'[API Test] 异常: {e}')
+        return jsonify({'success': False, 'message': f'❌ 测试异常: {e}'})
 
 
 # ==================== API 路由: 航班 CRUD ====================
