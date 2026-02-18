@@ -3310,7 +3310,7 @@
       "notes": "",
       "stopover": "",
       "status": "scheduled",
-      "connected_group": "80de5cdb"
+      "connected_group": "7d4c5774"
     },
     {
       "id": "test_antimeridian_03",
@@ -3331,7 +3331,7 @@
       "notes": "",
       "stopover": "",
       "status": "scheduled",
-      "connected_group": "80de5cdb"
+      "connected_group": "7d4c5774"
     }
   ]
 }

@@ -1547,15 +1547,42 @@ function renderFlightsList(filter = currentStatusFilter) {
     const isNewestFirst = filter === 'completed' || (filter === 'all' && _allSortOrder === 'newest');
     const sortedDates = Object.keys(dateGroups).sort((a, b) => isNewestFirst ? b.localeCompare(a) : a.localeCompare(b));
 
+    // 收集哪些联程组已经渲染过 (跨日联程只渲染一次)
+    const renderedGroups = new Set();
     let html = '';
     sortedDates.forEach(date => {
-        html += `<div class="flights-date-header">${formatDate(date)}</div>`;
-        html += dateGroups[date].map(item => {
+        // 本日期下的非联程航班和尚未渲染的联程组
+        const items = dateGroups[date].filter(item => {
             if (item.isGroup) {
-                return `<div class="connected-group"><div class="connected-group-header"><span class="connected-badge">🔗 ${t('connectedFlight')}</span><button class="btn-disconnect" data-disconnect-group="${item.groupId}" title="${t('disconnect')}">✕</button></div>${item.flights.map(f => renderFlightCard(f)).join('')}</div>`;
+                if (renderedGroups.has(item.groupId)) return false;
+                renderedGroups.add(item.groupId);
             }
-            return renderFlightCard(item);
-        }).join('');
+            return true;
+        });
+        if (items.length === 0) return;
+        // 非联程航班统一加一个日期头
+        const standaloneFlights = items.filter(i => !i.isGroup);
+        const groups = items.filter(i => i.isGroup);
+        // 先渲染联程组(日期头在框内)
+        groups.forEach(item => {
+            const groupDates = {};
+            item.flights.forEach(f => {
+                if (!groupDates[f.date]) groupDates[f.date] = [];
+                groupDates[f.date].push(f);
+            });
+            const gDates = Object.keys(groupDates).sort((a, b) => isNewestFirst ? b.localeCompare(a) : a.localeCompare(b));
+            let inner = '';
+            gDates.forEach(gd => {
+                inner += `<div class="connected-group-date">${formatDate(gd)}</div>`;
+                inner += groupDates[gd].map(f => renderFlightCard(f)).join('');
+            });
+            html += `<div class="connected-group"><div class="connected-group-header"><span class="connected-badge">🔗 ${t('connectedFlight')}</span><button class="btn-disconnect" onclick="event.stopPropagation();disconnectGroup('${item.groupId}')" title="${t('disconnect')}">✕</button></div>${inner}</div>`;
+        });
+        // 再渲染独立航班
+        if (standaloneFlights.length > 0) {
+            html += `<div class="flights-date-header">${formatDate(date)}</div>`;
+            html += standaloneFlights.map(f => renderFlightCard(f)).join('');
+        }
     });
 
     container.innerHTML = html;
@@ -2414,9 +2441,9 @@ async function disconnectSelected() {
     } catch (e) {}
 }
 async function disconnectGroup(groupId) {
-    if (!confirm(t('confirmDisconnect'))) return;
-    try { await fetch('/api/flights/disconnect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ group_id: groupId }) }); loadFlights(); } catch (e) {}
+    try { await fetch('/api/flights/disconnect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ group_id: groupId }) }); loadFlights(); } catch (e) { console.error('[SkyTrace] disconnect error', e); }
 }
+window.disconnectGroup = disconnectGroup;
 
 // ==================== 展开/折叠 ====================
 function toggleWeekdayDetail(el) { const d = el.querySelector('.fun-card-expand-detail'); const h = el.querySelector('.expand-hint'); if (!d) return; const hidden = d.style.display === 'none'; d.style.display = hidden ? 'block' : 'none'; if (h) h.textContent = hidden ? '▲' : '▼'; }

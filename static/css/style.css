@@ -3471,6 +3471,8 @@ body.is-offline .main-content .view {
     justify-content: space-between;
     align-items: center;
     padding: 4px 8px 8px;
+    position: relative;
+    z-index: 20;
 }
 
 .connected-badge {
@@ -3480,22 +3482,28 @@ body.is-offline .main-content .view {
 }
 
 .btn-disconnect {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
     border: none;
-    background: rgba(0,0,0,0.05);
+    background: rgba(239, 68, 68, 0.08);
     color: var(--text-secondary);
-    font-size: 16px;
+    font-size: 18px;
     cursor: pointer;
-    border-radius: 8px;
+    border-radius: 10px;
     transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
+    pointer-events: auto !important;
     position: relative;
-    z-index: 10;
+    z-index: 50;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .btn-disconnect:hover,
@@ -3510,6 +3518,14 @@ body.is-offline .main-content .view {
 
 .connected-group .flight-card:last-child {
     margin-bottom: 0;
+}
+
+.connected-group-date {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    padding: 6px 8px 4px;
+    opacity: 0.75;
 }
 
 /* 联程多选模式 */
@@ -4100,17 +4116,16 @@ body.is-offline .main-content .view {
 /* 全屏模式 */
 .fmap-fullscreen {
     position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
     max-height: none !important;
     z-index: 9999 !important;
     border-radius: 0 !important;
     border: none !important;
     margin: 0 !important;
+    padding: 0 !important;
 }
 /* 全屏时隐藏顶部/底部导航和子标签 */
 body.fmap-fullscreen-active .header,
@@ -4127,6 +4142,11 @@ body.fmap-fullscreen-active .flights-sub-view {
     transform: none !important;
     overflow: visible !important;
     contain: none !important;
+    animation: none !important;
+}
+.fmap-fullscreen .flights-full-map {
+    width: 100% !important;
+    height: 100% !important;
 }
 .fmap-fullscreen .fmap-fullscreen-btn {
     top: 16px;
