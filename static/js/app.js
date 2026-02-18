@@ -114,21 +114,23 @@ function _estimateUtcOffset(lon) {
     return Math.round(lon / 15);
 }
 
-/** 计算飞行时长, 考虑出发/到达机场时区差异 */
+/** 计算飞行时长, 先转 UTC 再比较, 避免跨时区 +1 天误判 */
 function calcDuration(flight) {
     if (!flight.dep_time || !flight.arr_time) return '';
-    const d1 = new Date(`2000-01-01 ${flight.dep_time}`);
-    let d2 = new Date(`2000-01-01 ${flight.arr_time}`);
+    const d1 = new Date(`2000-01-01T${flight.dep_time}`);
+    let d2 = new Date(`2000-01-01T${flight.arr_time}`);
     const offset = _getDayOffset(flight);
     if (offset) d2.setDate(d2.getDate() + offset);
-    else if (d2 < d1) d2.setDate(d2.getDate() + 1);
-    // 时区修正: 出发/到达时间为当地时间, 需减去时区差
+    // 时区: 当地时间 → UTC (dep_utc = dep_local - depTz, arr_utc = arr_local - arrTz)
     const depAirport = flight.dep_airport || airports[flight.departure] || {};
     const arrAirport = flight.arr_airport || airports[flight.arrival] || {};
     const depTz = _estimateUtcOffset(depAirport.lon);
     const arrTz = _estimateUtcOffset(arrAirport.lon);
-    const tzDiffMin = (arrTz - depTz) * 60; // 到达时区比出发快多少分钟
-    const diff = (d2 - d1) / 1000 / 60 - tzDiffMin;
+    const d1Utc = d1.getTime() - depTz * 3600000;
+    let d2Utc = d2.getTime() - arrTz * 3600000;
+    // 无显式偏移且 UTC 到达 ≤ UTC 出发 → 说明跨日, +1 天
+    if (!offset && d2Utc <= d1Utc) d2Utc += 86400000;
+    const diff = (d2Utc - d1Utc) / 60000;
     if (diff <= 0) return '';
     return `${Math.floor(diff / 60)}h ${Math.round(diff % 60)}m`;
 }
@@ -1104,6 +1106,17 @@ document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && _fmapFullscreen) toggleFmapFullscreen();
 });
 
+// 全局事件委托: 解除联程按钮 (不受 innerHTML 替换影响)
+document.addEventListener('click', e => {
+    const btn = e.target.closest('.btn-disconnect[data-disconnect-group]');
+    if (btn) {
+        e.stopPropagation();
+        e.preventDefault();
+        const gid = btn.dataset.disconnectGroup;
+        if (gid) disconnectGroup(gid);
+    }
+});
+
 function renderFlightsMapRoutes() {
     fmapArcLayers.forEach(l => fmap.removeLayer(l));
     fmapArcLayers = [];
@@ -1546,16 +1559,6 @@ function renderFlightsList(filter = currentStatusFilter) {
     });
 
     container.innerHTML = html;
-
-    // 使用事件委托绑定解除联程按钮
-    container.querySelectorAll('.btn-disconnect[data-disconnect-group]').forEach(btn => {
-        btn.addEventListener('click', e => {
-            e.stopPropagation();
-            e.preventDefault();
-            const gid = btn.dataset.disconnectGroup;
-            if (gid) disconnectGroup(gid);
-        });
-    });
 }
 
 function renderFlightCard(flight) {
