@@ -1751,7 +1751,6 @@ function showFlightDetail(flightId) {
         <div class="detail-card-title">💺 ${t('seatInfo') || '乘机信息'}</div>
         ${gateRows.length > 0 ? `<div class="detail-boarding-section">${gateRows.join('')}</div>` : ''}
         <div class="detail-info-grid detail-info-grid-bordered">
-            ${(depTerminalFmt || arrTerminalFmt) ? `<div class="detail-info-item"><div class="detail-info-label">${t('depTerminal')}</div><div class="detail-info-value">${depTerminalFmt || '-'}</div></div><div class="detail-info-item"><div class="detail-info-label">${t('arrTerminal')}</div><div class="detail-info-value">${arrTerminalFmt || '-'}</div></div>` : ''}
             <div class="detail-info-item"><div class="detail-info-label">${t('aircraftLabel')}</div><div class="detail-info-value">${flight.aircraft || '-'}</div></div>
             <div class="detail-info-item"><div class="detail-info-label">${t('seatLabel')}</div><div class="detail-info-value">${flight.seat || '-'}</div></div>
             <div class="detail-info-item"><div class="detail-info-label">${t('cabinLabel')}</div><div class="detail-info-value">${getCabinText(flight.class)}</div></div>
@@ -1773,11 +1772,13 @@ function showFlightDetail(flightId) {
         <div class="detail-route">
             <div class="detail-point departure">
                 <div class="detail-code">${flight.departure}</div>
+                ${depTerminalFmt ? `<div class="detail-terminal">${depTerminalFmt}</div>` : ''}
                 <div class="detail-city">${getAirportCity(depAirport)}</div><div class="detail-time">${flight.dep_time}</div>
             </div>
             <div class="detail-arrow">${isActive ? `<div class="flight-progress-mini"><div class="progress-track"><div class="progress-fill" style="width:${progress}%"></div><div class="progress-plane" style="left:${progress}%">✈</div></div><div class="progress-text">${renderCountdown(statusInfo.countdown)}</div></div>` : '<div class="detail-route-line"><div class="detail-route-dot"></div><div class="detail-route-dash"></div><span class="detail-route-plane">✈</span><div class="detail-route-dash"></div><div class="detail-route-dot"></div></div>'}${renderStopoverHtml(flight)}</div>
             <div class="detail-point arrival">
                 <div class="detail-code">${flight.arrival}</div>
+                ${arrTerminalFmt ? `<div class="detail-terminal">${arrTerminalFmt}</div>` : ''}
                 <div class="detail-city">${getAirportCity(arrAirport)}</div><div class="detail-time">${formatArrTime(flight)}</div>
             </div>
         </div>
