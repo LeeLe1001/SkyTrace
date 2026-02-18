@@ -214,7 +214,7 @@ const IATA_TO_ICAO = {
 };
 const LOGO_JXCK = 'https://raw.githubusercontent.com/Jxck-S/airline-logos/main/flightaware_logos/';
 const LOGO_JXCK_RB = 'https://raw.githubusercontent.com/Jxck-S/airline-logos/main/radarbox_logos/';
-const LOGO_LOCAL = '/static/img/airlines/';
+const LOGO_LOCAL = 'static/img/airlines/';
 
 // ==================== 航空联盟映射 (2026-02) ====================
 const AIRLINE_ALLIANCE = {

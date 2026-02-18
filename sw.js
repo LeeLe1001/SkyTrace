@@ -8,25 +8,28 @@
  * - HTML 页面: network-first (确保最新)
  */
 
-const CACHE_VERSION = 'skytrace-v7';
+const CACHE_VERSION = 'skytrace-v8';
 const STATIC_CACHE = CACHE_VERSION + '-static';
 const API_CACHE    = CACHE_VERSION + '-api';
 const TILE_CACHE   = CACHE_VERSION + '-tiles';
 
 // 预缓存核心资源
 const PRECACHE_URLS = [
-  '/',
-  '/static/css/style.css',
-  '/static/js/app.js',
-  '/static/js/i18n.js',
-  '/static/lib/leaflet.js',
-  '/static/lib/leaflet.css',
-  '/static/lib/arc.js',
-  '/static/lib/html2canvas.min.js',
-  '/static/lib/leaflet-heat.js',
-  '/static/icons/icon-192.png',
-  '/static/icons/icon-512.png',
-  '/static/manifest.json',
+  './',
+  './static/css/style.css',
+  './static/js/static-mode.js',
+  './static/js/app.js',
+  './static/js/i18n.js',
+  './static/lib/leaflet.js',
+  './static/lib/leaflet.css',
+  './static/lib/arc.js',
+  './static/lib/html2canvas.min.js',
+  './static/lib/leaflet-heat.js',
+  './static/icons/icon-192.png',
+  './static/icons/icon-512.png',
+  './static/manifest.json',
+  './data/airports.json',
+  './data/airlines.json',
 ];
 
 // ==================== Install ====================
