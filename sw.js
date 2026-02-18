@@ -8,7 +8,7 @@
  * - HTML 页面: network-first (确保最新)
  */
 
-const CACHE_VERSION = 'skytrace-v20';
+const CACHE_VERSION = 'skytrace-v21';
 const STATIC_CACHE = CACHE_VERSION + '-static';
 const API_CACHE    = CACHE_VERSION + '-api';
 const TILE_CACHE   = CACHE_VERSION + '-tiles';
@@ -79,8 +79,8 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 3. 静态资源: stale-while-revalidate
-  if (url.pathname.startsWith('/static/') || url.pathname === '/sw.js') {
+  // 3. 静态资源: stale-while-revalidate (不缓存sw.js自身)
+  if (url.pathname.startsWith('/static/')) {
     event.respondWith(staleWhileRevalidate(event.request, STATIC_CACHE));
     return;
   }
