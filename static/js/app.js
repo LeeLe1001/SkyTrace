@@ -1947,8 +1947,9 @@ function initTabs() {
             else if (subtab === 'fmap') {
                 const sv = document.getElementById('flights-map-subview'); sv.classList.add('active'); requestAnimationFrame(() => sv.classList.add('view-enter'));
                 initFlightsMap();
-                // 地图子页使用 flex 布局，延迟刷新尺寸确保高度正确
-                setTimeout(() => { if (fmap) fmap.invalidateSize(); }, 200);
+                // 地图子页使用 flex 布局，等 CSS 动画结束后刷新尺寸
+                setTimeout(() => { if (fmap) fmap.invalidateSize(); }, 300);
+                setTimeout(() => { if (fmap) fmap.invalidateSize(); }, 600);
             }
             else if (subtab === 'fstats') {
                 const sv = document.getElementById('flights-stats-subview'); sv.classList.add('active'); requestAnimationFrame(() => sv.classList.add('view-enter'));
@@ -2072,6 +2073,16 @@ function showFlightDetail(flightId) {
     document.getElementById('detail-modal').classList.add('active');
     // 每次打开详情滚动到顶部
     detailContent.scrollTop = 0;
+    // 将行程列表滚动到当前航班卡片位置
+    try {
+        const clickedCard = document.querySelector(`.flights-list-card[onclick*="${flightId}"]`);
+        if (clickedCard) {
+            const listContainer = document.getElementById('flights-list');
+            if (listContainer) {
+                clickedCard.scrollIntoView({ block: 'start', behavior: 'instant' });
+            }
+        }
+    } catch(e) {}
     if (statusInfo.status !== 'completed') {
         loadFlightWeather(flight).then(html => { const el = document.getElementById('detail-weather'); if (el && html) el.innerHTML = html; });
     }

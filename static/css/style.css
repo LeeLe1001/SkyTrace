@@ -4550,6 +4550,7 @@ body.fmap-fullscreen-active .flights-sub-view {
     .fmap-stats-card {
         padding: 10px clamp(14px, 3.5vw, 22px);
         gap: clamp(14px, 3.5vw, 24px);
+        bottom: calc(60px + env(safe-area-inset-bottom, 0px));
     }
     
     .mobile-nav {
@@ -4570,6 +4571,10 @@ body.fmap-fullscreen-active .flights-sub-view {
     }
     #flights-map-subview.active {
         padding-bottom: 0;
+        /* 地图子页不需要 padding，但 stats 卡片需要避让底部导航 */
+    }
+    #flights-map-subview .fmap-wrapper {
+        margin-bottom: 0;
     }
 
     .home-flights-overlay {
