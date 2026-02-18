@@ -36,7 +36,7 @@ let _currentCenterSlide = null;
 let _isOffline = false;
 let _hoState = 'hidden'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
-const SKYTRACE_VERSION = 22;
+const SKYTRACE_VERSION = 23;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -72,15 +72,12 @@ function _fixAntimeridianCoords(geometries) {
         });
     });
     if (allCoords.length < 2) return [];
-    // 检查是否跨越反子午线（有坐标超出 [-180,180]）
-    const minLon = Math.min(...allCoords.map(c => c[1]));
-    const maxLon = Math.max(...allCoords.map(c => c[1]));
-    if (minLon >= -180 && maxLon <= 180) return [allCoords];
-    // 跨反子午线: 返回两份副本，确保两侧半球都可见
-    const result = [allCoords];
-    if (maxLon > 180) result.push(allCoords.map(c => [c[0], c[1] - 360]));
-    if (minLon < -180) result.push(allCoords.map(c => [c[0], c[1] + 360]));
-    return result;
+    // 始终返回 ±360 副本，确保宽屏 / worldCopyJump 两侧地图都渲染弧线
+    return [
+        allCoords,
+        allCoords.map(c => [c[0], c[1] - 360]),
+        allCoords.map(c => [c[0], c[1] + 360])
+    ];
 }
 
 /** 格式化到达时间: 跨日到达加 +1/-1/+2 标识 */
@@ -406,7 +403,10 @@ function _skytraceInit() {
         return loadFlights().catch(e => console.error('[SkyTrace] loadFlights:', e));
     }).then(() => {
         console.log('[SkyTrace] All init complete');
-        // 隐藏开屏动画
+    }).catch(e => {
+        console.error('[SkyTrace] Init error:', e);
+    }).finally(() => {
+        // 数据加载完成（无论成功/失败）→ 隐藏开屏动画
         _dismissSplash();
     });
 
@@ -442,7 +442,9 @@ function initHomeMap() {
         minZoom: 2,
         maxZoom: 18,
         zoomControl: false,
-        worldCopyJump: true
+        worldCopyJump: true,
+        maxBounds: [[-85, -Infinity], [85, Infinity]],
+        maxBoundsViscosity: 0.8
     });
     const theme = localStorage.getItem('skytrace-theme') || 'dark';
     const tileUrl = theme === 'light' ? TILE_LIGHT : TILE_DARK;
@@ -1028,7 +1030,9 @@ function initFlightsMap() {
         minZoom: 2,
         maxZoom: 18,
         zoomControl: false,
-        worldCopyJump: true
+        worldCopyJump: true,
+        maxBounds: [[-85, -Infinity], [85, Infinity]],
+        maxBoundsViscosity: 0.8
     });
     const theme = localStorage.getItem('skytrace-theme') || 'dark';
     const tileUrl = theme === 'light' ? TILE_LIGHT : TILE_DARK;
@@ -1840,6 +1844,16 @@ function initTabs() {
     const allNavTabs = [...document.querySelectorAll('.nav-tab'), ...document.querySelectorAll('.mobile-nav-tab')];
     allNavTabs.forEach(tab => {
         tab.addEventListener('click', () => {
+            // 如果已在当前标签页，再次点击 → 滚动到顶部
+            if (tab.classList.contains('active')) {
+                const viewEl = document.getElementById(tab.dataset.tab + '-view');
+                if (viewEl) viewEl.scrollTo({ top: 0, behavior: 'smooth' });
+                if (tab.dataset.tab === 'home' && homeMap) {
+                    homeMap.invalidateSize();
+                    if (homeArcLayers.length > 0) homeMap.fitBounds(L.featureGroup(homeArcLayers).getBounds(), { padding: [50, 50] });
+                }
+                return;
+            }
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.mobile-nav-tab').forEach(t => t.classList.remove('active'));
             // Remove active and animation from all views

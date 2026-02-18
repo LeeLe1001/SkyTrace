@@ -2,33 +2,23 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>SkyTrace - 个人航旅管理</title>
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="icon" type="image/png" sizes="192x192" href="static/icons/icon-192.png">
     <!-- PWA -->
-    <link rel="manifest" href="static/manifest.json">
+    <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="#3b82f6">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SkyTrace">
-    <link rel="apple-touch-icon" href="static/icons/apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
     <!-- Leaflet CSS (本地) -->
-    <link rel="stylesheet" href="static/lib/leaflet.css" />
-    <link rel="stylesheet" href="static/css/style.css?v=23">
-    <!-- 全局错误捕获 + 开屏动画 -->
+    <link rel="stylesheet" href="/static/lib/leaflet.css" />
+    <link rel="stylesheet" href="/static/css/style.css?v=23">
+    <!-- 全局错误捕获 + 加载指示器 -->
     <style>
-        #splash-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99998;overflow:hidden;transition:opacity 0.6s ease,transform 0.6s ease;}
-        #splash-screen.fade-out{opacity:0;transform:scale(1.05);pointer-events:none;}
-        .splash-logo{width:80px;height:80px;margin-bottom:20px;animation:splash-bounce 1.2s ease-in-out infinite alternate;filter:drop-shadow(0 4px 20px rgba(59,130,246,0.4));}
-        .splash-title{font-size:28px;font-weight:700;color:#fff;letter-spacing:2px;margin-bottom:8px;opacity:0;animation:splash-fade-in 0.6s ease 0.2s forwards;}
-        .splash-subtitle{font-size:13px;color:#64748b;opacity:0;animation:splash-fade-in 0.6s ease 0.4s forwards;}
-        .splash-progress{width:120px;height:3px;background:#1e293b;border-radius:2px;margin-top:24px;overflow:hidden;opacity:0;animation:splash-fade-in 0.6s ease 0.5s forwards;}
-        .splash-progress-bar{height:100%;width:30%;background:linear-gradient(90deg,transparent,#3b82f6,#60a5fa,transparent);border-radius:2px;animation:splash-shimmer 1.4s ease-in-out infinite;}
-        @keyframes splash-bounce{0%{transform:translateY(0)}100%{transform:translateY(-8px)}}
-        @keyframes splash-fade-in{to{opacity:1}}
-        @keyframes splash-shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+        #loading-indicator{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg-primary,#0f172a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99998;color:#94a3b8;font-size:14px;}
+        #loading-indicator .spinner-lg{width:40px;height:40px;border:3px solid #334155;border-top-color:#3b82f6;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:12px;}
+        @keyframes spin{to{transform:rotate(360deg)}}
         #debug-banner{position:fixed;top:0;left:0;right:0;background:#dc2626;color:#fff;padding:8px 12px;font-size:12px;z-index:99999;display:none;max-height:120px;overflow:auto;font-family:monospace;}
     </style>
     <script>
@@ -40,16 +30,11 @@
         };
     </script>
     <!-- i18n 多语言 (在 app.js 之前加载) -->
-    <script src="static/js/i18n.js?v=23"></script>
+    <script src="/static/js/i18n.js?v=23"></script>
 </head>
 <body>
-    <!-- 开屏动画 -->
-    <div id="splash-screen">
-        <img class="splash-logo" src="static/icons/icon-192.png" alt="SkyTrace">
-        <div class="splash-title">SkyTrace</div>
-        <div class="splash-subtitle">Personal Flight Tracker</div>
-        <div class="splash-progress"><div class="splash-progress-bar"></div></div>
-    </div>
+    <!-- 加载指示器 -->
+    <div id="loading-indicator"><div class="spinner-lg"></div><span>&#9992;&#65039; SkyTrace 加载中...</span></div>
     <!-- 错误横幅 -->
     <div id="debug-banner"></div>
     <!-- 离线模式横幅 -->
@@ -153,7 +138,8 @@
                 <div class="flights-sub-view" id="flights-map-subview">
                 <div class="fmap-wrapper" id="fmap-wrapper">
                         <div id="flights-map" class="flights-full-map"></div>
-                        <button class="fmap-fullscreen-btn" id="fmap-fullscreen-btn" onclick="toggleFmapFullscreen()" title="全屏">⛶</button>                        <button class="fmap-heatmap-btn" id="fmap-heatmap-btn" onclick="toggleFmapHeatmap()" title="热力图">🌡️</button>                        <button class="fmap-toggle-filter" id="fmap-toggle-filter" onclick="toggleFmapFilter()">&#128269; 筛选</button>
+                        <button class="fmap-fullscreen-btn" id="fmap-fullscreen-btn" onclick="toggleFmapFullscreen()" title="全屏">⛶</button>
+                        <button class="fmap-toggle-filter" id="fmap-toggle-filter" onclick="toggleFmapFilter()">&#128269; 筛选</button>
                         <div class="fmap-filter-bar hidden" id="fmap-filter-bar">
                             <div class="fmap-status-pills">
                                 <button class="fmap-pill active" data-fmap-status="all" data-i18n="filterAll">全部</button>
@@ -429,39 +415,6 @@
                             <span class="settings-theme-text" id="settings-theme-text" data-i18n="themeDark">深色模式</span>
                         </button>
                     </div>
-                    <div class="settings-row">
-                        <div class="settings-row-label" data-i18n="settingsRefresh">检查更新</div>
-                        <button class="settings-action-btn" onclick="forceRefreshApp()" id="settings-refresh-btn">
-                            <span>&#128260;</span>
-                            <span data-i18n="refreshNow">立即刷新</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="settings-section">
-                    <h4 class="settings-section-title" data-i18n="settingsSync">&#128268; 数据同步</h4>
-                    <div class="settings-intro">
-                        <p data-i18n="syncIntro">配置 GitHub Token 后，手机上的航班数据修改可同步回仓库。</p>
-                    </div>
-                    <div class="settings-row settings-row-col">
-                        <div class="settings-row-label">GitHub Token</div>
-                        <div class="sync-input-row">
-                            <input type="password" id="github-token" placeholder="ghp_xxxx..." autocomplete="off">
-                            <button class="btn-test" onclick="testGithubSync()" data-i18n="testConnection">测试连接</button>
-                        </div>
-                    </div>
-                    <div class="settings-row settings-row-col">
-                        <div class="settings-row-label" data-i18n="syncRepo">仓库路径</div>
-                        <input type="text" id="github-repo" placeholder="LeeLe1001/SkyTrace" value="LeeLe1001/SkyTrace">
-                    </div>
-                    <div class="api-test-result" id="sync-result"></div>
-                    <div class="sync-actions">
-                        <button class="btn-sync" onclick="syncToGithub()" id="sync-push-btn">
-                            <span>&#128640;</span> <span data-i18n="syncPush">推送到 GitHub</span>
-                        </button>
-                        <button class="btn-sync btn-sync-pull" onclick="syncFromGithub()" id="sync-pull-btn">
-                            <span>&#128229;</span> <span data-i18n="syncPull">从 GitHub 拉取</span>
-                        </button>
-                    </div>
                 </div>
                 <div class="settings-section">
                     <h4 class="settings-section-title" data-i18n="settingsApi">&#9992;&#65039; API 设置</h4>
@@ -528,22 +481,23 @@
         <button class="mobile-nav-tab" data-tab="calendar"><span class="mobile-nav-icon">&#128197;</span><span data-i18n="navCalendar">日历</span></button>
     </nav>
     <!-- JS 依赖 (全部本地化，无CDN依赖) -->
-    <script src="static/lib/leaflet.js"></script>
-    <script src="static/lib/leaflet-heat.js"></script>
-    <script src="static/lib/arc.js"></script>
-    <script src="static/lib/html2canvas.min.js"></script>
-    <!-- 静态模式: 无后端时自动接管 API 调用 (必须在 app.js 之前加载) -->
-    <script src="static/js/static-mode.js?v=22"></script>
-    <script src="static/js/app.js?v=23"></script>
+    <script src="/static/lib/leaflet.js"></script>
+    <script src="/static/lib/arc.js"></script>
+    <script src="/static/lib/html2canvas.min.js"></script>
+    <script src="/static/js/app.js?v=23"></script>
     <script>
-        // 注册 Service Worker (PWA 离线缓存)
+        // 彻底清除 Service Worker 和所有缓存
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js?v=22', { scope: '/' })
+            navigator.serviceWorker.register('/sw.js?v=18', { scope: '/' })
                 .then(reg => {
-                    console.log('[SW] registered, scope:', reg.scope);
+                    console.log('[SW] noop SW registered, will clear all caches');
                     reg.update();
                 })
                 .catch(err => console.log('[SW] reg failed:', err));
+            caches.keys().then(names => names.forEach(n => {
+                console.log('[SW] Deleting cache:', n);
+                caches.delete(n);
+            }));
         }
     </script>
 </body>

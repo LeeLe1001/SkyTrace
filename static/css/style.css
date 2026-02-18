@@ -101,10 +101,21 @@ body.is-offline .main-content .view {
     right: 0;
     height: calc(60px + env(safe-area-inset-top, 0px));
     padding-top: env(safe-area-inset-top, 0px);
-    background: var(--header-bg);
+    background: linear-gradient(
+        to bottom,
+        rgba(10, 10, 15, 0.4) 0px,
+        var(--header-bg) env(safe-area-inset-top, 0px)
+    );
     backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border);
     z-index: 1000;
+}
+[data-theme="light"] .header {
+    background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.5) 0px,
+        var(--header-bg) env(safe-area-inset-top, 0px)
+    );
 }
 
 .header-content {
@@ -3735,19 +3746,19 @@ body.is-offline .main-content .view {
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(180deg, rgba(15, 30, 60, 0.92) 0%, rgba(10, 20, 45, 0.96) 100%);
+    background: linear-gradient(0deg, rgba(5, 10, 25, 0.98) 0%, rgba(10, 20, 45, 0.95) 40%, rgba(15, 30, 60, 0.85) 100%);
     backdrop-filter: blur(24px) saturate(180%);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border-top: 1px solid rgba(59, 130, 246, 0.2);
+    border-top: 1px solid rgba(59, 130, 246, 0.12);
     z-index: 1000;
     padding: 6px 0;
     padding-bottom: max(6px, env(safe-area-inset-bottom));
     box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
 }
 [data-theme="light"] .mobile-nav {
-    background: linear-gradient(180deg, rgba(220, 232, 255, 0.94) 0%, rgba(210, 225, 250, 0.97) 100%);
-    border-top: 1px solid rgba(37, 99, 235, 0.15);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    background: linear-gradient(0deg, rgba(200, 215, 245, 0.98) 0%, rgba(220, 232, 255, 0.94) 40%, rgba(235, 242, 255, 0.82) 100%);
+    border-top: 1px solid rgba(37, 99, 235, 0.08);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .mobile-nav-tab {
@@ -4423,7 +4434,8 @@ body.fmap-fullscreen-active .flights-sub-view {
     }
     
     .fmap-wrapper {
-        height: calc(100vh - 220px);
+        height: calc(100vh - 60px - 56px - 90px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+        height: calc(100dvh - 60px - 56px - 90px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
         border-radius: 12px;
     }
     
