@@ -8,7 +8,7 @@ Flask 后端主程序 v2.0
 - AeroDataBox (RapidAPI免费版): https://rapidapi.com/aedbx-aedbx/api/aerodatabox
 """
 
-from flask import Flask, render_template, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory
 import json
 import os
 import math
@@ -530,7 +530,7 @@ def get_app_version():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return send_from_directory('.', 'index.html')
 
 
 @app.after_request
@@ -545,7 +545,7 @@ def add_cache_headers(response):
 @app.route('/sw.js')
 def service_worker():
     """Serve SW from root scope for PWA"""
-    return send_from_directory('static', 'sw.js', mimetype='application/javascript')
+    return send_from_directory('.', 'sw.js', mimetype='application/javascript')
 
 
 @app.route('/debug')
