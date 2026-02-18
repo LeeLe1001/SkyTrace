@@ -26,6 +26,7 @@ let selectedConnectIds = new Set();
 let currentStatsYear = 'all';
 let cachedStatsData = null;
 let homeRoutesByFlight = {};
+let _homePendingBounds = null;  // 当首页不可见时暂存 fitBounds 参数
 let _currentCenterSlide = null;
 let _isOffline = false;
 let _hoState = 'peek'; // 'hidden' | 'peek' | 'expanded'
@@ -487,7 +488,16 @@ function renderHomeRoutes() {
     });
 
     if (homeArcLayers.length > 0) {
-        homeMap.fitBounds(L.featureGroup(homeArcLayers).getBounds(), { padding: [50, 50] });
+        const bounds = L.featureGroup(homeArcLayers).getBounds();
+        const homeView = document.getElementById('home-view');
+        if (homeView && homeView.classList.contains('active')) {
+            homeMap.invalidateSize();
+            homeMap.fitBounds(bounds, { padding: [50, 50] });
+            _homePendingBounds = null;
+        } else {
+            // 首页不可见时暂存, 切回首页后再 fitBounds
+            _homePendingBounds = bounds;
+        }
     }
 
     // 飞行中动画
@@ -1741,7 +1751,15 @@ function initTabs() {
             requestAnimationFrame(() => targetView.classList.add('view-enter'));
 
             if (tab.dataset.tab === 'home') {
-                setTimeout(() => { if (homeMap) homeMap.invalidateSize(); }, 100);
+                setTimeout(() => {
+                    if (homeMap) {
+                        homeMap.invalidateSize();
+                        if (_homePendingBounds) {
+                            homeMap.fitBounds(_homePendingBounds, { padding: [50, 50] });
+                            _homePendingBounds = null;
+                        }
+                    }
+                }, 100);
                 document.querySelector('.home-flights-overlay')?.style.setProperty('display', 'flex');
             } else {
                 document.querySelector('.home-flights-overlay')?.style.setProperty('display', 'none');
