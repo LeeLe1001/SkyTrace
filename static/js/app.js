@@ -36,7 +36,7 @@ let _currentCenterSlide = null;
 let _isOffline = false;
 let _hoState = 'hidden'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
-const SKYTRACE_VERSION = 25;
+const SKYTRACE_VERSION = 26;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -2125,6 +2125,13 @@ async function saveFlight(event) {
         arr_day_offset: parseInt(document.getElementById('arr-day-offset').value) || 0,
         status: 'scheduled'
     };
+    // 编辑时保留 connected_group 等后台字段
+    if (flightId) {
+        const existing = flights.find(f => f.id === flightId);
+        if (existing && existing.connected_group) {
+            flight.connected_group = existing.connected_group;
+        }
+    }
     try {
         let savedFlight;
         if (flightId) {

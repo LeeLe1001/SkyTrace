@@ -533,7 +533,7 @@ def logo_proxy():
 
 # ==================== 页面路由 ====================
 
-APP_VERSION = 25
+APP_VERSION = 26
 
 @app.route('/api/version')
 def get_app_version():
@@ -928,6 +928,10 @@ def update_flight(flight_id):
     for i, f in enumerate(data.get('flights', [])):
         if f['id'] == flight_id:
             updated['id'] = flight_id
+            # 保留后台管理的字段（如联程分组），前端未传时不丢失
+            for key in ('connected_group',):
+                if key in f and key not in updated:
+                    updated[key] = f[key]
             data['flights'][i] = updated
             save_json(FLIGHTS_FILE, data)
             return jsonify({'success': True})

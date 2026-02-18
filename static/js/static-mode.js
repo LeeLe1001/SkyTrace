@@ -403,6 +403,8 @@
         const idx = flights.findIndex(f => f.id === id);
         if (idx >= 0) {
             updated.id = id;
+            // 保留后台管理的字段（如联程分组），前端未传时不丢失
+            ['connected_group'].forEach(k => { if (flights[idx][k] && !(k in updated)) updated[k] = flights[idx][k]; });
             flights[idx] = updated;
             _saveRawFlights(flights);
             return { success: true };
