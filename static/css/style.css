@@ -58,10 +58,7 @@ html {
     height: -webkit-fill-available;
     overflow: hidden;
     overscroll-behavior: none;
-    background: #0a0a0f;
-}
-html[data-theme="light"] {
-    background: #f0f2f5;
+    background: var(--bg-primary, #0a0a0f);
 }
 
 body {
@@ -70,7 +67,7 @@ body {
     color: var(--text-primary);
     width: 100%;
     height: 100%;
-    height: -webkit-fill-available;
+    height: var(--app-height, -webkit-fill-available);
     overflow: hidden;
     overscroll-behavior: none;
     margin: 0;
@@ -3278,9 +3275,11 @@ body.is-offline .main-content {
     html {
         position: fixed;
         inset: 0;
+        background: var(--bg-primary, #0a0a0f);
     }
     html, body {
         height: 100%;
+        height: var(--app-height, 100%);
     }
     .header {
         padding-top: env(safe-area-inset-top, 20px);
@@ -3288,26 +3287,8 @@ body.is-offline .main-content {
     .modal-back {
         display: flex !important;
     }
-    /* 底部安全区背景覆盖 - 防止 PWA 模式底部空白 */
-    .mobile-nav {
-        padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6px);
-    }
     .home-flights-overlay {
         padding-bottom: env(safe-area-inset-bottom, 0px);
-    }
-}
-/* iOS / Android PWA 底部空白终极修复: 背景色延伸超出屏幕边缘 */
-@media all and (display-mode: standalone) {
-    body::before {
-        content: '';
-        position: fixed;
-        top: -100px;
-        left: -100px;
-        right: -100px;
-        bottom: -100px;
-        background: var(--bg-primary);
-        z-index: -1;
-        pointer-events: none;
     }
 }
 /* 同时兼容 navigator.standalone (iOS meta tag 方式) */
@@ -3315,22 +3296,8 @@ body.is-standalone {
     position: fixed !important;
     inset: 0 !important;
     width: 100% !important;
-    height: 100% !important;
-}
-body.is-standalone::before {
-    content: '';
-    position: fixed;
-    top: -100px;
-    left: -100px;
-    right: -100px;
-    bottom: -100px;
-    background: var(--bg-primary);
-    z-index: -1;
-    pointer-events: none;
-}
-body.is-standalone .mobile-nav {
-    z-index: 1000;
-    padding-bottom: calc(env(safe-area-inset-bottom, 34px) + 6px);
+    height: var(--app-height, 100%) !important;
+    background: var(--bg-primary) !important;
 }
 
 /* ==================== 返回键 ==================== */
@@ -3840,10 +3807,24 @@ body.is-standalone .mobile-nav {
     padding-bottom: env(safe-area-inset-bottom, 0px);
     box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
 }
+/* PWA 底部延伸：mobile-nav 向下延伸覆盖安全区外的空白 */
+.mobile-nav::after {
+    content: '';
+    position: absolute;
+    bottom: -100px;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: #050a19;
+    pointer-events: none;
+}
 [data-theme="light"] .mobile-nav {
     background: linear-gradient(0deg, #c8d7f5 0%, #dce8ff 40%, rgba(235, 242, 255, 0.82) 100%);
     border-top: 1px solid rgba(37, 99, 235, 0.08);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+}
+[data-theme="light"] .mobile-nav::after {
+    background: #c8d7f5;
 }
 
 .mobile-nav-tab {

@@ -14,7 +14,7 @@
     <!-- 强制版本更新: 版本不匹配时清除所有SW缓存并刷新 -->
     <script>
     (function(){
-        var V='34';
+        var V='35';
         if(localStorage.getItem('_stv')===V)return;
         localStorage.setItem('_stv',V);
         document.documentElement.style.display='none';
@@ -33,7 +33,7 @@
     </script>
     <!-- Leaflet CSS (本地) -->
     <link rel="stylesheet" href="/static/lib/leaflet.css" />
-    <link rel="stylesheet" href="/static/css/style.css?v=34">
+    <link rel="stylesheet" href="/static/css/style.css?v=35">
     <!-- 全局错误捕获 + 加载指示器 -->
     <style>
         #loading-indicator{position:fixed;top:0;left:0;right:0;bottom:0;background:#0a0a0f;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99998;color:#94a3b8;font-size:14px;}
@@ -59,7 +59,7 @@
         })();
     </script>
     <!-- i18n 多语言 (在 app.js 之前加载) -->
-    <script src="/static/js/i18n.js?v=34"></script>
+    <script src="/static/js/i18n.js?v=35"></script>
 </head>
 <body>
     <!-- 加载指示器 -->
@@ -513,11 +513,11 @@
     <script src="/static/lib/leaflet.js"></script>
     <script src="/static/lib/arc.js"></script>
     <script src="/static/lib/html2canvas.min.js"></script>
-    <script src="/static/js/app.js?v=34"></script>
+    <script src="/static/js/app.js?v=35"></script>
     <script>
         // 彻底清除 Service Worker 和所有缓存
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js?v=34', { scope: '/' })
+            navigator.serviceWorker.register('/sw.js?v=35', { scope: '/' })
                 .then(reg => {
                     console.log('[SW] noop SW registered, will clear all caches');
                     reg.update();
