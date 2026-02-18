@@ -53,8 +53,13 @@
 }
 
 html {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
     height: 100%;
-    height: -webkit-fill-available;
     height: 100dvh;
     overflow: hidden;
     overscroll-behavior: none;
@@ -68,14 +73,10 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     background: var(--bg-primary);
     color: var(--text-primary);
+    width: 100%;
     height: 100%;
-    height: -webkit-fill-available;
-    height: 100dvh;
     overflow: hidden;
     overscroll-behavior: none;
-    position: fixed;
-    inset: 0;
-    width: 100%;
 }
 
 /* ==================== 离线模式横幅 ==================== */
@@ -226,6 +227,8 @@ body.is-offline .main-content {
     left: 0;
     right: 0;
     bottom: 0;
+    height: calc(var(--app-height, 100vh) - 60px - env(safe-area-inset-top, 0px));
+    height: calc(100dvh - 60px - env(safe-area-inset-top, 0px));
     overflow: hidden;
 }
 
@@ -3790,8 +3793,10 @@ body.is-offline .main-content {
     padding: 6px 0;
     padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
     box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
-    /* 防止底部出现空白缝隙 */
+    /* 防止底部出现空白缝隙: 向下延伸额外区域 */
     transform: translateZ(0);
+    margin-bottom: -50px;
+    padding-bottom: calc(max(6px, env(safe-area-inset-bottom, 0px)) + 50px);
 }
 [data-theme="light"] .mobile-nav {
     background: linear-gradient(0deg, #c8d7f5 0%, #dce8ff 40%, rgba(235, 242, 255, 0.82) 100%);
