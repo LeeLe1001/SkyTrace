@@ -8,7 +8,7 @@
  * - HTML 页面: network-first (确保最新)
  */
 
-const CACHE_VERSION = 'skytrace-v15';
+const CACHE_VERSION = 'skytrace-v16';
 const STATIC_CACHE = CACHE_VERSION + '-static';
 const API_CACHE    = CACHE_VERSION + '-api';
 const TILE_CACHE   = CACHE_VERSION + '-tiles';

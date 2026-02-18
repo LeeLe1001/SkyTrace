@@ -55,6 +55,7 @@
 html {
     height: 100%;
     overflow: hidden;
+    overscroll-behavior: none;
 }
 
 body {
@@ -63,8 +64,7 @@ body {
     color: var(--text-primary);
     height: 100%;
     overflow: hidden;
-    position: fixed;
-    width: 100%;
+    overscroll-behavior: none;
 }
 
 /* ==================== 离线模式横幅 ==================== */
@@ -96,8 +96,8 @@ body.is-offline #offline-banner {
 body.is-offline .header {
     top: 32px;
 }
-body.is-offline .main-content .view {
-    height: calc(100vh - 60px - 32px - env(safe-area-inset-top, 0px));
+body.is-offline .main-content {
+    top: calc(60px + 32px + env(safe-area-inset-top, 0px));
 }
 
 /* ==================== 头部导航 ==================== */
@@ -210,14 +210,17 @@ body.is-offline .main-content .view {
 
 /* ==================== 主内容 ==================== */
 .main-content {
-    padding-top: calc(60px + env(safe-area-inset-top, 0px));
-    height: 100%;
+    position: fixed;
+    top: calc(60px + env(safe-area-inset-top, 0px));
+    left: 0;
+    right: 0;
+    bottom: 0;
     overflow: hidden;
 }
 
 .view {
     display: none;
-    height: calc(100vh - 60px - env(safe-area-inset-top, 0px));
+    height: 100%;
     overflow-y: auto;
 }
 
@@ -3268,9 +3271,6 @@ body.is-offline .main-content .view {
     .modal-back {
         display: flex !important;
     }
-    body {
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-    }
 }
 
 /* ==================== 返回键 ==================== */
@@ -4070,7 +4070,7 @@ body.is-offline .main-content .view {
 /* ==================== 行程地图 (全功能筛选) ==================== */
 .fmap-wrapper {
     position: relative;
-    height: calc(100vh - 200px);
+    height: 100%;
     border-radius: 16px;
     overflow: hidden;
     border: 1px solid var(--border);
@@ -4227,6 +4227,11 @@ body.fmap-fullscreen-active .mobile-nav,
 body.fmap-fullscreen-active .flights-sub-nav,
 body.fmap-fullscreen-active .fab-container {
     display: none !important;
+}
+/* 全屏时 main-content 占满视口 */
+body.fmap-fullscreen-active .main-content {
+    top: 0 !important;
+    bottom: 0 !important;
 }
 /* 破除父级 stacking context，让 z-index 9999 生效 */
 body.fmap-fullscreen-active .main-content,
@@ -4508,9 +4513,9 @@ body.fmap-fullscreen-active .flights-sub-view {
     .mobile-nav {
         display: flex;
     }
-    
-    .view {
-        height: calc(100vh - 60px - 56px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+
+    .main-content {
+        bottom: calc(56px + env(safe-area-inset-bottom, 0px));
     }
     
     .home-flights-overlay {
