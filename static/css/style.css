@@ -4643,6 +4643,95 @@ body.fmap-fullscreen-active .flights-sub-view {
     font-size: 18px;
 }
 
+/* --- 设置操作按钮 (刷新等) --- */
+.settings-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+.settings-action-btn:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.settings-action-btn.refreshing {
+    pointer-events: none;
+    opacity: 0.6;
+}
+.settings-action-btn.refreshing span:first-child {
+    animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg) } }
+
+/* --- 数据同步区 --- */
+.settings-row-col {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+.sync-input-row {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+.sync-input-row input {
+    flex: 1;
+}
+.settings-row-col input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 13px;
+}
+.sync-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+.btn-sync {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-sync:hover { filter: brightness(1.1); }
+.btn-sync:active { transform: scale(0.97); }
+.btn-sync.btn-sync-pull {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+}
+.btn-sync.btn-sync-pull:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.btn-sync:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
 /* ==================== 航空公司 Logo ==================== */
 .airline-logo {
     width: 24px;

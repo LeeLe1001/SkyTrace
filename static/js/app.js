@@ -36,7 +36,7 @@ let _currentCenterSlide = null;
 let _isOffline = false;
 let _hoState = 'hidden'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
-const SKYTRACE_VERSION = 21;
+const SKYTRACE_VERSION = 22;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -125,6 +125,8 @@ function calcDuration(flight) {
     if (!flight.dep_time || !flight.arr_time) return '';
     const d1 = new Date(`2000-01-01T${flight.dep_time}`);
     let d2 = new Date(`2000-01-01T${flight.arr_time}`);
+    // NaN 保护: 时间格式不合法时直接返回空
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return '';
     const offset = _getDayOffset(flight);
     if (offset) d2.setDate(d2.getDate() + offset);
     // 时区: 当地时间 → UTC (dep_utc = dep_local - depTz, arr_utc = arr_local - arrTz)
@@ -137,7 +139,7 @@ function calcDuration(flight) {
     // 无显式偏移且 UTC 到达 ≤ UTC 出发 → 说明跨日, +1 天
     if (!offset && d2Utc <= d1Utc) d2Utc += 86400000;
     const diff = (d2Utc - d1Utc) / 60000;
-    if (diff <= 0) return '';
+    if (isNaN(diff) || diff <= 0) return '';
     return `${Math.floor(diff / 60)}h ${Math.round(diff % 60)}m`;
 }
 
@@ -404,9 +406,8 @@ function _skytraceInit() {
         return loadFlights().catch(e => console.error('[SkyTrace] loadFlights:', e));
     }).then(() => {
         console.log('[SkyTrace] All init complete');
-        // 隐藏加载指示器
-        const li = document.getElementById('loading-indicator');
-        if (li) li.style.display = 'none';
+        // 隐藏开屏动画
+        _dismissSplash();
     });
 
     // 第四步: 设置航班号输入框事件
@@ -415,11 +416,20 @@ function _skytraceInit() {
     checkApiStatus().catch(() => {});
     // 版本检查 - 自动刷新
     _checkVersionAndRefresh();
-    // 安全网: 如果5秒后加载指示器还在，强制隐藏
+    // 安全网: 如果5秒后开屏动画还在，强制隐藏
     setTimeout(() => {
-        const li = document.getElementById('loading-indicator');
-        if (li && li.style.display !== 'none') { li.style.display = 'none'; console.warn('[SkyTrace] Force-hiding loading indicator'); }
+        _dismissSplash(true);
     }, 5000);
+}
+
+/** 隐藏开屏动画 (带淡出过渡) */
+function _dismissSplash(force) {
+    const splash = document.getElementById('splash-screen');
+    if (!splash) return;
+    if (splash.classList.contains('fade-out')) return;
+    splash.classList.add('fade-out');
+    setTimeout(() => { splash.style.display = 'none'; }, 700);
+    if (force) console.warn('[SkyTrace] Force-hiding splash screen');
 }
 // 立即执行
 _skytraceInit();
@@ -2345,6 +2355,8 @@ async function openSettings() {
         updateApiStatusBadge('aerodata', settings.aerodata_key_set);
     } catch (e) {}
     try { const stats = await (await fetch('/api/cache/stats')).json(); document.getElementById('cache-count').textContent = stats.total_cached || 0; } catch (e) {}
+    // 加载 GitHub 同步配置
+    _loadSyncConfigToUI();
 }
 function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
 function updateApiStatusBadge(prefix, isSet) {
@@ -2366,6 +2378,218 @@ async function testApi(apiName) {
         const result = await (await fetch('/api/settings/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ api: apiName, key }) })).json();
         resultEl.textContent = result.message; resultEl.className = 'api-test-result ' + (result.success ? 'success' : 'error');
     } catch (e) { resultEl.textContent = t('testFailed'); resultEl.className = 'api-test-result error'; }
+}
+
+// ==================== 强制刷新 ====================
+async function forceRefreshApp() {
+    const btn = document.getElementById('settings-refresh-btn');
+    if (btn) { btn.classList.add('refreshing'); }
+    try {
+        // 清除所有 SW 缓存
+        if ('caches' in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+        }
+        // 通知 SW 重新安装
+        if ('serviceWorker' in navigator) {
+            const reg = await navigator.serviceWorker.getRegistration();
+            if (reg) await reg.update();
+        }
+        // 延迟一下让用户看到动画
+        await new Promise(r => setTimeout(r, 600));
+        location.reload(true);
+    } catch (e) {
+        console.error('[SkyTrace] Refresh error:', e);
+        location.reload(true);
+    }
+}
+
+// ==================== GitHub 同步 ====================
+const _GITHUB_API = 'https://api.github.com';
+const _SYNC_TOKEN_KEY = 'skytrace_github_token';
+const _SYNC_REPO_KEY = 'skytrace_github_repo';
+
+function _getSyncConfig() {
+    return {
+        token: localStorage.getItem(_SYNC_TOKEN_KEY) || '',
+        repo: localStorage.getItem(_SYNC_REPO_KEY) || 'LeeLe1001/SkyTrace',
+    };
+}
+
+function _saveSyncConfig(token, repo) {
+    if (token && !token.includes('****')) localStorage.setItem(_SYNC_TOKEN_KEY, token);
+    if (repo) localStorage.setItem(_SYNC_REPO_KEY, repo);
+}
+
+function _loadSyncConfigToUI() {
+    const cfg = _getSyncConfig();
+    const tokenEl = document.getElementById('github-token');
+    const repoEl = document.getElementById('github-repo');
+    if (tokenEl && cfg.token) tokenEl.value = cfg.token.slice(0, 4) + '****' + cfg.token.slice(-4);
+    if (repoEl && cfg.repo) repoEl.value = cfg.repo;
+}
+
+async function _githubApi(path, method, body, token) {
+    const resp = await fetch(`${_GITHUB_API}${path}`, {
+        method: method || 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json',
+        },
+        body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.message || `HTTP ${resp.status}`);
+    return data;
+}
+
+async function testGithubSync() {
+    const resultEl = document.getElementById('sync-result');
+    const tokenEl = document.getElementById('github-token');
+    const repoEl = document.getElementById('github-repo');
+    const token = tokenEl.value.trim();
+    const repo = repoEl.value.trim();
+
+    if (!token || !repo) {
+        resultEl.textContent = t('syncNeedConfig');
+        resultEl.className = 'api-test-result error';
+        return;
+    }
+
+    // 如果是打码的旧 token，用存储的真实值
+    const realToken = token.includes('****') ? _getSyncConfig().token : token;
+    if (!realToken) {
+        resultEl.textContent = t('syncNeedConfig');
+        resultEl.className = 'api-test-result error';
+        return;
+    }
+
+    resultEl.textContent = t('testing');
+    resultEl.className = 'api-test-result info';
+
+    try {
+        const data = await _githubApi(`/repos/${repo}`, 'GET', null, realToken);
+        _saveSyncConfig(realToken, repo);
+        resultEl.textContent = `✅ ${t('syncConnected')} — ${data.full_name} (${data.visibility})`;
+        resultEl.className = 'api-test-result success';
+    } catch (e) {
+        resultEl.textContent = `❌ ${e.message}`;
+        resultEl.className = 'api-test-result error';
+    }
+}
+
+async function syncToGithub() {
+    const resultEl = document.getElementById('sync-result');
+    const tokenEl = document.getElementById('github-token');
+    const repoEl = document.getElementById('github-repo');
+    const token = tokenEl.value.trim();
+    const repo = repoEl.value.trim();
+    const realToken = token.includes('****') ? _getSyncConfig().token : token;
+
+    if (!realToken || !repo) {
+        resultEl.textContent = t('syncNeedConfig');
+        resultEl.className = 'api-test-result error';
+        return;
+    }
+
+    const btn = document.getElementById('sync-push-btn');
+    if (btn) btn.disabled = true;
+    resultEl.textContent = t('syncPushing');
+    resultEl.className = 'api-test-result info';
+
+    try {
+        // 获取当前航班数据
+        const flightsResp = await fetch('/api/flights');
+        const flightsArray = await flightsResp.json();
+        // 重新组装为 {flights: [...]} 格式
+        const flightsData = { flights: Array.isArray(flightsArray) ? flightsArray : (flightsArray.flights || []) };
+        // 清理 status_info 等运行时字段
+        flightsData.flights = flightsData.flights.map(f => {
+            const clean = { ...f };
+            delete clean.status_info;
+            delete clean.dep_airport;
+            delete clean.arr_airport;
+            delete clean.connected_flights_data;
+            return clean;
+        });
+
+        const content = btoa(unescape(encodeURIComponent(JSON.stringify(flightsData, null, 2))));
+
+        // 获取文件当前 SHA (如果存在)
+        let sha;
+        try {
+            const file = await _githubApi(`/repos/${repo}/contents/data/flights.json`, 'GET', null, realToken);
+            sha = file.sha;
+        } catch (e) { /* 文件不存在也没关系 */ }
+
+        // 提交
+        const commitMsg = `sync: update flights (${flightsData.flights.length} flights) via SkyTrace`;
+        await _githubApi(`/repos/${repo}/contents/data/flights.json`, 'PUT', {
+            message: commitMsg,
+            content: content,
+            sha: sha,
+        }, realToken);
+
+        _saveSyncConfig(realToken, repo);
+        resultEl.textContent = `✅ ${t('syncPushSuccess')} (${flightsData.flights.length} ${t('syncFlightsUnit')})`;
+        resultEl.className = 'api-test-result success';
+    } catch (e) {
+        resultEl.textContent = `❌ ${t('syncPushFailed')}: ${e.message}`;
+        resultEl.className = 'api-test-result error';
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
+async function syncFromGithub() {
+    const resultEl = document.getElementById('sync-result');
+    const tokenEl = document.getElementById('github-token');
+    const repoEl = document.getElementById('github-repo');
+    const token = tokenEl.value.trim();
+    const repo = repoEl.value.trim();
+    const realToken = token.includes('****') ? _getSyncConfig().token : token;
+
+    if (!realToken || !repo) {
+        resultEl.textContent = t('syncNeedConfig');
+        resultEl.className = 'api-test-result error';
+        return;
+    }
+
+    if (!confirm(t('syncPullConfirm'))) return;
+
+    const btn = document.getElementById('sync-pull-btn');
+    if (btn) btn.disabled = true;
+    resultEl.textContent = t('syncPulling');
+    resultEl.className = 'api-test-result info';
+
+    try {
+        const file = await _githubApi(`/repos/${repo}/contents/data/flights.json`, 'GET', null, realToken);
+        const decoded = decodeURIComponent(escape(atob(file.content.replace(/\n/g, ''))));
+        const data = JSON.parse(decoded);
+        const flights = data.flights || [];
+
+        // 静态模式: 写入 localStorage
+        if (window._skytraceStatic && window._skytraceStatic.isStatic()) {
+            window._skytraceStatic.importFlights(JSON.stringify(data));
+        } else {
+            // 服务器模式: 通过后端保存 (暂不支持批量覆盖, 提示用户)
+            // 实际上静态模式最常用此功能
+            localStorage.setItem('skytrace_flights', JSON.stringify(data));
+        }
+
+        _saveSyncConfig(realToken, repo);
+        resultEl.textContent = `✅ ${t('syncPullSuccess')} (${flights.length} ${t('syncFlightsUnit')})`;
+        resultEl.className = 'api-test-result success';
+
+        // 刷新页面以加载新数据
+        setTimeout(() => location.reload(), 1500);
+    } catch (e) {
+        resultEl.textContent = `❌ ${t('syncPullFailed')}: ${e.message}`;
+        resultEl.className = 'api-test-result error';
+    } finally {
+        if (btn) btn.disabled = false;
+    }
 }
 
 // ==================== 工具函数 ====================
