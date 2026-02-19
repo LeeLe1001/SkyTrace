@@ -770,7 +770,13 @@
             try {
                 const [dh, dm] = (f.dep_time || '').split(':').map(Number);
                 const [ah, am] = (f.arr_time || '').split(':').map(Number);
-                if (isNaN(dh) || isNaN(ah)) { durations.push(0); return; }
+                
+                // 👇 关键修复：必须同时检查小时(dh, ah)和分钟(dm, am)
+                if (isNaN(dh) || isNaN(dm) || isNaN(ah) || isNaN(am)) { 
+                    durations.push(0); 
+                    return; // 遇到没有时间的航班，跳过计算时长，防止污染总数
+                }
+                
                 let diff = (ah * 60 + am - dh * 60 - dm) / 60;
                 const dayOffset = f.arr_day_offset || (f.arr_next_day ? 1 : 0);
                 if (dayOffset) diff += 24 * dayOffset;
