@@ -3278,8 +3278,13 @@ body.is-offline .main-content {
         background: var(--bg-primary, #0a0a0f);
     }
     html, body {
-        height: 100%;
-        height: var(--app-height, 100%);
+    background-color: var(--bg-primary) !important; /* 强制 iOS 底部即使留白也是深色 */
+    height: 100vh; /* 兼容普通浏览器 */
+    height: -webkit-fill-available; /* 专治 iOS Safari 高度不到底的毛病 */
+    width: 100vw;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
     }
     .header {
         padding-top: env(safe-area-inset-top, 20px);
@@ -3792,20 +3797,23 @@ body.is-standalone {
 
 /* ==================== 移动端底部导航 ==================== */
 .mobile-nav {
-    display: none;
     position: fixed;
-    bottom: 0;
+    bottom: 0 !important;
     left: 0;
     right: 0;
-    /* 底部完全不透明，顶部保留毛玻璃效果 */
-    background: linear-gradient(0deg, #050a19 0%, #0a142d 40%, rgba(15, 30, 60, 0.85) 100%);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border-top: 1px solid rgba(59, 130, 246, 0.12);
+    /* 强制总高度 = 基础65px + 小白条高度。这样它一定能死死踩在屏幕最底端 */
+    height: calc(65px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    box-sizing: border-box !important;
+    
+    background: var(--header-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid var(--border);
     z-index: 1000;
-    padding: 6px 0;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
 }
 /* PWA 底部延伸：mobile-nav 向下延伸覆盖安全区外的空白 */
 .mobile-nav::after {
@@ -4118,7 +4126,7 @@ body.is-standalone {
     border: 1px solid var(--border);
 }
 
-/* 地图子页: 地图撑满, 不滚动 */
+/* 地图子页: 地图撑满, 不滚动
 #flights-map-subview.active {
     display: flex;
     flex-direction: column;
@@ -4128,7 +4136,7 @@ body.is-standalone {
     flex: 1;
     height: auto;
     min-height: 0;
-}
+} */
 
 .flights-full-map {
     width: 100%;
@@ -4519,14 +4527,13 @@ body.fmap-fullscreen-active .flights-sub-view {
     .fmap-wrapper {
         border-radius: 12px;
     }
+    /*
     #flights-map-subview.active .fmap-wrapper {
         flex: 1;
         height: auto;
         min-height: 0;
-        /* 👇 新增这一行：留出底部导航栏(约65px)和安全区的高度 */
-        /* 更新：删除了这一行，改成了0*/
-        margin-bottom: 0;
     }
+    */
     
     .fmap-filter-bar {
         flex-direction: column;
@@ -4572,13 +4579,14 @@ body.fmap-fullscreen-active .flights-sub-view {
     .flights-sub-view.active {
         padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
     }
-    #flights-map-subview.active {
+    /* #flights-map-subview.active {
         padding-bottom: 0;
         /* 地图子页不需要 padding，但 stats 卡片需要避让底部导航 */
-    }
+    /*}
     #flights-map-subview .fmap-wrapper {
         margin-bottom: 0;
-    }
+    } */
+    
 
     .home-flights-overlay {
         bottom: calc(56px + env(safe-area-inset-bottom, 0px));
@@ -5413,8 +5421,32 @@ body.fmap-fullscreen-active .flights-sub-view {
     pointer-events: auto;
 }
 
-/* 让地图沉浸到底部，但把控件移出导航栏的安全区 */
-.leaflet-bottom {
-    /* 65px 是导航栏高度，env(...) 是 iPhone 底部小白条的安全区 */
-    bottom: calc(65px + env(safe-area-inset-bottom, 0px)) !important;
+/* 1. 基础状态：绝对定位，底部严格卡在导航栏（65px + 安全区）之上 */
+#flights-map-subview {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: calc(65px + env(safe-area-inset-bottom, 0px)) !important; 
+    z-index: 10;
+    display: none; /* 默认隐藏 */
+    background: var(--bg-primary);
+}
+
+/* 2. 激活状态：当点击切换到地图时，显示为 flex */
+#flights-map-subview.active {
+    display: flex !important;
+    flex-direction: column;
+    overflow: hidden;
+    padding-bottom: 0 !important;
+}
+
+/* 3. 地图内部容器：填充满上面定义好的绝对空间，不留任何边距 */
+#flights-map-subview .fmap-wrapper,
+#flights-map-subview.active .fmap-wrapper {
+    flex: 1 !important;
+    height: 100% !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    margin-bottom: 0 !important;
 }
