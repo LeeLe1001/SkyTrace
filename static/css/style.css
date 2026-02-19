@@ -4524,7 +4524,8 @@ body.fmap-fullscreen-active .flights-sub-view {
         height: auto;
         min-height: 0;
         /* 👇 新增这一行：留出底部导航栏(约65px)和安全区的高度 */
-        margin-bottom: calc(65px + env(safe-area-inset-bottom, 0px));
+        /* 更新：删除了这一行，改成了0*/
+        margin-bottom: 0;
     }
     
     .fmap-filter-bar {
@@ -5410,4 +5411,10 @@ body.fmap-fullscreen-active .flights-sub-view {
     transition: bottom 0.35s cubic-bezier(.4,0,.2,1), opacity 0.5s ease;
     z-index: 800;
     pointer-events: auto;
+}
+
+/* 让地图沉浸到底部，但把控件移出导航栏的安全区 */
+.leaflet-bottom {
+    /* 65px 是导航栏高度，env(...) 是 iPhone 底部小白条的安全区 */
+    bottom: calc(65px + env(safe-area-inset-bottom, 0px)) !important;
 }
