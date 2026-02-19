@@ -5421,32 +5421,38 @@ body.fmap-fullscreen-active .flights-sub-view {
     pointer-events: auto;
 }
 
-/* 1. 基础状态：绝对定位，底部严格卡在导航栏（65px + 安全区）之上 */
+/* 1. 让地图恢复正常的弹性排版，不再遮挡顶部的子菜单 */
 #flights-map-subview {
-    position: absolute !important;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: calc(65px + env(safe-area-inset-bottom, 0px)) !important; 
-    z-index: 10;
-    display: none; /* 默认隐藏 */
+    position: relative !important;
+    z-index: 1;
+    display: none;
     background: var(--bg-primary);
 }
 
-/* 2. 激活状态：当点击切换到地图时，显示为 flex */
 #flights-map-subview.active {
     display: flex !important;
     flex-direction: column;
     overflow: hidden;
-    padding-bottom: 0 !important;
 }
 
-/* 3. 地图内部容器：填充满上面定义好的绝对空间，不留任何边距 */
 #flights-map-subview .fmap-wrapper,
 #flights-map-subview.active .fmap-wrapper {
     flex: 1 !important;
     height: 100% !important;
     width: 100% !important;
     min-height: 0 !important;
-    margin-bottom: 0 !important;
+    margin-bottom: 0 !important; /* 清除所有干扰 */
+}
+
+/* 2. 终极奥义：在所有子页面的外层总容器上，统一留出底部导航栏的空间 */
+#flights-view .flights-container {
+    max-width: 900px;
+    margin: 0 auto;
+    /* 上20px，左右20px，底部(65px+iOS安全区) */
+    padding: 20px 20px calc(65px + env(safe-area-inset-bottom, 0px)) !important;
+    height: 100% !important;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
 }
