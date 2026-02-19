@@ -3278,13 +3278,22 @@ body.is-offline .main-content {
         background: var(--bg-primary, #0a0a0f);
     }
     html, body {
-    background-color: var(--bg-primary) !important; /* 强制 iOS 底部即使留白也是深色 */
-    height: 100vh; /* 兼容普通浏览器 */
-    height: -webkit-fill-available; /* 专治 iOS Safari 高度不到底的毛病 */
-    width: 100vw;
+    background-color: var(--bg-primary) !important;
+    /* 使用 dvh (动态视口高度)，专门解决 iOS PWA 高度计算错误的绝招 */
+    height: 100dvh !important; 
+    /* 兼容老版本浏览器的后备方案 */
+    min-height: 100vh;
+    width: 100%;
     overflow: hidden;
     margin: 0;
     padding: 0;
+    
+    /* 物理锁死坐标：强制页面从物理屏幕最左上角开始，死死拉伸到底部，不留一丝缝隙 */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     }
     .header {
         padding-top: env(safe-area-inset-top, 20px);
