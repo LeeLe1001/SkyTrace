@@ -8,7 +8,7 @@
  * - HTML 页面: network-first (确保最新)
  */
 
-const CACHE_VERSION = 'skytrace-v23';
+const CACHE_VERSION = 'skytrace-v24';
 const STATIC_CACHE = CACHE_VERSION + '-static';
 const API_CACHE    = CACHE_VERSION + '-api';
 const TILE_CACHE   = CACHE_VERSION + '-tiles';
@@ -81,7 +81,7 @@ self.addEventListener('fetch', event => {
 
   // 3. 静态资源: stale-while-revalidate (不缓存sw.js自身)
   if (url.pathname.startsWith('/static/')) {
-    event.respondWith(staleWhileRevalidate(event.request, STATIC_CACHE));
+    event.respondWith(networkFirst(event.request, STATIC_CACHE));
     return;
   }
 
@@ -118,7 +118,14 @@ async function cacheFirst(request, cacheName) {
 async function networkFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   try {
-    const response = await fetch(request);
+    // 👇 关键修改：强制 Safari 绕过本地磁盘缓存，真正去网络请求！
+    const fetchReq = new Request(request.url, {
+      method: request.method,
+      headers: request.headers,
+      cache: 'no-cache' // 给 Safari 的一记重锤
+    });
+    
+    const response = await fetch(fetchReq);
     if (response.ok) {
       const cacheKey = stripQuery(request);
       cache.put(cacheKey, response.clone());
