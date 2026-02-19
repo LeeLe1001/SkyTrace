@@ -217,12 +217,17 @@ body.is-offline .main-content {
 
 /* ==================== 主内容 ==================== */
 .main-content {
-    position: fixed;
-    top: calc(60px + env(safe-area-inset-top, 0px));
-    left: 0;
-    right: 0;
-    bottom: 0;
-    overflow: hidden;
+    height: 100dvh !important;
+    width: 100vw !important;
+    box-sizing: border-box !important;
+    /**
+     * 底部只在这里做一次「安全区 + 导航栏」让位，避免子 view 再次叠加 safe‑area 造成多余空白
+     * - 65px: 自身底部导航基础高度
+     * - env(safe-area-inset-bottom): iOS Home 指示条区域
+     */
+    padding-bottom: calc(65px + env(safe-area-inset-bottom, 0px)) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
 }
 
 .view {
@@ -3277,23 +3282,18 @@ body.is-offline .main-content {
         inset: 0;
         background: var(--bg-primary, #0a0a0f);
     }
-    html, body {
+    /* 1. 锁死视口，干掉底层白边与橡皮筋回弹 */
+html, body {
     background-color: var(--bg-primary) !important;
-    /* 使用 dvh (动态视口高度)，专门解决 iOS PWA 高度计算错误的绝招 */
-    height: 100dvh !important; 
-    /* 兼容老版本浏览器的后备方案 */
-    min-height: 100vh;
-    width: 100%;
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
-    
-    /* 物理锁死坐标：强制页面从物理屏幕最左上角开始，死死拉伸到底部，不留一丝缝隙 */
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    height: 100dvh !important;
+    width: 100vw !important;
+    overflow: hidden !important; 
+    margin: 0 !important;
+    padding: 0 !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    overscroll-behavior: none !important; /* 彻底禁用 iOS 橡皮筋回弹，消除未知空白！ */
     }
     .header {
         padding-top: env(safe-area-inset-top, 20px);
@@ -4576,9 +4576,12 @@ body.fmap-fullscreen-active .flights-sub-view {
         display: flex;
     }
 
-    /* 视图用 padding-bottom 避让底部导航栏 (导航悬浮在内容上方) */
+    /**
+     * 这里仅做「内容距离底部导航」的视觉间距，不再叠加 safe‑area，
+     * safe‑area 统一由 .main-content 处理，避免 iOS PWA 模式出现双倍底部留白。
+     */
     .view {
-        padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: 56px;
     }
     #home-view,
     #map-view,
@@ -4586,7 +4589,7 @@ body.fmap-fullscreen-active .flights-sub-view {
         padding-bottom: 0;
     }
     .flights-sub-view.active {
-        padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: 56px;
     }
     /* #flights-map-subview.active {
         padding-bottom: 0;
@@ -5454,14 +5457,3 @@ body.fmap-fullscreen-active .flights-sub-view {
 }
 
 /* 2. 终极奥义：在所有子页面的外层总容器上，统一留出底部导航栏的空间 */
-#flights-view .flights-container {
-    max-width: 900px;
-    margin: 0 auto;
-    /* 上20px，左右20px，底部(65px+iOS安全区) */
-    padding: 20px 20px calc(65px + env(safe-area-inset-bottom, 0px)) !important;
-    height: 100% !important;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    overflow: hidden;
-}
