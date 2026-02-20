@@ -217,18 +217,12 @@ body.is-offline .main-content {
 
 /* ==================== 主内容 ==================== */
 .main-content {
-    height: 100dvh !important;
-    width: 100vw !important;
-    box-sizing: border-box !important;
-    /**
-     * 底部 padding 处理（统一管理，避免重复叠加）：
-     * - Safari 浏览器模式：65px（导航栏） + env(safe-area-inset-bottom)（避开地址栏）
-     * - PWA standalone 模式：仅 65px（导航栏），safe-area 由 @media (display-mode: standalone) 覆盖
-     * 注意：在 PWA standalone 模式下，地址栏已消失，不需要额外的 safe-area-inset-bottom
-     */
-    padding-bottom: calc(65px + env(safe-area-inset-bottom, 0px)) !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
+    position: fixed;
+    top: calc(60px + env(safe-area-inset-top, 0px));
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
 }
 
 .view {
@@ -3277,49 +3271,29 @@ body.is-offline .main-content {
 }
 
 /* ==================== PWA Standalone Mode ==================== */
-/* 
- * PWA Standalone 模式下的特殊处理：
- * - 地址栏已消失，但 Home Indicator 仍存在
- * - .main-content 只需为导航栏留空间（65px），不需要额外的 safe-area-inset-bottom
- * - .mobile-nav 仍需要 safe-area-inset-bottom 来避开 Home Indicator
- */
 @media all and (display-mode: standalone) {
     html {
         position: fixed;
         inset: 0;
         background: var(--bg-primary, #0a0a0f);
     }
-    /* 1. 锁死视口，干掉底层白边与橡皮筋回弹 */
     html, body {
-        background-color: var(--bg-primary) !important;
-        height: 100dvh !important;
-        width: 100vw !important;
-        overflow: hidden !important; 
-        margin: 0 !important;
-        padding: 0 !important;
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        overscroll-behavior: none !important; /* 彻底禁用 iOS 橡皮筋回弹，消除未知空白！ */
+    background-color: var(--bg-primary) !important; /* 强制 iOS 底部即使留白也是深色 */
+    height: 100vh; /* 兼容普通浏览器 */
+    height: -webkit-fill-available; /* 专治 iOS Safari 高度不到底的毛病 */
+    width: 100vw;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
     }
     .header {
         padding-top: env(safe-area-inset-top, 20px);
     }
-    /* PWA 模式下：main-content 只需为导航栏留空间，不需要 safe-area-inset-bottom */
-    .main-content {
-        padding-bottom: 65px !important; /* 仅导航栏高度，移除 safe-area-inset-bottom */
-    }
     .modal-back {
         display: flex !important;
     }
-    /* home-flights-overlay 在 PWA 模式下不需要额外的 safe-area padding */
     .home-flights-overlay {
-        padding-bottom: 0 !important;
-        bottom: calc(65px + env(safe-area-inset-bottom, 0px)) !important; /* 导航栏高度 + Home Indicator */
-    }
-    /* FAB 按钮也需要调整 */
-    .fab-container {
-        bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 }
 /* 同时兼容 navigator.standalone (iOS meta tag 方式) */
@@ -3329,10 +3303,6 @@ body.is-standalone {
     width: 100% !important;
     height: var(--app-height, 100%) !important;
     background: var(--bg-primary) !important;
-}
-/* PWA standalone 模式下统一处理 main-content 的 padding */
-body.is-standalone .main-content {
-    padding-bottom: 65px !important; /* 仅导航栏高度，移除 safe-area-inset-bottom */
 }
 
 /* ==================== 返回键 ==================== */
@@ -3831,13 +3801,11 @@ body.is-standalone .main-content {
     bottom: 0 !important;
     left: 0;
     right: 0;
-    /**
-     * 导航栏高度处理：
-     * - 基础高度：65px
-     * - safe-area-inset-bottom：避开 Home Indicator（在 Safari 和 PWA standalone 模式下都需要）
-     * 注意：即使在 PWA standalone 模式下，Home Indicator 仍然存在，所以需要 safe-area-inset-bottom
-     */
-    height: calc(65px + env(safe-area-inset-bottom, 0px)) !important;
+    
+    /* 【改动1】删除 height，让内部的 tab 自然撑开高度 */
+    /* 删除这行: height: calc(65px + env(safe-area-inset-bottom, 0px)) !important; */
+    
+    /* 仅保留 padding-bottom 负责适配 iPhone 小白条 */
     padding-bottom: env(safe-area-inset-bottom, 0px) !important;
     box-sizing: border-box !important;
     
@@ -3846,7 +3814,10 @@ body.is-standalone .main-content {
     -webkit-backdrop-filter: blur(10px);
     display: flex;
     justify-content: space-around;
-    align-items: center;
+    
+    /* 【改动2】删除 align-items: center; 防止 iOS 对齐 Bug */
+    /* 删除这行: align-items: center; */
+    
     border-top: 1px solid var(--border);
     z-index: 1000;
 }
@@ -3873,7 +3844,11 @@ body.is-standalone .main-content {
 .mobile-nav-tab {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: center; /* 控制内部图标和文字左右居中 */
+    
+    /* 【改动3】新增 justify-content，控制内部上下居中 */
+    justify-content: center; 
+    
     gap: 2px;
     border: none;
     background: transparent;
@@ -3881,7 +3856,12 @@ body.is-standalone .main-content {
     font-size: 10px;
     cursor: pointer;
     flex: 1;
-    padding: 4px 0;
+    
+    /* 【改动4】把原先属于父级的 65px 高度拿过来 */
+    height: 65px; 
+    
+    /* 【改动5】因为已经有了明确高度和居中，取消原先的 padding */
+    padding: 0; 
     transition: color 0.2s;
 }
 
@@ -4602,35 +4582,34 @@ body.fmap-fullscreen-active .flights-sub-view {
         display: flex;
     }
 
-    /**
-     * 移动端内容间距处理：
-     * - .view 的 padding-bottom 仅用于内容与底部导航的视觉间距（56px < 65px 导航栏高度，留出视觉缓冲）
-     * - safe-area-inset-bottom 统一由 .main-content 处理（Safari 浏览器模式）
-     * - PWA standalone 模式下，.main-content 的 padding-bottom 会被覆盖为 65px（无 safe-area）
-     */
+    /* 视图用 padding-bottom 避让底部导航栏 (导航悬浮在内容上方) */
     .view {
-        padding-bottom: 56px; /* 视觉间距，略小于导航栏高度 */
+        padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
     }
     #home-view,
     #map-view,
     #flights-view {
-        padding-bottom: 0; /* 这些视图由 .main-content 统一处理 padding */
+        padding-bottom: 0;
     }
     .flights-sub-view.active {
-        padding-bottom: 56px; /* 子视图需要视觉间距 */
+        padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
     }
+    /* #flights-map-subview.active {
+        padding-bottom: 0;
+        /* 地图子页不需要 padding，但 stats 卡片需要避让底部导航 */
+    /*}
+    #flights-map-subview .fmap-wrapper {
+        margin-bottom: 0;
+    } */
+    
 
-    /**
-     * 固定定位元素需要避开导航栏 + Home Indicator
-     * 注意：PWA standalone 模式下这些值会被 @media (display-mode: standalone) 覆盖
-     */
     .home-flights-overlay {
-        bottom: calc(56px + env(safe-area-inset-bottom, 0px)); /* 导航栏视觉位置 + Home Indicator */
+        bottom: calc(56px + env(safe-area-inset-bottom, 0px));
         border-radius: 20px 20px 0 0;
     }
 
     .fab-container {
-        bottom: calc(76px + env(safe-area-inset-bottom, 0px)); /* 导航栏上方 + Home Indicator */
+        bottom: calc(76px + env(safe-area-inset-bottom, 0px));
     }
 }
 
@@ -5457,27 +5436,3 @@ body.fmap-fullscreen-active .flights-sub-view {
     pointer-events: auto;
 }
 
-/* 1. 让地图恢复正常的弹性排版，不再遮挡顶部的子菜单 */
-#flights-map-subview {
-    position: relative !important;
-    z-index: 1;
-    display: none;
-    background: var(--bg-primary);
-}
-
-#flights-map-subview.active {
-    display: flex !important;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-#flights-map-subview .fmap-wrapper,
-#flights-map-subview.active .fmap-wrapper {
-    flex: 1 !important;
-    height: 100% !important;
-    width: 100% !important;
-    min-height: 0 !important;
-    margin-bottom: 0 !important; /* 清除所有干扰 */
-}
-
-/* 2. 终极奥义：在所有子页面的外层总容器上，统一留出底部导航栏的空间 */
