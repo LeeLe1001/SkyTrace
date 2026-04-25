@@ -1,6 +1,10 @@
 /* ==================== 基础样式 ==================== */
 :root {
     --app-height: 100dvh;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --header-base-height: 60px;
+    --header-total-height: calc(var(--header-base-height) + var(--safe-top));
     --bg-primary: #0a0a0f;
     --bg-secondary: #12121a;
     --bg-card: #1a1a24;
@@ -22,7 +26,7 @@
     --popup-bg: #1a1a24;
     --popup-text: #ffffff;
     --mobile-nav-height: 65px;
-    --mobile-nav-safe-bottom: min(env(safe-area-inset-bottom, 0px), 20px);
+    --mobile-nav-safe-bottom: var(--safe-bottom);
     --mobile-nav-total-height: calc(var(--mobile-nav-height) + var(--mobile-nav-safe-bottom));
     --mobile-content-offset: calc(var(--mobile-nav-total-height) + 12px);
 }
@@ -111,7 +115,7 @@ body.is-offline .header {
     top: 32px;
 }
 body.is-offline .main-content {
-    top: calc(60px + 32px + env(safe-area-inset-top, 0px));
+    top: calc(var(--header-base-height) + 32px + var(--safe-top));
 }
 
 /* ==================== 头部导航 ==================== */
@@ -120,12 +124,12 @@ body.is-offline .main-content {
     top: 0;
     left: 0;
     right: 0;
-    height: calc(60px + env(safe-area-inset-top, 0px));
-    padding-top: env(safe-area-inset-top, 0px);
+    height: var(--header-total-height);
+    padding-top: var(--safe-top);
     background: linear-gradient(
         to bottom,
         rgba(10, 10, 15, 0.4) 0px,
-        var(--header-bg) env(safe-area-inset-top, 0px)
+        var(--header-bg) var(--safe-top)
     );
     backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border);
@@ -135,7 +139,7 @@ body.is-offline .main-content {
     background: linear-gradient(
         to bottom,
         rgba(255, 255, 255, 0.5) 0px,
-        var(--header-bg) env(safe-area-inset-top, 0px)
+        var(--header-bg) var(--safe-top)
     );
 }
 
@@ -225,7 +229,7 @@ body.is-offline .main-content {
 /* ==================== 主内容 ==================== */
 .main-content {
     position: fixed;
-    top: calc(60px + env(safe-area-inset-top, 0px));
+    top: var(--header-total-height);
     left: 0;
     right: 0;
     bottom: 0;
@@ -868,7 +872,13 @@ body.is-offline .main-content {
 
 html.standalone-mode .modal-overlay.active .modal,
 body.is-standalone .modal-overlay.active .modal {
-    max-height: calc(var(--app-height, 100dvh) - env(safe-area-inset-top, 0px));
+    max-height: calc(var(--app-height, 100dvh) - var(--safe-top));
+}
+
+html.standalone-mode .modal-overlay,
+body.is-standalone .modal-overlay {
+    padding-top: var(--safe-top);
+    box-sizing: border-box;
 }
 
 @media (min-width: 769px) {
@@ -3297,7 +3307,7 @@ body.is-standalone .modal-overlay.active .modal {
     height: var(--app-height, 100dvh);
     }
     .header {
-        padding-top: env(safe-area-inset-top, 20px);
+        padding-top: var(--safe-top);
     }
     .modal-back {
         display: flex !important;
