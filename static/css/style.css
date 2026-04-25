@@ -25,7 +25,7 @@
     --shadow-color: rgba(0, 0, 0, 0.5);
     --popup-bg: #1a1a24;
     --popup-text: #ffffff;
-    --mobile-nav-height: 65px;
+    --mobile-nav-height: 56px;
     --mobile-nav-safe-bottom: var(--safe-bottom);
     --mobile-nav-total-height: calc(var(--mobile-nav-height) + var(--mobile-nav-safe-bottom));
     --mobile-content-offset: calc(var(--mobile-nav-total-height) + 12px);
@@ -75,6 +75,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     background: var(--bg-primary);
     color: var(--text-primary);
+    position: relative;
     width: 100%;
     height: 100%;
     min-height: var(--app-height, 100dvh);
@@ -87,7 +88,7 @@ body {
 
 /* ==================== 离线模式横幅 ==================== */
 #offline-banner {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
@@ -120,7 +121,7 @@ body.is-offline .main-content {
 
 /* ==================== 头部导航 ==================== */
 .header {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
@@ -228,7 +229,7 @@ body.is-offline .main-content {
 
 /* ==================== 主内容 ==================== */
 .main-content {
-    position: fixed;
+    position: absolute;
     top: var(--header-total-height);
     left: 0;
     right: 0;
@@ -288,6 +289,7 @@ body.is-offline .main-content {
 /* ==================== 地图视图 ==================== */
 #map-view {
     overflow: hidden;
+    position: relative;
 }
 #map {
     width: 100%;
@@ -296,7 +298,7 @@ body.is-offline .main-content {
 }
 
 .map-stats-card {
-    position: fixed;
+    position: absolute;
     bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
@@ -571,7 +573,7 @@ body.is-offline .main-content {
 
 /* 地图时间筛选 */
 .map-time-filter {
-    position: fixed;
+    position: absolute;
     top: 80px;
     left: 50%;
     transform: translateX(-50%);
@@ -817,7 +819,7 @@ body.is-offline .main-content {
 
 /* ==================== 模态框 ==================== */
 .modal-overlay {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
@@ -867,12 +869,7 @@ body.is-offline .main-content {
 .modal-overlay.active .modal {
     transform: translateY(0);
     opacity: 1;
-    max-height: 92vh;
-}
-
-html.standalone-mode .modal-overlay.active .modal,
-body.is-standalone .modal-overlay.active .modal {
-    max-height: calc(var(--app-height, 100dvh) - var(--safe-top));
+    max-height: min(92vh, calc(var(--app-height, 100dvh) - var(--safe-top)));
 }
 
 html.standalone-mode .modal-overlay,
@@ -3319,43 +3316,22 @@ body.is-standalone .modal-overlay {
 }
 /* 同时兼容 navigator.standalone (iOS meta tag 方式) */
 body.is-standalone {
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: var(--app-height, 100%) !important;
     background: var(--bg-primary) !important;
-    position: static !important;
-    inset: auto !important;
-    min-height: var(--app-height, 100dvh) !important;
-    height: var(--app-height, 100dvh) !important;
-    overflow: hidden !important;
 }
 
 html.standalone-mode,
 html.standalone-mode body.is-standalone {
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100% !important;
-    min-height: var(--app-height, 100dvh) !important;
-    height: var(--app-height, 100dvh) !important;
-    overflow: hidden !important;
+    background: var(--bg-primary) !important;
 }
 
 html.standalone-mode body.is-standalone {
-    margin: 0 !important;
-    padding: 0 !important;
     background: var(--bg-primary) !important;
 }
 
 @media all and (display-mode: standalone) {
     html.standalone-mode,
     html.standalone-mode body.is-standalone {
-        position: fixed !important;
-        inset: 0 !important;
-        width: 100% !important;
-        min-height: var(--app-height, 100dvh) !important;
-        height: var(--app-height, 100dvh) !important;
-        overflow: hidden !important;
+        background: var(--bg-primary) !important;
     }
 }
 
@@ -3363,15 +3339,6 @@ html.standalone-mode body.is-standalone {
 html.standalone-mode,
 html.standalone-mode body,
 html.standalone-mode body.is-standalone {
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100% !important;
-    min-height: var(--app-height, 100dvh) !important;
-    height: var(--app-height, 100dvh) !important;
-    max-height: var(--app-height, 100dvh) !important;
-    overflow: hidden !important;
-    margin: 0 !important;
-    padding: 0 !important;
     background: var(--bg-primary) !important;
 }
 
@@ -3510,7 +3477,7 @@ html.standalone-mode body.is-standalone {
 
 /* ==================== 地图底部待出行预览 ==================== */
 .map-upcoming-preview {
-    position: fixed;
+    position: absolute;
     bottom: 100px;
     left: 50%;
     transform: translateX(-50%);
@@ -3866,7 +3833,7 @@ html.standalone-mode body.is-standalone {
 
 /* ==================== 移动端底部导航 ==================== */
 .mobile-nav {
-    position: fixed;
+    position: absolute;
     bottom: 0 !important;
     left: 0;
     right: 0;
@@ -3878,7 +3845,7 @@ html.standalone-mode body.is-standalone {
     /* 仅保留 padding-bottom 负责适配 iPhone 小白条 */
     height: var(--mobile-nav-total-height);
     min-height: 0;
-    padding-bottom: var(--mobile-nav-safe-bottom) !important;
+    padding-bottom: 0 !important;
     box-sizing: border-box !important;
     
     background: var(--header-bg);
@@ -3937,10 +3904,11 @@ html.standalone-mode body.is-standalone {
     
     /* 【改动4】把原先属于父级的 65px 高度拿过来 */
     min-height: var(--mobile-nav-height);
-    height: var(--mobile-nav-height);
+    height: var(--mobile-nav-total-height);
     
     /* 【改动5】因为已经有了明确高度和居中，取消原先的 padding */
-    padding: 0; 
+    padding: 8px 0 calc(8px + var(--mobile-nav-safe-bottom));
+    box-sizing: border-box;
     transition: color 0.2s;
 }
 
@@ -3950,6 +3918,10 @@ html.standalone-mode body.is-standalone {
 
 .mobile-nav-tab.active {
     color: var(--accent);
+}
+
+.mobile-nav-tab {
+    justify-content: flex-start;
 }
 
 /* ==================== 首页地图 ==================== */
@@ -3980,7 +3952,7 @@ html.standalone-mode body.is-standalone {
 
 /* ==================== Flighty 风格首页覆盖层 ==================== */
 .home-flights-overlay {
-    position: fixed;
+    position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
@@ -4716,7 +4688,7 @@ body.fmap-fullscreen-active .flights-sub-view {
 
 /* ==================== FAB 浮动按钮 + 菜单 ==================== */
 .fab-container {
-    position: fixed;
+    position: absolute;
     bottom: 90px;
     right: 24px;
     z-index: 900;
@@ -5529,7 +5501,7 @@ body.fmap-fullscreen-active .flights-sub-view {
 
 /* ==================== 首页缩放按钮跟随覆盖层 ==================== */
 #home-map .leaflet-bottom.leaflet-right {
-    position: fixed !important;
+    position: absolute !important;
     right: 14px;
     bottom: 290px;
     transition: bottom 0.35s cubic-bezier(.4,0,.2,1), opacity 0.5s ease;

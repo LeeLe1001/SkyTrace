@@ -14,7 +14,7 @@
     <!-- 强制版本更新: 版本不匹配时清除所有SW缓存并刷新 -->
     <script>
     (function(){
-        var V='42';
+        var V='43';
         if(localStorage.getItem('_stv')===V)return;
         localStorage.setItem('_stv',V);
         document.documentElement.style.display='none';
@@ -33,7 +33,7 @@
     </script>
     <!-- Leaflet CSS (本地) -->
     <link rel="stylesheet" href="/static/lib/leaflet.css" />
-    <link rel="stylesheet" href="/static/css/style.css?v=42">
+    <link rel="stylesheet" href="/static/css/style.css?v=43">
     <!-- 全局错误捕获 + 加载指示器 -->
     <style>
         #loading-indicator{position:fixed;top:0;left:0;right:0;bottom:0;background:#0a0a0f;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99998;color:#94a3b8;font-size:14px;}
@@ -53,55 +53,51 @@
         // 动态视口高度修复 + PWA standalone 检测
         (function(){
             var root = document.documentElement;
-            var isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-            function clamp(value, min, max) {
-                return Math.min(max, Math.max(min, value));
+
+            function isStandaloneMode() {
+                return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
             }
+
             function getStandaloneScreenHeight() {
                 var portrait = window.matchMedia('(orientation: portrait)').matches;
                 return portrait
                     ? Math.max(window.screen.height || 0, window.screen.availHeight || 0)
                     : Math.max(window.screen.width || 0, window.screen.availWidth || 0);
             }
+
             function fix(){
                 var viewport = window.visualViewport;
+                var standalone = isStandaloneMode();
                 var viewportHeight = Math.max(
                     window.innerHeight || 0,
                     root.clientHeight || 0,
-                    viewport ? viewport.height : 0
+                    viewport ? (viewport.height + (viewport.offsetTop || 0)) : 0
                 );
-                var height = viewportHeight;
-                if (isStandalone) {
-                    var screenHeight = getStandaloneScreenHeight();
-                    var safeTop = clamp(viewport ? viewport.offsetTop || 0 : 0, 0, 60);
-                    var safeBottom = clamp(screenHeight - viewportHeight - safeTop, 0, 34);
-                    height = Math.max(viewportHeight + safeTop + safeBottom, screenHeight);
-                    root.style.setProperty('--safe-top', Math.round(safeTop) + 'px');
-                    root.style.setProperty('--safe-bottom', Math.round(safeBottom) + 'px');
-                } else {
-                    root.style.removeProperty('--safe-top');
-                    root.style.removeProperty('--safe-bottom');
-                }
+                var height = standalone
+                    ? Math.max(viewportHeight, getStandaloneScreenHeight())
+                    : viewportHeight;
+
                 root.style.setProperty('--app-height', Math.round(height) + 'px');
+                root.classList.toggle('standalone-mode', standalone);
+
+                if (document.body) {
+                    document.body.classList.toggle('is-standalone', standalone);
+                }
             }
+
             fix();
             window.addEventListener('resize', fix);
             window.addEventListener('orientationchange', function(){ setTimeout(fix, 180); });
+            document.addEventListener('DOMContentLoaded', fix);
+
             if (window.visualViewport) {
                 window.visualViewport.addEventListener('resize', fix);
                 window.visualViewport.addEventListener('scroll', fix);
             }
-            if (isStandalone) {
-                root.classList.add('standalone-mode');
-                document.addEventListener('DOMContentLoaded', function(){
-                    document.body.classList.add('is-standalone');
-                    fix();
-                });
-            }
         })();
     </script>
     <!-- i18n 多语言 (在 app.js 之前加载) -->
-    <script src="/static/js/i18n.js?v=42"></script>
+    <script src="/static/js/i18n.js?v=43"></script>
 </head>
 <body>
     <!-- 加载指示器 -->
@@ -555,11 +551,11 @@
     <script src="/static/lib/leaflet.js"></script>
     <script src="/static/lib/arc.js"></script>
     <script src="/static/lib/html2canvas.min.js"></script>
-    <script src="/static/js/app.js?v=42"></script>
+    <script src="/static/js/app.js?v=43"></script>
     <script>
         // 彻底清除 Service Worker 和所有缓存
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js?v=42', { scope: '/' })
+            navigator.serviceWorker.register('/sw.js?v=43', { scope: '/' })
                 .then(reg => {
                     console.log('[SW] noop SW registered, will clear all caches');
                     reg.update();
