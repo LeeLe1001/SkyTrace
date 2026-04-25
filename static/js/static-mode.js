@@ -136,7 +136,8 @@
         try {
             // --- 版本 ---
             if (path === '/api/version') {
-                return _json({ version: typeof SKYTRACE_VERSION !== 'undefined' ? SKYTRACE_VERSION : 21 });
+                const version = typeof window.SKYTRACE_VERSION !== 'undefined' ? window.SKYTRACE_VERSION : 44;
+                return _json({ version });
             }
 
             // --- 机场 ---
@@ -285,35 +286,74 @@
     /** 模拟 app.py 的 get_flight_status_info() */
     function _getFlightStatusInfo(flight) {
         try {
-            if (!flight.date || !flight.dep_time) return { status: 'unknown', countdown: null };
-
             const now = new Date();
-            const depTime = new Date(`${flight.date}T${flight.dep_time}:00`);
+            const explicitCompleted = (flight.status || '').toLowerCase() === 'completed';
+            const baseStatus = {
+                checkin_open: null,
+                checkin_close: null,
+                boarding_time: null,
+                dep_datetime: null,
+                arr_datetime: null,
+                status: 'scheduled',
+                countdown: null,
+                progress: 0,
+            };
 
-            let arrTime;
-            if (flight.arr_time) {
-                arrTime = new Date(`${flight.date}T${flight.arr_time}:00`);
-                const dayOffset = flight.arr_day_offset || (flight.arr_next_day ? 1 : 0);
-                if (dayOffset) arrTime.setDate(arrTime.getDate() + dayOffset);
-                else if (arrTime < depTime) arrTime.setDate(arrTime.getDate() + 1);
-            } else {
-                arrTime = new Date(depTime.getTime() + 2 * 3600000);
+            if (!flight.date) {
+                if (explicitCompleted) return { ...baseStatus, status: 'completed', progress: 100 };
+                return { status: 'unknown', countdown: null };
             }
 
             const flightDate = new Date(`${flight.date}T00:00:00`);
+            if (Number.isNaN(flightDate.getTime())) {
+                if (explicitCompleted) return { ...baseStatus, status: 'completed', progress: 100 };
+                return { status: 'unknown', countdown: null };
+            }
+
+            const depTimeStr = (flight.dep_time || '').trim();
+            const arrTimeStr = (flight.arr_time || '').trim();
+            if (!depTimeStr) {
+                if (explicitCompleted || flightDate < new Date(now.getFullYear(), now.getMonth(), now.getDate())) {
+                    return { ...baseStatus, status: 'completed', progress: 100 };
+                }
+                const daysLeft = Math.floor((flightDate - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
+                return {
+                    ...baseStatus,
+                    countdown: daysLeft > 0 ? { key: 'daysLeft', args: [daysLeft] } : null,
+                };
+            }
+
+            const depTime = new Date(`${flight.date}T${depTimeStr}:00`);
+            if (Number.isNaN(depTime.getTime())) {
+                if (explicitCompleted) return { ...baseStatus, status: 'completed', progress: 100 };
+                return { status: 'unknown', countdown: null };
+            }
+
+            const arrClock = arrTimeStr || depTimeStr;
+            const arrTime = new Date(`${flight.date}T${arrClock}:00`);
+            if (Number.isNaN(arrTime.getTime())) {
+                if (explicitCompleted) return { ...baseStatus, status: 'completed', progress: 100 };
+                return { status: 'unknown', countdown: null };
+            }
+
+            const dayOffset = flight.arr_day_offset || (flight.arr_next_day ? 1 : 0);
+            if (dayOffset) arrTime.setDate(arrTime.getDate() + dayOffset);
+            else if (arrTime < depTime) arrTime.setDate(arrTime.getDate() + 1);
+
             const checkinOpen = new Date(depTime.getTime() - 24 * 3600000);
+            const checkinClose = new Date(depTime.getTime() - 45 * 60000);
             const boardingTime = new Date(depTime.getTime() - 40 * 60000);
 
             const flightDuration = (arrTime - depTime) / 1000;
             let progress = 0;
             if (now > depTime && now < arrTime && flightDuration > 0) {
-                progress = Math.min(100, Math.round((now - depTime) / 1000 / flightDuration * 100));
+                progress = Math.min(100, Math.round(((now - depTime) / 1000 / flightDuration) * 100));
             }
 
             const fmt = d => d.toISOString().slice(0, 16).replace('T', ' ');
             const si = {
                 checkin_open: fmt(checkinOpen),
-                checkin_close: fmt(new Date(depTime.getTime() - 45 * 60000)),
+                checkin_close: fmt(checkinClose),
                 boarding_time: fmt(boardingTime),
                 dep_datetime: fmt(depTime),
                 arr_datetime: fmt(arrTime),
@@ -322,8 +362,9 @@
                 progress,
             };
 
-            if (flight.status === 'completed' || now > arrTime) {
-                si.status = 'completed'; si.progress = 100;
+            if (explicitCompleted || now > arrTime) {
+                si.status = 'completed';
+                si.progress = 100;
             } else if (now > depTime) {
                 si.status = 'in_flight';
                 si.countdown = { key: 'etaMinutes', args: [Math.floor((arrTime - now) / 60000)] };
@@ -332,12 +373,13 @@
                 si.countdown = { key: 'depInMinutes', args: [Math.floor((depTime - now) / 60000)] };
             } else if (now > checkinOpen) {
                 si.status = 'checkin_open';
-                const h = (depTime - now) / 3600000;
-                si.countdown = h >= 1
-                    ? { key: 'depInHours', args: [Math.floor(h)] }
-                    : { key: 'depInMinutes', args: [Math.floor(h * 60)] };
+                const hoursLeft = (depTime - now) / 3600000;
+                si.countdown = hoursLeft >= 1
+                    ? { key: 'depInHours', args: [Math.floor(hoursLeft)] }
+                    : { key: 'depInMinutes', args: [Math.floor(hoursLeft * 60)] };
             } else {
-                const daysLeft = Math.ceil((flightDate - now) / 86400000);
+                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const daysLeft = Math.floor((flightDate - todayStart) / 86400000);
                 if (daysLeft > 0) {
                     si.countdown = { key: 'daysLeft', args: [daysLeft] };
                 } else {

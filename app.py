@@ -237,26 +237,74 @@ def haversine_distance(lat1, lon1, lat2, lon2):
 
 
 def get_flight_status_info(flight):
-    """根据航班信息计算状态和提醒"""
+    """根据航班信息计算状态和提醒。
+
+    航班记录里存在少量只有日期、没有时刻的历史数据。旧实现会直接返回
+    ``unknown``，导致地图把这些历史航班当作 upcoming。这里优先尊重显式
+    ``status=completed``，并在缺失时刻时退化为基于日期的状态判断。
+    """
     now = datetime.now()
+    explicit_completed = (flight.get('status') or '').lower() == 'completed'
+    base_status = {
+        'checkin_open': None,
+        'checkin_close': None,
+        'boarding_time': None,
+        'dep_datetime': None,
+        'arr_datetime': None,
+        'status': 'scheduled',
+        'countdown': None,
+        'progress': 0,
+    }
+
     try:
         flight_date = datetime.strptime(flight['date'], '%Y-%m-%d')
-        dep_time = datetime.strptime(f"{flight['date']} {flight['dep_time']}", '%Y-%m-%d %H:%M')
-        arr_time = datetime.strptime(f"{flight['date']} {flight['arr_time']}", '%Y-%m-%d %H:%M')
     except (ValueError, KeyError):
+        if explicit_completed:
+            status_info = base_status.copy()
+            status_info['status'] = 'completed'
+            status_info['progress'] = 100
+            return status_info
         return {'status': 'unknown', 'countdown': None}
 
-    if arr_time < dep_time:
+    dep_time_str = (flight.get('dep_time') or '').strip()
+    arr_time_str = (flight.get('arr_time') or '').strip()
+
+    if not dep_time_str:
+        status_info = base_status.copy()
+        if explicit_completed or flight_date.date() < now.date():
+            status_info['status'] = 'completed'
+            status_info['progress'] = 100
+        else:
+            days_left = (flight_date.date() - now.date()).days
+            if days_left > 0:
+                status_info['countdown'] = {'key': 'daysLeft', 'args': [days_left]}
+        return status_info
+
+    try:
+        dep_time = datetime.strptime(f"{flight['date']} {dep_time_str}", '%Y-%m-%d %H:%M')
+        arr_clock = arr_time_str or dep_time_str
+        arr_time = datetime.strptime(f"{flight['date']} {arr_clock}", '%Y-%m-%d %H:%M')
+    except ValueError:
+        if explicit_completed:
+            status_info = base_status.copy()
+            status_info['status'] = 'completed'
+            status_info['progress'] = 100
+            return status_info
+        return {'status': 'unknown', 'countdown': None}
+
+    day_offset = flight.get('arr_day_offset', 1 if flight.get('arr_next_day') else 0)
+    if day_offset:
+        arr_time += timedelta(days=day_offset)
+    elif arr_time < dep_time:
         arr_time += timedelta(days=1)
 
     checkin_open = dep_time - timedelta(hours=24)
     checkin_close = dep_time - timedelta(minutes=45)
     boarding_time = dep_time - timedelta(minutes=40)
 
-    # 计算飞行进度
     flight_duration = (arr_time - dep_time).total_seconds()
     progress = 0
-    if now > dep_time and now < arr_time and flight_duration > 0:
+    if dep_time < now < arr_time and flight_duration > 0:
         elapsed = (now - dep_time).total_seconds()
         progress = min(100, round(elapsed / flight_duration * 100))
 
@@ -271,7 +319,7 @@ def get_flight_status_info(flight):
         'progress': progress,
     }
 
-    if flight.get('status') == 'completed' or now > arr_time:
+    if explicit_completed or now > arr_time:
         status_info['status'] = 'completed'
         status_info['progress'] = 100
     elif now > dep_time:
@@ -290,7 +338,7 @@ def get_flight_status_info(flight):
         else:
             status_info['countdown'] = {'key': 'depInMinutes', 'args': [int(hours_left * 60)]}
     else:
-        days_left = (flight_date - now).days
+        days_left = (flight_date.date() - now.date()).days
         if days_left > 0:
             status_info['countdown'] = {'key': 'daysLeft', 'args': [days_left]}
         else:
@@ -533,7 +581,7 @@ def logo_proxy():
 
 # ==================== 页面路由 ====================
 
-APP_VERSION = 32
+APP_VERSION = 44
 
 @app.route('/api/version')
 def get_app_version():

@@ -36,7 +36,7 @@ let _currentCenterSlide = null;
 let _isOffline = false;
 let _hoState = 'hidden'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
-const SKYTRACE_VERSION = 32;
+const SKYTRACE_VERSION = window.SKYTRACE_VERSION || 44;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -239,9 +239,12 @@ function getAllianceBadgeHtml(flightNo) {
     if (!iata) return '';
     const alliance = AIRLINE_ALLIANCE[iata];
     if (!alliance) return '';
-    const labels = { star: '星空联盟', skyteam: '天合联盟', oneworld: '寰宇一家' };
-    const labelsEn = { star: 'Star Alliance', skyteam: 'SkyTeam', oneworld: 'Oneworld' };
-    const label = currentLang === 'zh' ? labels[alliance] : (labelsEn[alliance] || labels[alliance]);
+    const labelKey = {
+        star: 'allianceStar',
+        skyteam: 'allianceSkyTeam',
+        oneworld: 'allianceOneworld',
+    }[alliance];
+    const label = labelKey ? t(labelKey) : alliance;
     return `<span class="alliance-badge alliance-${alliance}">${label}</span>`;
 }
 // 旧 slug 映射 (本地 SVG/PNG 缓存)
@@ -471,6 +474,57 @@ function getLocalTodayStr() {
     return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
 }
 
+function compareFlightsBySchedule(a, b) {
+    const aDate = a?.date || '';
+    const bDate = b?.date || '';
+    return aDate.localeCompare(bDate)
+        || (a?.dep_time || '').localeCompare(b?.dep_time || '')
+        || (a?.arr_time || '').localeCompare(b?.arr_time || '')
+        || (a?.flight_no || '').localeCompare(b?.flight_no || '');
+}
+
+function sortFlightsBySchedule(list, order = 'asc') {
+    const direction = order === 'desc' ? -1 : 1;
+    return [...list].sort((a, b) => compareFlightsBySchedule(a, b) * direction);
+}
+
+function isFlightCompleted(flight, todayStr = getLocalTodayStr()) {
+    if (!flight) return false;
+    if (flight.status === 'completed') return true;
+    if (flight.status_info?.status === 'completed') return true;
+    return Boolean(flight.date && flight.date < todayStr);
+}
+
+function isFlightUpcoming(flight, todayStr = getLocalTodayStr()) {
+    if (!flight?.date) return false;
+    return !isFlightCompleted(flight, todayStr) && flight.date >= todayStr;
+}
+
+function filterFlightsByStatus(list, filter, todayStr = getLocalTodayStr()) {
+    if (filter === 'completed') return list.filter(f => isFlightCompleted(f, todayStr));
+    if (filter === 'upcoming') return list.filter(f => isFlightUpcoming(f, todayStr));
+    return [...list];
+}
+
+function getFlightStatusClass(flight, todayStr = getLocalTodayStr()) {
+    const resolvedStatus = isFlightCompleted(flight, todayStr)
+        ? 'completed'
+        : (flight?.status_info?.status || 'upcoming');
+    if (resolvedStatus === 'completed') return 'completed';
+    if (resolvedStatus === 'checkin_open') return 'checkin_open';
+    if (resolvedStatus === 'boarding') return 'boarding';
+    return 'upcoming';
+}
+
+function getLocalizedMonthLabel(year, monthIndex) {
+    return new Intl.DateTimeFormat(getLocale(), { month: 'long' })
+        .format(new Date(Number(year), monthIndex - 1, 1));
+}
+
+function formatGateChip(gate) {
+    return gate ? `${t('gateLabel')} ${gate}` : '';
+}
+
 function renderHomeRoutes() {
     if (!homeMap) return;
     homeArcLayers.forEach(l => { try { homeMap.removeLayer(l); } catch(e) {} });
@@ -480,7 +534,7 @@ function renderHomeRoutes() {
     homeRoutesByFlight = {};
 
     const todayStr = getLocalTodayStr();
-    const upcoming = flights.filter(f => f.status_info?.status !== 'completed' && f.date >= todayStr);
+    const upcoming = filterFlightsByStatus(flights, 'upcoming', todayStr);
     const visitedAirports = new Set();
     const airportTerminals = {};
 
@@ -531,7 +585,7 @@ function renderHomeRoutes() {
     if (homeArcLayers.length > 0) {
         // 优先定位到最近一个待出行航班，而非所有航班
         let targetBounds;
-        const sortedUpcoming = upcoming.filter(f => f.dep_airport?.lat && f.arr_airport?.lat).sort((a, b) => (a.date + (a.dep_time || '')).localeCompare(b.date + (b.dep_time || '')));
+    const sortedUpcoming = sortFlightsBySchedule(upcoming.filter(f => f.dep_airport?.lat && f.arr_airport?.lat));
         const nearestFlight = sortedUpcoming[0];
         if (nearestFlight && homeRoutesByFlight[nearestFlight.id]?.length) {
             targetBounds = L.featureGroup(homeRoutesByFlight[nearestFlight.id]).getBounds();
@@ -775,7 +829,7 @@ function renderHomeFlightOverlay(upcoming) {
     const listEl = document.getElementById('home-overlay-list');
     if (!countEl || !overlayEl || !nearestEl || !listEl) return;
 
-    const sorted = [...upcoming].sort((a, b) => a.date.localeCompare(b.date) || (a.dep_time || '').localeCompare(b.dep_time || ''));
+    const sorted = sortFlightsBySchedule(upcoming);
     countEl.textContent = sorted.length;
 
     if (sorted.length === 0) {
@@ -878,7 +932,7 @@ function renderNearestDetailCard(flight) {
 
     const depTerminal = formatTerminal(flight.dep_terminal);
     const arrTerminal = formatTerminal(flight.arr_terminal);
-    const gate = flight.dep_gate ? `Gate ${flight.dep_gate}` : '';
+    const gate = formatGateChip(flight.dep_gate);
     const countdownHtml = statusInfo.countdown ? `<div class="nearest-countdown">${renderCountdown(statusInfo.countdown)}</div>` : '';
     const stopoverHtml = renderStopoverHtml(flight);
 
@@ -922,7 +976,7 @@ function renderNearestSwipeCard(flight, idx, total) {
     const logo = getAirlineLogoHtml(flight.flight_no);
     const depTerminal = formatTerminal(flight.dep_terminal);
     const arrTerminal = formatTerminal(flight.arr_terminal);
-    const gate = flight.dep_gate ? `Gate ${flight.dep_gate}` : '';
+    const gate = formatGateChip(flight.dep_gate);
     const statusInfo = flight.status_info || {};
     const countdownHtml = statusInfo.countdown ? `<div class="nearest-countdown">${renderCountdown(statusInfo.countdown)}</div>` : '';
 
@@ -970,7 +1024,7 @@ function renderHomeCard(flight) {
     const logo = getAirlineLogoHtml(flight.flight_no);
     const depTerminal = formatTerminal(flight.dep_terminal);
     const arrTerminal = formatTerminal(flight.arr_terminal);
-    const gate = flight.dep_gate ? `Gate ${flight.dep_gate}` : '';
+    const gate = formatGateChip(flight.dep_gate);
 
     const duration = calcDuration(flight);
     const stopoverHtml = renderStopoverHtml(flight);
@@ -1101,11 +1155,9 @@ function applyFlightsMapFilter() {
     const endDate = document.getElementById('fmap-end')?.value || '';
     const activeYearPill = document.querySelector('.fmap-year-pill.active');
     const year = activeYearPill?.dataset.fmapYear || 'all';
+    const todayStr = getLocalTodayStr();
 
-    fmapFilteredFlights = flights.filter(f => {
-        // Status filter
-        if (fmapStatusFilter === 'upcoming' && f.status_info?.status === 'completed') return false;
-        if (fmapStatusFilter === 'completed' && f.status_info?.status !== 'completed') return false;
+    fmapFilteredFlights = filterFlightsByStatus(flights, fmapStatusFilter, todayStr).filter(f => {
         // Year filter
         if (year !== 'all' && !f.date?.startsWith(year)) return false;
         // Date range
@@ -1246,7 +1298,7 @@ function renderFlightsMapRoutes() {
         visitedAirports.add(flight.departure);
         visitedAirports.add(flight.arrival);
 
-        const isCompleted = flight.status_info?.status === 'completed' || flight.date < getLocalTodayStr();
+        const isCompleted = isFlightCompleted(flight);
         const color = isCompleted ? '#64748b' : '#60a5fa';
         const glowColor = isCompleted ? '#475569' : '#3b82f6';
 
@@ -1490,7 +1542,6 @@ function renderMonthlyChart(monthData) {
 
     // Render month selector as year + month dropdowns
     if (selectorEl) {
-        const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
         const selectedYear = _currentChartMonth.substring(0, 4);
         const selectedMonth = parseInt(_currentChartMonth.substring(5));
         // Available years from data
@@ -1498,8 +1549,8 @@ function renderMonthlyChart(monthData) {
         // Available months for selected year
         const availMonths = months.filter(m => m.startsWith(selectedYear)).map(m => parseInt(m.substring(5)));
         
-        let yearOpts = availYears.map(y => `<option value="${y}" ${y === selectedYear ? 'selected' : ''}>${y}年</option>`).join('');
-        let monthOpts = availMonths.map(m => `<option value="${m}" ${m === selectedMonth ? 'selected' : ''}>${monthNames[m - 1]}</option>`).join('');
+        let yearOpts = availYears.map(y => `<option value="${y}" ${y === selectedYear ? 'selected' : ''}>${y}</option>`).join('');
+        let monthOpts = availMonths.map(m => `<option value="${m}" ${m === selectedMonth ? 'selected' : ''}>${getLocalizedMonthLabel(selectedYear, m)}</option>`).join('');
         
         selectorEl.innerHTML = `
             <select class="month-chart-select" id="chart-year-select" onchange="onChartYearChange(this.value)">${yearOpts}</select>
@@ -1631,8 +1682,8 @@ function renderFlightsList(filter = currentStatusFilter) {
 
     // Update filter tab counts
     const countAll = filteredFlights.length;
-    const countUpcoming = filteredFlights.filter(f => f.status_info?.status !== 'completed' && f.date >= todayStr).length;
-    const countCompleted = filteredFlights.filter(f => f.status_info?.status === 'completed').length;
+    const countUpcoming = filterFlightsByStatus(filteredFlights, 'upcoming', todayStr).length;
+    const countCompleted = filterFlightsByStatus(filteredFlights, 'completed', todayStr).length;
     document.querySelectorAll('.filter-tab').forEach(btn => {
         const f = btn.dataset.filter;
         const count = f === 'all' ? countAll : f === 'upcoming' ? countUpcoming : countCompleted;
@@ -1642,16 +1693,11 @@ function renderFlightsList(filter = currentStatusFilter) {
     });
 
     if (filter === 'upcoming') {
-        displayFlights = filteredFlights.filter(f => f.status_info?.status !== 'completed' && f.date >= todayStr);
-        displayFlights.sort((a, b) => a.date.localeCompare(b.date) || (a.dep_time || '').localeCompare(b.dep_time || ''));
+        displayFlights = sortFlightsBySchedule(filterFlightsByStatus(filteredFlights, 'upcoming', todayStr), 'asc');
     } else if (filter === 'completed') {
-        displayFlights = filteredFlights.filter(f => f.status_info?.status === 'completed');
-        displayFlights.sort((a, b) => b.date.localeCompare(a.date) || (b.dep_time || '').localeCompare(a.dep_time || ''));
+        displayFlights = sortFlightsBySchedule(filterFlightsByStatus(filteredFlights, 'completed', todayStr), 'desc');
     } else {
-        displayFlights = [...filteredFlights].sort((a, b) => {
-            if (_allSortOrder === 'oldest') return a.date.localeCompare(b.date) || (a.dep_time || '').localeCompare(b.dep_time || '');
-            return b.date.localeCompare(a.date) || (b.dep_time || '').localeCompare(a.dep_time || '');
-        });
+        displayFlights = sortFlightsBySchedule(filteredFlights, _allSortOrder === 'oldest' ? 'asc' : 'desc');
     }
 
     // Show sort toggle for "all" filter
@@ -1731,13 +1777,13 @@ function renderFlightCard(flight) {
     const logo = getAirlineLogoHtml(flight.flight_no);
     const depTerminal = formatTerminal(flight.dep_terminal);
     const arrTerminal = formatTerminal(flight.arr_terminal);
-    const gate = flight.dep_gate ? `Gate ${flight.dep_gate}` : '';
+    const gate = formatGateChip(flight.dep_gate);
 
     const duration = calcDuration(flight);
     const stopoverHtml = renderStopoverHtml(flight);
 
     const isSelected = selectedConnectIds.has(flight.id);
-    const statusClass = statusInfo.status === 'completed' ? 'completed' : statusInfo.status === 'checkin_open' ? 'checkin_open' : statusInfo.status === 'boarding' ? 'boarding' : 'upcoming';
+    const statusClass = getFlightStatusClass(flight);
     const countdownHtml = statusInfo.countdown ? `<div class="home-card-countdown">${renderCountdown(statusInfo.countdown)}</div>` : '';
     const distKm = flight.distance ? `${flight.distance.toLocaleString()} km` : '';
 
@@ -1877,8 +1923,10 @@ function initTabs() {
                         homeMap.invalidateSize();
                         if (homeArcLayers.length > 0) {
                             // 优先定位最近一个待出行航班
-                            const todayStr = getLocalTodayStr();
-                            const upcoming = flights.filter(f => f.status_info?.status !== 'completed' && f.date >= todayStr && f.dep_airport?.lat && f.arr_airport?.lat).sort((a, b) => (a.date + (a.dep_time || '')).localeCompare(b.date + (b.dep_time || '')));
+    const todayStr = getLocalTodayStr();
+    const upcoming = sortFlightsBySchedule(
+        filterFlightsByStatus(flights, 'upcoming', todayStr).filter(f => f.dep_airport?.lat && f.arr_airport?.lat)
+    );
                             const nearest = upcoming[0];
                             if (nearest && homeRoutesByFlight[nearest.id]?.length) {
                                 homeMap.fitBounds(L.featureGroup(homeRoutesByFlight[nearest.id]).getBounds(), { padding: [50, 50] });
@@ -2016,13 +2064,14 @@ function showFlightDetail(flightId) {
     const statusInfo = flight.status_info || {};
     const progress = statusInfo.progress || 0;
     const isActive = statusInfo.status === 'in_flight';
+    const isCompleted = isFlightCompleted(flight);
     const logo = getAirlineLogoHtml(flight.flight_no);
     const airlineName = typeof translateAirline === 'function' ? translateAirline(flight.airline) : (flight.airline || '');
 
     // 登机口/行李信息 - 单列显示在乘机信息上部
-    const gateDisplay = flight.dep_gate || (statusInfo.status !== 'completed' ? t('gatePending') : '-');
+    const gateDisplay = flight.dep_gate || (!isCompleted ? t('gatePending') : '-');
     const gateRows = [];
-    gateRows.push(`<div class="detail-boarding-row"><span class="detail-boarding-label">${t('depGate') || '出发登机口'}</span><span class="detail-boarding-value ${!flight.dep_gate && statusInfo.status !== 'completed' ? 'text-warning' : ''}">${gateDisplay}</span></div>`);
+    gateRows.push(`<div class="detail-boarding-row"><span class="detail-boarding-label">${t('depGate') || '出发登机口'}</span><span class="detail-boarding-value ${!flight.dep_gate && !isCompleted ? 'text-warning' : ''}">${gateDisplay}</span></div>`);
     if (flight.checkin_counter) gateRows.push(`<div class="detail-boarding-row"><span class="detail-boarding-label">${t('checkinCounter') || '值机柜台'}</span><span class="detail-boarding-value">${flight.checkin_counter}</span></div>`);
     if (flight.baggage_carousel) gateRows.push(`<div class="detail-boarding-row"><span class="detail-boarding-label">${t('baggageCarousel') || '行李转盘'}</span><span class="detail-boarding-value">${flight.baggage_carousel}</span></div>`);
 
@@ -2048,7 +2097,7 @@ function showFlightDetail(flightId) {
                 <div class="detail-flight-no">${flight.flight_no} ${getAllianceBadgeHtml(flight.flight_no)}</div>
                 <div class="detail-flight-airline">${airlineName}</div>
             </div>
-            <div class="detail-flight-status"><span class="flight-status ${statusInfo.status || 'upcoming'}">${getStatusText(statusInfo)}</span></div>
+            <div class="detail-flight-status"><span class="flight-status ${getFlightStatusClass(flight)}">${getStatusText(statusInfo)}</span></div>
         </div>
         <div class="detail-date-row">${formatDateDetail(flight.date)}</div>
         <div class="detail-route">
@@ -2065,7 +2114,7 @@ function showFlightDetail(flightId) {
             </div>
         </div>
         ${seatCardHtml}
-        ${statusInfo.status !== 'completed' ? `<div class="detail-card"><div class="detail-card-title">⏱️ ${t('keyTimeline')}</div><div class="detail-reminder-item"><span>${t('checkinOpen')}</span><span>${formatDateTime(statusInfo.checkin_open)}</span></div><div class="detail-reminder-item"><span>${t('checkinClose')}</span><span>${formatDateTime(statusInfo.checkin_close)}</span></div><div class="detail-reminder-item"><span>${t('boardingStart')}</span><span>${formatDateTime(statusInfo.boarding_time)}</span></div></div>` : ''}
+        ${!isCompleted ? `<div class="detail-card"><div class="detail-card-title">⏱️ ${t('keyTimeline')}</div><div class="detail-reminder-item"><span>${t('checkinOpen')}</span><span>${formatDateTime(statusInfo.checkin_open)}</span></div><div class="detail-reminder-item"><span>${t('checkinClose')}</span><span>${formatDateTime(statusInfo.checkin_close)}</span></div><div class="detail-reminder-item"><span>${t('boardingStart')}</span><span>${formatDateTime(statusInfo.boarding_time)}</span></div></div>` : ''}
         ${flight.notes ? `<div class="detail-card"><div class="detail-card-title">📝 ${t('noteLabel')}</div><div style="font-size:14px;">${flight.notes}</div></div>` : ''}
         <div class="weather-container" id="detail-weather"></div>
         <div class="detail-delete-section"><button class="btn-danger btn-delete-full" onclick="deleteFlight()">🗑️ ${t('deleteTrip')}</button></div>
@@ -2083,7 +2132,7 @@ function showFlightDetail(flightId) {
             }
         }
     } catch(e) {}
-    if (statusInfo.status !== 'completed') {
+    if (!isCompleted) {
         loadFlightWeather(flight).then(html => { const el = document.getElementById('detail-weather'); if (el && html) el.innerHTML = html; });
     }
 }
@@ -2717,7 +2766,7 @@ function renderCalendar() {
         const dayFlights = flightMap[dateStr] || [];
         const dayTodos = calendarTodos[dateStr] || [];
         const hasTodos = dayTodos.length > 0;
-        html += `<div class="cal-day${dateStr === todayStr ? ' today' : ''}${dayFlights.length ? ' has-flights' : ''}${hasTodos ? ' has-todos' : ''}" onclick="showCalendarDayFlights('${dateStr}')"><span class="cal-day-num">${d}</span>${dayFlights.length ? `<div class="cal-flight-dots">${dayFlights.slice(0, 3).map(f => `<span class="cal-dot ${f.status_info?.status === 'completed' ? 'completed' : 'upcoming'}"></span>`).join('')}${dayFlights.length > 3 ? `<span class="cal-dot-more">+${dayFlights.length - 3}</span>` : ''}</div>` : ''}${hasTodos ? '<div class="cal-todo-dot">📌</div>' : ''}</div>`;
+        html += `<div class="cal-day${dateStr === todayStr ? ' today' : ''}${dayFlights.length ? ' has-flights' : ''}${hasTodos ? ' has-todos' : ''}" onclick="showCalendarDayFlights('${dateStr}')"><span class="cal-day-num">${d}</span>${dayFlights.length ? `<div class="cal-flight-dots">${dayFlights.slice(0, 3).map(f => `<span class="cal-dot ${isFlightCompleted(f, todayStr) ? 'completed' : 'upcoming'}"></span>`).join('')}${dayFlights.length > 3 ? `<span class="cal-dot-more">+${dayFlights.length - 3}</span>` : ''}</div>` : ''}${hasTodos ? '<div class="cal-todo-dot">📌</div>' : ''}</div>`;
     }
     document.getElementById('calendar-grid').innerHTML = html;
 }
@@ -2727,7 +2776,7 @@ function showCalendarDayFlights(dateStr) {
     const container = document.getElementById('calendar-flight-detail');
     let html = `<div class="cal-detail-date">${formatDate(dateStr)}</div>`;
     if (dayFlights.length) {
-        html += dayFlights.map(f => `<div class="cal-flight-item" onclick="showFlightDetail('${f.id}')"><div class="cal-flight-no">${f.flight_no}</div><div class="cal-flight-route"><span>${f.departure}</span><span class="cal-arrow">→</span><span>${f.arrival}</span></div><div class="cal-flight-time">${f.dep_time} - ${f.arr_time}</div><span class="flight-status ${f.status_info?.status === 'completed' ? 'completed' : 'upcoming'}">${getStatusText(f.status_info)}</span></div>`).join('');
+        html += dayFlights.map(f => `<div class="cal-flight-item" onclick="showFlightDetail('${f.id}')"><div class="cal-flight-no">${f.flight_no}</div><div class="cal-flight-route"><span>${f.departure}</span><span class="cal-arrow">→</span><span>${f.arrival}</span></div><div class="cal-flight-time">${f.dep_time} - ${f.arr_time}</div><span class="flight-status ${getFlightStatusClass(f)}">${getStatusText(f.status_info)}</span></div>`).join('');
     }
     // Todos section
     html += `<div class="cal-todo-section"><div class="cal-todo-header"><span>📌 ${t('calTodos') || '日程'}</span></div>`;
@@ -2794,7 +2843,7 @@ function groupConnectedFlights(list) {
     list.forEach(f => {
         if (f.connected_group && !added.has(f.connected_group)) {
             added.add(f.connected_group);
-            result.push({ isGroup: true, groupId: f.connected_group, flights: groups[f.connected_group].sort((a, b) => a.date.localeCompare(b.date) || (a.dep_time || '').localeCompare(b.dep_time || '')) });
+            result.push({ isGroup: true, groupId: f.connected_group, flights: sortFlightsBySchedule(groups[f.connected_group], 'asc') });
         } else if (!f.connected_group) result.push(f);
     });
     return result;
@@ -2927,16 +2976,16 @@ function shareFlightCard() {
             <div class="share-detail-item"><span class="share-detail-label">${t('distanceLabel') || '距离'}</span><span>${dist.toLocaleString()} km</span></div>
         </div>
         ${funFact ? `<div class="share-fun-fact">${funFact}</div>` : ''}
-        <div class="share-footer"><span>Generated by SkyTrace</span><span>${new Date().toLocaleDateString(getLocale())}</span></div>
+        <div class="share-footer"><span>${t('shareGeneratedBy')}</span><span>${new Date().toLocaleDateString(getLocale())}</span></div>
     </div>`;
     document.getElementById('share-modal').classList.add('active');
 }
 function closeShareModal() { document.getElementById('share-modal').classList.remove('active'); }
-async function downloadShareCard() { try { const canvas = await html2canvas(document.getElementById('share-card'), { scale: 2, backgroundColor: null, useCORS: true }); const link = document.createElement('a'); link.download = `SkyTrace_${currentFlightId || 'flight'}.png`; link.href = canvas.toDataURL('image/png'); link.click(); } catch (e) { alert('导出失败'); } }
+async function downloadShareCard() { try { const canvas = await html2canvas(document.getElementById('share-card'), { scale: 2, backgroundColor: null, useCORS: true }); const link = document.createElement('a'); link.download = `SkyTrace_${currentFlightId || 'flight'}.png`; link.href = canvas.toDataURL('image/png'); link.click(); } catch (e) { alert(t('exportFailed')); } }
 async function exportAnnualReport() {
     // Default to most recent year with completed flights
     const completedYears = flights
-        .filter(f => f.status_info?.status === 'completed')
+        .filter(f => isFlightCompleted(f))
         .map(f => parseInt(f.date.split('-')[0]))
         .filter(y => !isNaN(y));
     const reportYear = completedYears.length > 0 ? Math.max(...completedYears) : new Date().getFullYear();
@@ -2945,6 +2994,6 @@ async function exportAnnualReport() {
     const fun = stats.fun_stats || {}, sp = fun.seat_preference || {};
     const totalSeats = (sp.window || 0) + (sp.aisle || 0) + (sp.middle || 0);
     const pref = (sp.window || 0) >= (sp.aisle || 0) && (sp.window || 0) >= (sp.middle || 0) ? 'window' : (sp.aisle || 0) >= (sp.middle || 0) ? 'aisle' : 'middle';
-    document.getElementById('share-card').innerHTML = `<div class="share-card-inner share-report"><div class="share-card-header"><span class="share-logo">✈️ SkyTrace</span><span class="share-date">${t('annualReport')} ${reportYear}</span></div><div class="report-hero"><div class="report-hero-value">${stats.total_flights}</div><div class="report-hero-label">${t('totalFlights')}</div></div><div class="report-stats-row"><div class="report-stat"><div class="report-stat-value">${stats.total_distance.toLocaleString()}</div><div class="report-stat-label">${t('totalDistance')}</div></div><div class="report-stat"><div class="report-stat-value">${stats.total_hours}h</div><div class="report-stat-label">${t('totalHours')}</div></div><div class="report-stat"><div class="report-stat-value">${stats.visited_airports}</div><div class="report-stat-label">${t('visitedAirports')}</div></div></div><div class="report-insights"><div class="report-insight-item"><span>🏆 ${t('topAirlines')}</span><strong>${stats.top_airlines?.[0]?.airline || '-'}</strong></div><div class="report-insight-item"><span>✈️ ${t('topRoutes')}</span><strong>${stats.top_routes?.[0]?.route || '-'}</strong></div><div class="report-insight-item"><span>${pref === 'window' ? '🪟' : '🚶'} ${t('favoriteSeat')}</span><strong>${totalSeats > 0 ? t('seatPref_' + pref) : '-'}</strong></div></div><div class="share-footer"><span>Generated by SkyTrace</span><span>${new Date().toLocaleDateString(getLocale())}</span></div></div>`;
+    document.getElementById('share-card').innerHTML = `<div class="share-card-inner share-report"><div class="share-card-header"><span class="share-logo">✈️ SkyTrace</span><span class="share-date">${t('annualReport')} ${reportYear}</span></div><div class="report-hero"><div class="report-hero-value">${stats.total_flights}</div><div class="report-hero-label">${t('totalFlights')}</div></div><div class="report-stats-row"><div class="report-stat"><div class="report-stat-value">${stats.total_distance.toLocaleString()}</div><div class="report-stat-label">${t('totalDistance')}</div></div><div class="report-stat"><div class="report-stat-value">${stats.total_hours}h</div><div class="report-stat-label">${t('totalHours')}</div></div><div class="report-stat"><div class="report-stat-value">${stats.visited_airports}</div><div class="report-stat-label">${t('visitedAirports')}</div></div></div><div class="report-insights"><div class="report-insight-item"><span>🏆 ${t('topAirlines')}</span><strong>${stats.top_airlines?.[0]?.airline || '-'}</strong></div><div class="report-insight-item"><span>✈️ ${t('topRoutes')}</span><strong>${stats.top_routes?.[0]?.route || '-'}</strong></div><div class="report-insight-item"><span>${pref === 'window' ? '🪟' : '🚶'} ${t('favoriteSeat')}</span><strong>${totalSeats > 0 ? t('seatPref_' + pref) : '-'}</strong></div></div><div class="share-footer"><span>${t('shareGeneratedBy')}</span><span>${new Date().toLocaleDateString(getLocale())}</span></div></div>`;
     document.getElementById('share-modal').classList.add('active');
 }
