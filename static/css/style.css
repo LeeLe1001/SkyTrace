@@ -3350,6 +3350,21 @@ html.standalone-mode body.is-standalone {
 }
 
 /* ==================== 返回键 ==================== */
+html.standalone-mode,
+html.standalone-mode body,
+html.standalone-mode body.is-standalone {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    min-height: var(--app-height, 100dvh) !important;
+    height: var(--app-height, 100dvh) !important;
+    max-height: var(--app-height, 100dvh) !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: var(--bg-primary) !important;
+}
+
 .modal-back {
     display: none;
     width: 36px;
