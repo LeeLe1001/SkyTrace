@@ -22,7 +22,7 @@
     --popup-bg: #1a1a24;
     --popup-text: #ffffff;
     --mobile-nav-height: 65px;
-    --mobile-nav-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --mobile-nav-safe-bottom: min(env(safe-area-inset-bottom, 0px), 20px);
     --mobile-nav-total-height: calc(var(--mobile-nav-height) + var(--mobile-nav-safe-bottom));
     --mobile-content-offset: calc(var(--mobile-nav-total-height) + 12px);
 }
@@ -864,6 +864,11 @@ body.is-offline .main-content {
     transform: translateY(0);
     opacity: 1;
     max-height: 92vh;
+}
+
+html.standalone-mode .modal-overlay.active .modal,
+body.is-standalone .modal-overlay.active .modal {
+    max-height: calc(var(--app-height, 100dvh) - env(safe-area-inset-top, 0px));
 }
 
 @media (min-width: 769px) {
@@ -3332,6 +3337,18 @@ html.standalone-mode body.is-standalone {
     background: var(--bg-primary) !important;
 }
 
+@media all and (display-mode: standalone) {
+    html.standalone-mode,
+    html.standalone-mode body.is-standalone {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100% !important;
+        min-height: var(--app-height, 100dvh) !important;
+        height: var(--app-height, 100dvh) !important;
+        overflow: hidden !important;
+    }
+}
+
 /* ==================== 返回键 ==================== */
 .modal-back {
     display: none;
@@ -4654,11 +4671,11 @@ body.fmap-fullscreen-active .flights-sub-view {
     } */
 
     #flights-map-subview.active {
-        padding-bottom: var(--mobile-content-offset);
+        padding-bottom: 0;
     }
 
     #flights-map-subview.active .fmap-wrapper {
-        margin-bottom: 0;
+        margin-bottom: var(--mobile-content-offset);
     }
     
 
