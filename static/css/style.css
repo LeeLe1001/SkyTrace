@@ -3316,6 +3316,22 @@ body.is-standalone {
     overflow: hidden !important;
 }
 
+html.standalone-mode,
+html.standalone-mode body.is-standalone {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    min-height: var(--app-height, 100dvh) !important;
+    height: var(--app-height, 100dvh) !important;
+    overflow: hidden !important;
+}
+
+html.standalone-mode body.is-standalone {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: var(--bg-primary) !important;
+}
+
 /* ==================== 返回键 ==================== */
 .modal-back {
     display: none;
@@ -3818,7 +3834,8 @@ body.is-standalone {
     /* 删除这行: height: calc(65px + env(safe-area-inset-bottom, 0px)) !important; */
     
     /* 仅保留 padding-bottom 负责适配 iPhone 小白条 */
-    min-height: var(--mobile-nav-total-height);
+    height: var(--mobile-nav-total-height);
+    min-height: 0;
     padding-bottom: var(--mobile-nav-safe-bottom) !important;
     box-sizing: border-box !important;
     
@@ -3826,6 +3843,7 @@ body.is-standalone {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     justify-content: space-around;
+    align-items: stretch;
     
     /* 【改动2】删除 align-items: center; 防止 iOS 对齐 Bug */
     /* 删除这行: align-items: center; */
@@ -4608,7 +4626,7 @@ body.fmap-fullscreen-active .flights-sub-view {
     .fmap-stats-card {
         padding: 10px clamp(14px, 3.5vw, 22px);
         gap: clamp(14px, 3.5vw, 24px);
-        bottom: calc(var(--mobile-nav-total-height) + 8px);
+        bottom: 16px;
     }
     
     .mobile-nav {
@@ -4636,7 +4654,7 @@ body.fmap-fullscreen-active .flights-sub-view {
     } */
 
     #flights-map-subview.active {
-        padding-bottom: 0;
+        padding-bottom: var(--mobile-content-offset);
     }
 
     #flights-map-subview.active .fmap-wrapper {
