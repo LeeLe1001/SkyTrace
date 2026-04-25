@@ -1,5 +1,6 @@
 /* ==================== 基础样式 ==================== */
 :root {
+    --app-height: 100dvh;
     --bg-primary: #0a0a0f;
     --bg-secondary: #12121a;
     --bg-card: #1a1a24;
@@ -20,6 +21,10 @@
     --shadow-color: rgba(0, 0, 0, 0.5);
     --popup-bg: #1a1a24;
     --popup-text: #ffffff;
+    --mobile-nav-height: 65px;
+    --mobile-nav-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --mobile-nav-total-height: calc(var(--mobile-nav-height) + var(--mobile-nav-safe-bottom));
+    --mobile-content-offset: calc(var(--mobile-nav-total-height) + 12px);
 }
 
 /* ========== 浅色主题 ========== */
@@ -55,6 +60,7 @@
 html {
     width: 100%;
     height: 100%;
+    min-height: 100%;
     height: -webkit-fill-available;
     overflow: hidden;
     overscroll-behavior: none;
@@ -67,6 +73,7 @@ body {
     color: var(--text-primary);
     width: 100%;
     height: 100%;
+    min-height: var(--app-height, 100dvh);
     height: var(--app-height, -webkit-fill-available);
     overflow: hidden;
     overscroll-behavior: none;
@@ -3272,11 +3279,6 @@ body.is-offline .main-content {
 
 /* ==================== PWA Standalone Mode ==================== */
 @media all and (display-mode: standalone) {
-    html {
-        position: fixed;
-        inset: 0;
-        background: var(--bg-primary, #0a0a0f);
-    }
     html, body {
     background-color: var(--bg-primary) !important; /* 强制 iOS 底部即使留白也是深色 */
     height: 100vh; /* 兼容普通浏览器 */
@@ -3285,6 +3287,9 @@ body.is-offline .main-content {
     overflow: hidden;
     margin: 0;
     padding: 0;
+    width: 100%;
+    min-height: var(--app-height, 100dvh);
+    height: var(--app-height, 100dvh);
     }
     .header {
         padding-top: env(safe-area-inset-top, 20px);
@@ -3294,6 +3299,7 @@ body.is-offline .main-content {
     }
     .home-flights-overlay {
         padding-bottom: env(safe-area-inset-bottom, 0px);
+        padding-bottom: 0;
     }
 }
 /* 同时兼容 navigator.standalone (iOS meta tag 方式) */
@@ -3303,6 +3309,11 @@ body.is-standalone {
     width: 100% !important;
     height: var(--app-height, 100%) !important;
     background: var(--bg-primary) !important;
+    position: static !important;
+    inset: auto !important;
+    min-height: var(--app-height, 100dvh) !important;
+    height: var(--app-height, 100dvh) !important;
+    overflow: hidden !important;
 }
 
 /* ==================== 返回键 ==================== */
@@ -3806,7 +3817,8 @@ body.is-standalone {
     /* 删除这行: height: calc(65px + env(safe-area-inset-bottom, 0px)) !important; */
     
     /* 仅保留 padding-bottom 负责适配 iPhone 小白条 */
-    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    min-height: var(--mobile-nav-total-height);
+    padding-bottom: var(--mobile-nav-safe-bottom) !important;
     box-sizing: border-box !important;
     
     background: var(--header-bg);
@@ -3841,6 +3853,12 @@ body.is-standalone {
     background: #c8d7f5;
 }
 
+.mobile-nav::after,
+[data-theme="light"] .mobile-nav::after {
+    content: none;
+    display: none;
+}
+
 .mobile-nav-tab {
     display: flex;
     flex-direction: column;
@@ -3858,7 +3876,8 @@ body.is-standalone {
     flex: 1;
     
     /* 【改动4】把原先属于父级的 65px 高度拿过来 */
-    height: 65px; 
+    min-height: var(--mobile-nav-height);
+    height: var(--mobile-nav-height);
     
     /* 【改动5】因为已经有了明确高度和居中，取消原先的 padding */
     padding: 0; 
@@ -4575,7 +4594,7 @@ body.fmap-fullscreen-active .flights-sub-view {
     .fmap-stats-card {
         padding: 10px clamp(14px, 3.5vw, 22px);
         gap: clamp(14px, 3.5vw, 24px);
-        bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+        bottom: calc(var(--mobile-nav-total-height) + 8px);
     }
     
     .mobile-nav {
@@ -4584,7 +4603,7 @@ body.fmap-fullscreen-active .flights-sub-view {
 
     /* 视图用 padding-bottom 避让底部导航栏 (导航悬浮在内容上方) */
     .view {
-        padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: var(--mobile-content-offset);
     }
     #home-view,
     #map-view,
@@ -4592,7 +4611,7 @@ body.fmap-fullscreen-active .flights-sub-view {
         padding-bottom: 0;
     }
     .flights-sub-view.active {
-        padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: var(--mobile-content-offset);
     }
     /* #flights-map-subview.active {
         padding-bottom: 0;
@@ -4604,12 +4623,12 @@ body.fmap-fullscreen-active .flights-sub-view {
     
 
     .home-flights-overlay {
-        bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+        bottom: var(--mobile-nav-total-height);
         border-radius: 20px 20px 0 0;
     }
 
     .fab-container {
-        bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+        bottom: calc(var(--mobile-nav-total-height) + 20px);
     }
 }
 
