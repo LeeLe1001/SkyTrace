@@ -33,6 +33,7 @@ let homeRoutesByFlight = {};
 let homeFocusBoundsByFlight = {};
 let _homeViewportBounds = null;
 let _fmapViewportBounds = null;
+let _fmapHeatRefreshTimer = null;
 let _homePendingBounds = null;  // 当首页不可见时暂存 fitBounds 参数
 let _homePendingRender = false;  // 首页不可见时标记需要重新渲染
 let _currentCenterSlide = null;
@@ -40,7 +41,7 @@ let _isOffline = false;
 let _hoState = 'hidden'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
 let _authState = null;
-const SKYTRACE_VERSION = window.SKYTRACE_VERSION || 47;
+const SKYTRACE_VERSION = window.SKYTRACE_VERSION || 48;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -103,6 +104,52 @@ function _mergeBounds(targetBounds, nextBounds) {
 function _fitMapToBounds(mapInstance, bounds, options = {}) {
     if (!mapInstance || !bounds?.isValid()) return;
     mapInstance.fitBounds(bounds, { padding: [50, 50], maxZoom: 6, ...options });
+}
+
+function _isRenderableMapContainer(container) {
+    if (!container) return false;
+    const style = window.getComputedStyle ? window.getComputedStyle(container) : null;
+    if (style && (style.display === 'none' || style.visibility === 'hidden')) return false;
+    return container.clientWidth > 32 && container.clientHeight > 32;
+}
+
+function _clearFmapHeatRefreshTimer() {
+    if (_fmapHeatRefreshTimer) {
+        clearTimeout(_fmapHeatRefreshTimer);
+        _fmapHeatRefreshTimer = null;
+    }
+}
+
+function _clearFmapHeatLayer() {
+    if (fmap && fmapHeatLayer) {
+        try { fmap.removeLayer(fmapHeatLayer); } catch (e) {}
+    }
+    fmapHeatLayer = null;
+}
+
+function _scheduleFmapHeatRefresh(delay = 180) {
+    if (!_fmapHeatmapOn || !fmap) return;
+    _clearFmapHeatRefreshTimer();
+    _fmapHeatRefreshTimer = setTimeout(() => {
+        _fmapHeatRefreshTimer = null;
+        _updateFmapHeatLayer();
+    }, delay);
+}
+
+function _refreshFlightsMapLayout(refit = false) {
+    if (!fmap) return;
+    const refresh = () => {
+        if (!fmap) return;
+        fmap.invalidateSize();
+        if (refit && _fmapViewportBounds?.isValid()) {
+            _fitMapToBounds(fmap, _fmapViewportBounds);
+        }
+        if (_fmapHeatmapOn) {
+            _scheduleFmapHeatRefresh(90);
+        }
+    };
+    setTimeout(refresh, 120);
+    setTimeout(refresh, 320);
 }
 
 /** 格式化到达时间: 跨日到达加 +1/-1/+2 标识 */
@@ -731,17 +778,16 @@ function initHomeMap() {
         minZoom: 2,
         maxZoom: 18,
         zoomControl: false,
-        worldCopyJump: false,
-        maxBounds: [[-85, -180], [85, 180]],
-        maxBoundsViscosity: 0.8
+        worldCopyJump: true,
+        maxBounds: [[-85, -540], [85, 540]],
+        maxBoundsViscosity: 0.2
     });
     const theme = localStorage.getItem('skytrace-theme') || 'dark';
     const tileUrl = theme === 'light' ? TILE_LIGHT : TILE_DARK;
     homeTileLayer = L.tileLayer(tileUrl, {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
         subdomains: 'abcd',
-        maxZoom: 19,
-        noWrap: true
+        maxZoom: 19
     }).addTo(homeMap);
 }
 
@@ -1375,7 +1421,7 @@ function highlightRouteForSlide(targetIds) {
 // ==================== 行程地图 (全功能筛选) ====================
 function initFlightsMap() {
     if (fmapInited) {
-        setTimeout(() => fmap.invalidateSize(), 100);
+        _refreshFlightsMapLayout(true);
         return;
     }
     fmap = L.map('flights-map', {
@@ -1384,17 +1430,16 @@ function initFlightsMap() {
         minZoom: 2,
         maxZoom: 18,
         zoomControl: false,
-        worldCopyJump: false,
-        maxBounds: [[-85, -180], [85, 180]],
-        maxBoundsViscosity: 0.8
+        worldCopyJump: true,
+        maxBounds: [[-85, -540], [85, 540]],
+        maxBoundsViscosity: 0.2
     });
     const theme = localStorage.getItem('skytrace-theme') || 'dark';
     const tileUrl = theme === 'light' ? TILE_LIGHT : TILE_DARK;
     fmapTileLayer = L.tileLayer(tileUrl, {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
         subdomains: 'abcd',
-        maxZoom: 19,
-        noWrap: true
+        maxZoom: 19
     }).addTo(fmap);
     L.control.zoom({ position: 'bottomright' }).addTo(fmap);
     fmapInited = true;
@@ -1412,6 +1457,7 @@ function initFlightsMap() {
     // 初始化年份选择
     renderFmapYearPills();
     applyFlightsMapFilter();
+    _refreshFlightsMapLayout(true);
 }
 
 function renderFmapYearPills() {
@@ -1475,6 +1521,7 @@ function toggleFmapFilter() {
     const btn = document.getElementById('fmap-toggle-filter');
     if (bar) bar.classList.toggle('hidden', !_fmapFilterVisible);
     if (btn) btn.textContent = _fmapFilterVisible ? t('fmapHideFilter') : t('fmapShowFilter');
+    _refreshFlightsMapLayout(true);
 }
 
 let _fmapFullscreen = false;
@@ -1494,7 +1541,7 @@ function toggleFmapFullscreen() {
         if (btn) btn.title = t('fullscreen') || '全屏';
     }
     // 让 Leaflet 重新计算大小
-    setTimeout(() => { if (fmap) fmap.invalidateSize(); }, 350);
+    _refreshFlightsMapLayout(true);
 }
 
 // ==================== 热力图 ====================
@@ -1510,14 +1557,24 @@ function toggleFmapHeatmap() {
             l.addTo(fmap);
         }
     });
-    _updateFmapHeatLayer();
+    if (!_fmapHeatmapOn) {
+        _clearFmapHeatRefreshTimer();
+        _clearFmapHeatLayer();
+        return;
+    }
+    _scheduleFmapHeatRefresh(0);
 }
 
 function _updateFmapHeatLayer() {
     if (!fmap) return;
     // 移除旧热力图层
-    if (fmapHeatLayer) { fmap.removeLayer(fmapHeatLayer); fmapHeatLayer = null; }
+    _clearFmapHeatLayer();
     if (!_fmapHeatmapOn) return;
+    const container = fmap.getContainer ? fmap.getContainer() : document.getElementById('flights-map');
+    if (!_isRenderableMapContainer(container)) {
+        _scheduleFmapHeatRefresh(220);
+        return;
+    }
 
     // 统计每个机场出现次数
     const airportCount = {};
@@ -1539,7 +1596,9 @@ function _updateFmapHeatLayer() {
         }
     });
 
-    if (heatData.length > 0 && typeof L.heatLayer === 'function') {
+    if (heatData.length === 0 || typeof L.heatLayer !== 'function') return;
+
+    try {
         fmapHeatLayer = L.heatLayer(heatData, {
             radius: 38,
             blur: 28,
@@ -1548,6 +1607,12 @@ function _updateFmapHeatLayer() {
             minOpacity: 0.35,
             gradient: { 0.0: '#3b82f6', 0.25: '#06b6d4', 0.5: '#10b981', 0.75: '#f59e0b', 1.0: '#ef4444' }
         }).addTo(fmap);
+        requestAnimationFrame(() => {
+            try { fmapHeatLayer?.redraw?.(); } catch (e) {}
+        });
+    } catch (e) {
+        console.error('[SkyTrace] fmap heat layer failed:', e);
+        _clearFmapHeatLayer();
     }
 }
 
@@ -1628,6 +1693,9 @@ function renderFlightsMapRoutes() {
 
     if (_fmapViewportBounds?.isValid()) {
         _fitMapToBounds(fmap, _fmapViewportBounds);
+    }
+    if (_fmapHeatmapOn) {
+        _scheduleFmapHeatRefresh(120);
     }
 }
 
@@ -1726,7 +1794,11 @@ async function loadStats(year) {
     try {
         if (year !== undefined) currentStatsYear = year;
         const yearParam = currentStatsYear && currentStatsYear !== 'all' ? `?year=${currentStatsYear}` : '';
-        const stats = await (await fetch('/api/stats' + yearParam)).json();
+        const response = await fetch('/api/stats' + yearParam);
+        const stats = await response.json();
+        if (!response.ok || typeof stats.total_hours !== 'number' || typeof stats.total_flights !== 'number') {
+            throw new Error(stats.error || 'Failed to load stats');
+        }
         cachedStatsData = stats;
 
         animateCountUp(document.getElementById('total-flights'), stats.total_flights || 0);
@@ -2284,6 +2356,10 @@ function initTabs() {
             document.querySelectorAll('.flights-sub-view').forEach(v => { v.classList.remove('active'); v.classList.remove('view-enter'); });
             tab.classList.add('active');
             const subtab = tab.dataset.subtab;
+            if (subtab !== 'fmap') {
+                _clearFmapHeatRefreshTimer();
+                _clearFmapHeatLayer();
+            }
             if (subtab === 'list') {
                 const sv = document.getElementById('flights-list-subview'); sv.classList.add('active'); requestAnimationFrame(() => sv.classList.add('view-enter'));
             }
@@ -2291,8 +2367,7 @@ function initTabs() {
                 const sv = document.getElementById('flights-map-subview'); sv.classList.add('active'); requestAnimationFrame(() => sv.classList.add('view-enter'));
                 initFlightsMap();
                 // 地图子页使用 flex 布局，等 CSS 动画结束后刷新尺寸
-                setTimeout(() => { if (fmap) fmap.invalidateSize(); }, 300);
-                setTimeout(() => { if (fmap) fmap.invalidateSize(); }, 600);
+                _refreshFlightsMapLayout(true);
             }
             else if (subtab === 'fstats') {
                 const sv = document.getElementById('flights-stats-subview'); sv.classList.add('active'); requestAnimationFrame(() => sv.classList.add('view-enter'));

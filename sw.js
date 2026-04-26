@@ -8,7 +8,7 @@
  * - HTML 页面: network-first (确保最新)
  */
 
-const SW_QUERY_VERSION = new URL(self.location.href).searchParams.get('v') || '47';
+const SW_QUERY_VERSION = new URL(self.location.href).searchParams.get('v') || '48';
 const CACHE_VERSION = `skytrace-v${SW_QUERY_VERSION}`;
 const STATIC_CACHE = CACHE_VERSION + '-static';
 const API_CACHE    = CACHE_VERSION + '-api';

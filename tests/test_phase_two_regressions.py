@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 from app import app
-from storage import UserSetting, configure_database, get_database_url, get_session
+from storage import UserSetting, configure_database, create_user, get_database_url, get_session
 from time_utils import attach_airport_timezones, calculate_duration_minutes
 
 
@@ -73,6 +73,32 @@ class PhaseTwoRegressionTests(unittest.TestCase):
             airports = client.get("/api/airports").get_json()
             self.assertEqual(airports["WEH"]["timezone"], "Asia/Shanghai")
             self.assertEqual(airports["ICN"]["timezone"], "Asia/Seoul")
+
+    def test_stats_api_uses_timezone_aware_duration_for_manual_flights(self):
+        with app.test_client() as client:
+            user = create_user("pilot", "secret123", "Pilot")
+            with client.session_transaction() as session:
+                session["user_id"] = user["id"]
+            add_resp = client.post(
+                "/api/flights",
+                json={
+                    "flight_no": "MU2017",
+                    "airline": "中国东方航空",
+                    "departure": "WEH",
+                    "arrival": "ICN",
+                    "date": "2026-04-30",
+                    "dep_time": "11:00",
+                    "arr_time": "13:15",
+                    "arr_day_offset": 0,
+                    "status": "scheduled",
+                },
+            )
+            self.assertEqual(add_resp.status_code, 200)
+
+            stats = client.get("/api/stats").get_json()
+            self.assertEqual(stats["total_flights"], 1)
+            self.assertEqual(stats["total_hours"], 1.2)
+            self.assertEqual(stats["fun_stats"]["avg_hours"], 1.2)
 
 
 if __name__ == "__main__":
