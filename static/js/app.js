@@ -731,8 +731,8 @@ function initHomeMap() {
         minZoom: 2,
         maxZoom: 18,
         zoomControl: false,
-        worldCopyJump: true,
-        maxBounds: [[-85, -Infinity], [85, Infinity]],
+        worldCopyJump: false,
+        maxBounds: [[-85, -180], [85, 180]],
         maxBoundsViscosity: 0.8
     });
     const theme = localStorage.getItem('skytrace-theme') || 'dark';
@@ -740,7 +740,8 @@ function initHomeMap() {
     homeTileLayer = L.tileLayer(tileUrl, {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
         subdomains: 'abcd',
-        maxZoom: 19
+        maxZoom: 19,
+        noWrap: true
     }).addTo(homeMap);
 }
 
@@ -1383,8 +1384,8 @@ function initFlightsMap() {
         minZoom: 2,
         maxZoom: 18,
         zoomControl: false,
-        worldCopyJump: true,
-        maxBounds: [[-85, -Infinity], [85, Infinity]],
+        worldCopyJump: false,
+        maxBounds: [[-85, -180], [85, 180]],
         maxBoundsViscosity: 0.8
     });
     const theme = localStorage.getItem('skytrace-theme') || 'dark';
@@ -1392,7 +1393,8 @@ function initFlightsMap() {
     fmapTileLayer = L.tileLayer(tileUrl, {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
         subdomains: 'abcd',
-        maxZoom: 19
+        maxZoom: 19,
+        noWrap: true
     }).addTo(fmap);
     L.control.zoom({ position: 'bottomright' }).addTo(fmap);
     fmapInited = true;
