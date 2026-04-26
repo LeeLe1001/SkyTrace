@@ -8,16 +8,40 @@ Flask 后端主程序 v2.0
 - AeroDataBox (RapidAPI免费版): https://rapidapi.com/aedbx-aedbx/api/aerodatabox
 """
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, g, jsonify, request, send_from_directory, session
 import json
 import os
 import math
 from datetime import datetime, timedelta
+from functools import wraps
+from pathlib import Path
+import secrets
 import uuid
 import urllib.request
 import urllib.error
 import re
 import time
+
+from storage import (
+    DEFAULT_USER_SETTINGS,
+    add_user_flight,
+    bootstrap_admin_user,
+    configure_database,
+    connect_user_flights,
+    create_user,
+    delete_user_flight,
+    disconnect_user_flights,
+    find_user_flight_by_number,
+    get_database_url,
+    get_user_by_id,
+    get_user_settings,
+    has_users as storage_has_users,
+    list_user_flights,
+    list_users,
+    save_user_settings,
+    update_user_flight,
+    verify_user_credentials,
+)
 
 app = Flask(__name__)
 
@@ -30,13 +54,30 @@ SCHEDULES_FILE = os.path.join(DATA_DIR, 'flight_schedules.json')
 SETTINGS_FILE = os.path.join(DATA_DIR, 'settings.json')
 LOGO_CACHE_DIR = os.path.join('static', 'img', 'airlines', 'cache')
 
-DEFAULT_SETTINGS = {
-    'aviationstack_key': '',
-    'airlabs_key': '',
-    'aerodata_key': '',
-    'preferred_api': 'auto',
-    'auto_cache': True,
-}
+DEFAULT_SETTINGS = dict(DEFAULT_USER_SETTINGS)
+
+
+def _load_or_create_secret_key():
+    env_key = os.environ.get('SKYTRACE_SECRET_KEY')
+    if env_key:
+        return env_key
+
+    key_path = Path(DATA_DIR) / 'secret_key.txt'
+    key_path.parent.mkdir(parents=True, exist_ok=True)
+    if key_path.exists():
+        return key_path.read_text(encoding='utf-8').strip()
+
+    secret_key = secrets.token_hex(32)
+    key_path.write_text(secret_key, encoding='utf-8')
+    return secret_key
+
+
+app.secret_key = _load_or_create_secret_key()
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+
+configure_database()
 
 # ==================== 航站楼自动补全 ====================
 # 已知航司在各机场的常用航站楼映射 (API返回空时兜底)
@@ -212,6 +253,72 @@ def get_settings():
     """获取设置（合并默认值）"""
     settings = load_json(SETTINGS_FILE)
     return {**DEFAULT_SETTINGS, **settings}
+
+
+def is_legacy_mode():
+    return not storage_has_users()
+
+
+def get_current_user():
+    return getattr(g, 'current_user', None)
+
+
+def get_current_user_id():
+    user = get_current_user()
+    return user.get('id') if user else None
+
+
+def get_active_settings():
+    if is_legacy_mode():
+        return get_settings()
+
+    user_id = get_current_user_id()
+    if not user_id:
+        return dict(DEFAULT_SETTINGS)
+    return get_user_settings(user_id, DEFAULT_SETTINGS)
+
+
+@app.before_request
+def load_current_user():
+    g.current_user = None
+    if is_legacy_mode():
+        return
+
+    user_id = session.get('user_id')
+    if user_id:
+        g.current_user = get_user_by_id(user_id)
+
+
+def _set_logged_in_user(user):
+    session.permanent = True
+    session['user_id'] = user['id']
+
+
+def login_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if is_legacy_mode():
+            return view(*args, **kwargs)
+        if not get_current_user():
+            return jsonify({'success': False, 'error': 'Authentication required', 'auth_required': True}), 401
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
+def admin_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if is_legacy_mode():
+            return jsonify({'success': False, 'error': 'Setup required'}), 409
+        user = get_current_user()
+        if not user:
+            return jsonify({'success': False, 'error': 'Authentication required', 'auth_required': True}), 401
+        if not user.get('is_admin'):
+            return jsonify({'success': False, 'error': 'Admin permission required'}), 403
+        return view(*args, **kwargs)
+
+    return wrapped
 
 
 def normalize_flight_no(flight_no):
@@ -467,9 +574,9 @@ def query_aerodata(flight_no, date, api_key):
     return None
 
 
-def query_all_apis(flight_no, date):
+def query_all_apis(flight_no, date, settings=None):
     """按优先级依次尝试所有已配置的 API"""
-    settings = get_settings()
+    settings = settings or get_active_settings()
     preferred = settings.get('preferred_api', 'auto')
 
     apis = [
@@ -534,19 +641,35 @@ def find_in_local_data(flight_no):
             }
 
     # 2. 用户的历史航班记录
-    data = load_json(FLIGHTS_FILE)
-    for flight in data.get('flights', []):
-        if normalize_flight_no(flight.get('flight_no', '')) == fn:
-            return {
-                'departure': flight.get('departure', ''),
-                'arrival': flight.get('arrival', ''),
-                'dep_time': flight.get('dep_time', ''),
-                'arr_time': flight.get('arr_time', ''),
-                'aircraft': flight.get('aircraft', ''),
-                'dep_terminal': flight.get('dep_terminal', ''),
-                'arr_terminal': flight.get('arr_terminal', ''),
-                'source': 'history',
-            }
+    if is_legacy_mode():
+        data = load_json(FLIGHTS_FILE)
+        for flight in data.get('flights', []):
+            if normalize_flight_no(flight.get('flight_no', '')) == fn:
+                return {
+                    'departure': flight.get('departure', ''),
+                    'arrival': flight.get('arrival', ''),
+                    'dep_time': flight.get('dep_time', ''),
+                    'arr_time': flight.get('arr_time', ''),
+                    'aircraft': flight.get('aircraft', ''),
+                    'dep_terminal': flight.get('dep_terminal', ''),
+                    'arr_terminal': flight.get('arr_terminal', ''),
+                    'source': 'history',
+                }
+    else:
+        user_id = get_current_user_id()
+        if user_id:
+            flight = find_user_flight_by_number(user_id, fn)
+            if flight:
+                return {
+                    'departure': flight.get('departure', ''),
+                    'arrival': flight.get('arrival', ''),
+                    'dep_time': flight.get('dep_time', ''),
+                    'arr_time': flight.get('arr_time', ''),
+                    'aircraft': flight.get('aircraft', ''),
+                    'dep_terminal': flight.get('dep_terminal', ''),
+                    'arr_terminal': flight.get('arr_terminal', ''),
+                    'source': 'history',
+                }
 
     return None
 
@@ -581,7 +704,7 @@ def logo_proxy():
 
 # ==================== 页面路由 ====================
 
-APP_VERSION = 45
+APP_VERSION = 46
 
 @app.route('/api/version')
 def get_app_version():
@@ -701,6 +824,87 @@ async function clearSW() {
 </script></body></html>''', 200, {'Content-Type': 'text/html; charset=utf-8'}
 
 
+# ==================== API 路由: 认证 & 初始化 ====================
+
+@app.route('/api/auth/state', methods=['GET'])
+def auth_state():
+    user = get_current_user()
+    legacy_mode = is_legacy_mode()
+    return jsonify({
+        'needs_setup': legacy_mode,
+        'authenticated': bool(user),
+        'storage_mode': 'legacy' if legacy_mode else 'multi_user',
+        'user': user,
+    })
+
+
+@app.route('/api/setup', methods=['POST'])
+def setup_admin_account():
+    if not is_legacy_mode():
+        return jsonify({'success': False, 'error': 'Setup has already been completed.'}), 409
+
+    body = request.json or {}
+    username = body.get('username', '')
+    password = body.get('password', '')
+    display_name = body.get('display_name', '')
+
+    try:
+        user = bootstrap_admin_user(
+            username=username,
+            password=password,
+            display_name=display_name,
+            legacy_flights_file=FLIGHTS_FILE,
+            legacy_settings_file=SETTINGS_FILE,
+            defaults=DEFAULT_SETTINGS,
+        )
+        _set_logged_in_user(user)
+        return jsonify({'success': True, 'user': user})
+    except ValueError as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 400
+
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    if is_legacy_mode():
+        return jsonify({'success': False, 'error': 'Please finish setup first.'}), 409
+
+    body = request.json or {}
+    user = verify_user_credentials(body.get('username', ''), body.get('password', ''))
+    if not user:
+        return jsonify({'success': False, 'error': 'Invalid username or password.'}), 401
+
+    _set_logged_in_user(user)
+    return jsonify({'success': True, 'user': user})
+
+
+@app.route('/api/auth/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({'success': True})
+
+
+@app.route('/api/admin/users', methods=['GET'])
+@admin_required
+def get_admin_users():
+    return jsonify({'success': True, 'users': list_users()})
+
+
+@app.route('/api/admin/users', methods=['POST'])
+@admin_required
+def create_admin_user():
+    body = request.json or {}
+    try:
+        user = create_user(
+            username=body.get('username', ''),
+            password=body.get('password', ''),
+            display_name=body.get('display_name', ''),
+            is_admin=bool(body.get('is_admin')),
+        )
+        return jsonify({'success': True, 'user': user})
+    except ValueError as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 400
+
+
 # ==================== API 路由: 机场 & 航空公司 ====================
 
 @app.route('/api/airports', methods=['GET'])
@@ -739,6 +943,7 @@ def get_airlines():
 # ==================== API 路由: 航班智能查询 ====================
 
 @app.route('/api/flight/lookup', methods=['GET'])
+@login_required
 def lookup_flight():
     """
     智能航班查询 — 多级 fallback:
@@ -777,7 +982,7 @@ def lookup_flight():
     }
 
     # 检查是否有可用的 API
-    settings = get_settings()
+    settings = get_active_settings()
     has_api = bool(settings.get('aviationstack_key') or
                    settings.get('airlabs_key') or
                    settings.get('aerodata_key'))
@@ -785,7 +990,7 @@ def lookup_flight():
 
     # --- Level 1: API查询 ---
     if has_api:
-        api_result = query_all_apis(flight_no, date)
+        api_result = query_all_apis(flight_no, date, settings=settings)
         if api_result and api_result.get('departure'):
             for k, v in api_result.items():
                 if v:
@@ -811,6 +1016,7 @@ def lookup_flight():
 
 
 @app.route('/api/flight/status', methods=['GET'])
+@login_required
 def get_flight_live_status():
     """获取航班实时状态（需配置API）"""
     flight_no = normalize_flight_no(request.args.get('flight_no', ''))
@@ -819,7 +1025,7 @@ def get_flight_live_status():
     if not flight_no:
         return jsonify({'success': False, 'error': '请输入航班号'}), 400
 
-    api_result = query_all_apis(flight_no, date)
+    api_result = query_all_apis(flight_no, date, settings=get_active_settings())
     if api_result:
         return jsonify({
             'success': True,
@@ -838,9 +1044,10 @@ def get_flight_live_status():
 # ==================== API 路由: 设置管理 ====================
 
 @app.route('/api/settings', methods=['GET'])
+@login_required
 def get_settings_api():
     """获取设置（API key 打码显示）"""
-    settings = get_settings()
+    settings = get_active_settings()
     safe = {}
     for k, v in settings.items():
         if k.endswith('_key') and v:
@@ -855,19 +1062,24 @@ def get_settings_api():
 
 
 @app.route('/api/settings', methods=['POST'])
+@login_required
 def save_settings_api():
     """保存设置"""
     new = request.json or {}
-    current = get_settings()
-    for k, v in new.items():
-        if isinstance(v, str) and '****' in v:
-            continue  # 不覆盖打码值
-        current[k] = v
-    save_json(SETTINGS_FILE, current)
+    if is_legacy_mode():
+        current = get_settings()
+        for k, v in new.items():
+            if isinstance(v, str) and '****' in v:
+                continue  # 不覆盖打码值
+            current[k] = v
+        save_json(SETTINGS_FILE, current)
+    else:
+        save_user_settings(get_current_user_id(), new, DEFAULT_SETTINGS)
     return jsonify({'success': True})
 
 
 @app.route('/api/settings/test', methods=['POST'])
+@login_required
 def test_api_connection():
     """测试 API 连接"""
     try:
@@ -904,9 +1116,13 @@ def test_api_connection():
 # ==================== API 路由: 航班 CRUD ====================
 
 @app.route('/api/flights', methods=['GET'])
+@login_required
 def get_flights():
-    data = load_json(FLIGHTS_FILE)
-    flights = data.get('flights', [])
+    if is_legacy_mode():
+        data = load_json(FLIGHTS_FILE)
+        flights = data.get('flights', [])
+    else:
+        flights = list_user_flights(get_current_user_id())
     airports = load_json(AIRPORTS_FILE)
 
     enhanced = []
@@ -942,6 +1158,7 @@ def get_flights():
 
 
 @app.route('/api/flights', methods=['POST'])
+@login_required
 def add_flight():
     flight = request.json
     flight['id'] = str(uuid.uuid4())[:8]
@@ -965,48 +1182,69 @@ def add_flight():
         except Exception:
             pass
 
-    data = load_json(FLIGHTS_FILE)
-    if 'flights' not in data:
-        data['flights'] = []
-    data['flights'].append(flight)
-    save_json(FLIGHTS_FILE, data)
+    if is_legacy_mode():
+        data = load_json(FLIGHTS_FILE)
+        if 'flights' not in data:
+            data['flights'] = []
+        data['flights'].append(flight)
+        save_json(FLIGHTS_FILE, data)
+    else:
+        add_user_flight(get_current_user_id(), flight)
     return jsonify({'success': True, 'id': flight['id']})
 
 
 @app.route('/api/flights/<flight_id>', methods=['PUT'])
+@login_required
 def update_flight(flight_id):
     updated = request.json
-    data = load_json(FLIGHTS_FILE)
-    for i, f in enumerate(data.get('flights', [])):
-        if f['id'] == flight_id:
-            updated['id'] = flight_id
-            # 保留后台管理的字段（如联程分组），前端未传时不丢失
-            for key in ('connected_group',):
-                if key in f and key not in updated:
-                    updated[key] = f[key]
-            data['flights'][i] = updated
-            save_json(FLIGHTS_FILE, data)
+    if is_legacy_mode():
+        data = load_json(FLIGHTS_FILE)
+        for i, f in enumerate(data.get('flights', [])):
+            if f['id'] == flight_id:
+                updated['id'] = flight_id
+                # 保留后台管理的字段（如联程分组），前端未传时不丢失
+                for key in ('connected_group',):
+                    if key in f and key not in updated:
+                        updated[key] = f[key]
+                data['flights'][i] = updated
+                save_json(FLIGHTS_FILE, data)
+                return jsonify({'success': True})
+    else:
+        saved = update_user_flight(get_current_user_id(), flight_id, updated)
+        if saved is not None:
             return jsonify({'success': True})
     return jsonify({'success': False, 'error': '航班不存在'}), 404
 
 
 @app.route('/api/flights/<flight_id>', methods=['DELETE'])
+@login_required
 def delete_flight(flight_id):
-    data = load_json(FLIGHTS_FILE)
-    data['flights'] = [f for f in data.get('flights', []) if f['id'] != flight_id]
-    save_json(FLIGHTS_FILE, data)
+    if is_legacy_mode():
+        data = load_json(FLIGHTS_FILE)
+        data['flights'] = [f for f in data.get('flights', []) if f['id'] != flight_id]
+        save_json(FLIGHTS_FILE, data)
+    else:
+        if not delete_user_flight(get_current_user_id(), flight_id):
+            return jsonify({'success': False, 'error': '航班不存在'}), 404
     return jsonify({'success': True})
 
 
 # ==================== API 路由: 统计 ====================
 
 @app.route('/api/flights/connect', methods=['POST'])
+@login_required
 def connect_flights():
     """联程: 将多个航班绑定为一组 (自动合并已有联程)"""
     body = request.json or {}
     flight_ids = body.get('flight_ids', [])
     if len(flight_ids) < 2:
         return jsonify({'success': False, 'error': '至少选择2个航班'}), 400
+
+    if not is_legacy_mode():
+        group_id = connect_user_flights(get_current_user_id(), flight_ids)
+        if not group_id:
+            return jsonify({'success': False, 'error': '至少选择2个航班'}), 400
+        return jsonify({'success': True, 'group_id': group_id})
 
     data = load_json(FLIGHTS_FILE)
     all_flights = data.get('flights', [])
@@ -1037,6 +1275,7 @@ def connect_flights():
 
 
 @app.route('/api/flights/disconnect', methods=['POST'])
+@login_required
 def disconnect_flights():
     """联程: 解除联程绑定 (支持整组解除或部分解除)"""
     body = request.json or {}
@@ -1045,6 +1284,11 @@ def disconnect_flights():
 
     if not group_id and not flight_ids:
         return jsonify({'success': False, 'error': '缺少group_id或flight_ids'}), 400
+
+    if not is_legacy_mode():
+        if not disconnect_user_flights(get_current_user_id(), group_id=group_id, flight_ids=flight_ids):
+            return jsonify({'success': False, 'error': '缺少group_id或flight_ids'}), 400
+        return jsonify({'success': True})
 
     data = load_json(FLIGHTS_FILE)
     all_flights = data.get('flights', [])
@@ -1073,9 +1317,13 @@ def disconnect_flights():
 
 
 @app.route('/api/stats', methods=['GET'])
+@login_required
 def get_stats():
-    data = load_json(FLIGHTS_FILE)
-    all_flights = data.get('flights', [])
+    if is_legacy_mode():
+        data = load_json(FLIGHTS_FILE)
+        all_flights = data.get('flights', [])
+    else:
+        all_flights = list_user_flights(get_current_user_id())
     airports_data = load_json(AIRPORTS_FILE)
 
     # 年份筛选
@@ -1300,6 +1548,7 @@ def get_weather():
 
 
 @app.route('/api/cache/stats', methods=['GET'])
+@login_required
 def cache_stats():
     """获取本地缓存统计"""
     schedules = load_json(SCHEDULES_FILE)
@@ -1315,20 +1564,15 @@ def cache_stats():
 if __name__ == '__main__':
     os.makedirs(DATA_DIR, exist_ok=True)
 
-    settings = get_settings()
-    has_api = bool(settings.get('aviationstack_key') or
-                   settings.get('airlabs_key') or
-                   settings.get('aerodata_key'))
-
     print("=" * 50)
     print("  SkyTrace - Personal Flight Manager v2.0")
     print("=" * 50)
     print("  URL: http://localhost:5000")
-    if has_api:
-        print("  [OK] API configured")
+    print(f"  DB: {get_database_url()}")
+    if is_legacy_mode():
+        print("  [!] Setup required - create the first admin account in the browser")
     else:
-        print("  [!] No API key - click Settings in top-right")
-        print("      Supports: AviationStack / AirLabs / AeroDataBox")
+        print("  [OK] Multi-user mode enabled")
     print("=" * 50)
 
     app.run(debug=False, host='0.0.0.0', port=5000)

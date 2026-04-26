@@ -36,7 +36,8 @@ let _currentCenterSlide = null;
 let _isOffline = false;
 let _hoState = 'hidden'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
-const SKYTRACE_VERSION = window.SKYTRACE_VERSION || 45;
+let _authState = null;
+const SKYTRACE_VERSION = window.SKYTRACE_VERSION || 46;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -394,10 +395,241 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// ==================== 认证与账户 ====================
+async function _readJsonResponse(resp) {
+    const text = await resp.text();
+    let data = {};
+    if (text) {
+        try { data = JSON.parse(text); }
+        catch (_) { data = { error: text }; }
+    }
+    if (!resp.ok) {
+        throw new Error(data.error || data.message || `HTTP ${resp.status}`);
+    }
+    return data;
+}
+
+function _setAuthMessage(message, kind) {
+    const el = document.getElementById('auth-message');
+    if (!el) return;
+    el.textContent = message || '';
+    el.className = 'auth-message' + (kind ? ` is-${kind}` : '');
+}
+
+function _showAuthGate(mode) {
+    const gate = document.getElementById('auth-gate');
+    if (!gate) return;
+    gate.style.display = 'flex';
+    const setupPanel = document.getElementById('auth-setup-panel');
+    const loginPanel = document.getElementById('auth-login-panel');
+    if (setupPanel) setupPanel.style.display = mode === 'setup' ? 'block' : 'none';
+    if (loginPanel) loginPanel.style.display = mode === 'login' ? 'block' : 'none';
+}
+
+function _hideAuthGate() {
+    const gate = document.getElementById('auth-gate');
+    if (gate) gate.style.display = 'none';
+    _setAuthMessage('', '');
+}
+
+function _renderManagedUsers(users) {
+    const list = document.getElementById('managed-users-list');
+    if (!list) return;
+    if (!users || users.length === 0) {
+        list.innerHTML = `<div class="managed-user-meta">${t('noManagedUsers') || 'No users yet.'}</div>`;
+        return;
+    }
+    list.innerHTML = users.map(user => `
+        <div class="managed-user-item">
+            <div>
+                <div class="managed-user-name">${user.display_name || user.username}</div>
+                <div class="managed-user-meta">@${user.username}${user.is_admin ? ` · ${t('adminBadge') || 'Admin'}` : ''}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function _applyAuthState(state) {
+    _authState = state || null;
+    const user = _authState?.user || null;
+    const badge = document.getElementById('header-user-badge');
+    if (badge) {
+        if (user) {
+            badge.textContent = user.display_name || user.username || '';
+            badge.style.display = 'inline-flex';
+        } else {
+            badge.style.display = 'none';
+            badge.textContent = '';
+        }
+    }
+
+    const currentUserEl = document.getElementById('settings-current-user');
+    if (currentUserEl) currentUserEl.textContent = user ? `${user.display_name || user.username} (@${user.username})` : '-';
+
+    const storageModeEl = document.getElementById('settings-storage-mode');
+    if (storageModeEl) {
+        const modeMap = {
+            static: t('storageModeStatic') || 'Static local mode',
+            legacy: t('storageModeLegacy') || 'Legacy bootstrap mode',
+            multi_user: t('storageModeServer') || 'Server database',
+        };
+        storageModeEl.textContent = modeMap[_authState?.storage_mode] || (_authState?.storage_mode || '-');
+    }
+
+    const syncSection = document.getElementById('settings-sync-section');
+    if (syncSection) {
+        syncSection.style.display = _authState?.storage_mode === 'multi_user' ? 'none' : '';
+    }
+
+    const adminSection = document.getElementById('settings-user-admin-section');
+    if (adminSection) {
+        adminSection.style.display = user?.is_admin ? 'block' : 'none';
+    }
+}
+
+async function ensureAuthReady() {
+    try {
+        const resp = await fetch('/api/auth/state', { cache: 'no-store' });
+        const state = await _readJsonResponse(resp);
+        if (state.needs_setup) {
+            _authState = state;
+            _showAuthGate('setup');
+            _dismissSplash();
+            return false;
+        }
+        if (!state.authenticated) {
+            _authState = state;
+            _showAuthGate('login');
+            _dismissSplash();
+            return false;
+        }
+        _applyAuthState(state);
+        _hideAuthGate();
+        return true;
+    } catch (e) {
+        console.warn('[SkyTrace] auth state unavailable, falling back:', e);
+        return true;
+    }
+}
+
+async function _loadInitialData() {
+    await Promise.all([
+        loadAirports().catch(e => console.error('[SkyTrace] loadAirports:', e)),
+        loadAirlines().catch(e => console.error('[SkyTrace] loadAirlines:', e)),
+    ]);
+    await loadFlights().catch(e => console.error('[SkyTrace] loadFlights:', e));
+}
+
+async function submitInitialSetup() {
+    const body = {
+        display_name: document.getElementById('setup-display-name')?.value?.trim() || '',
+        username: document.getElementById('setup-username')?.value?.trim() || '',
+        password: document.getElementById('setup-password')?.value || '',
+    };
+    _setAuthMessage(t('authWorking') || 'Working...', '');
+    try {
+        const resp = await fetch('/api/setup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        const data = await _readJsonResponse(resp);
+        _applyAuthState({ authenticated: true, needs_setup: false, storage_mode: 'multi_user', user: data.user });
+        _setAuthMessage(t('authSetupSuccess') || 'Setup complete.', 'success');
+        _hideAuthGate();
+        await _loadInitialData();
+        checkApiStatus().catch(() => {});
+    } catch (e) {
+        _setAuthMessage(e.message || (t('authSetupFailed') || 'Setup failed.'), 'error');
+    }
+}
+
+async function submitLogin() {
+    const body = {
+        username: document.getElementById('login-username')?.value?.trim() || '',
+        password: document.getElementById('login-password')?.value || '',
+    };
+    _setAuthMessage(t('authWorking') || 'Working...', '');
+    try {
+        const resp = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        const data = await _readJsonResponse(resp);
+        _applyAuthState({ authenticated: true, needs_setup: false, storage_mode: 'multi_user', user: data.user });
+        _hideAuthGate();
+        await _loadInitialData();
+        checkApiStatus().catch(() => {});
+    } catch (e) {
+        _setAuthMessage(e.message || (t('authLoginFailed') || 'Login failed.'), 'error');
+    }
+}
+
+async function logoutUser() {
+    try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {}
+    _authState = { authenticated: false, needs_setup: false, storage_mode: 'multi_user', user: null };
+    _applyAuthState(_authState);
+    closeSettings();
+    _showAuthGate('login');
+}
+
+async function loadManagedUsers() {
+    if (!_authState?.user?.is_admin) return;
+    try {
+        const resp = await fetch('/api/admin/users', { cache: 'no-store' });
+        const data = await _readJsonResponse(resp);
+        _renderManagedUsers(data.users || []);
+    } catch (e) {
+        const result = document.getElementById('user-admin-result');
+        if (result) {
+            result.textContent = e.message || (t('manageUsersLoadFailed') || 'Failed to load users.');
+            result.className = 'api-test-result error';
+        }
+    }
+}
+
+async function createManagedUser() {
+    const result = document.getElementById('user-admin-result');
+    const body = {
+        display_name: document.getElementById('new-user-display-name')?.value?.trim() || '',
+        username: document.getElementById('new-user-username')?.value?.trim() || '',
+        password: document.getElementById('new-user-password')?.value || '',
+    };
+    if (result) {
+        result.textContent = t('authWorking') || 'Working...';
+        result.className = 'api-test-result info';
+    }
+    try {
+        const resp = await fetch('/api/admin/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        await _readJsonResponse(resp);
+        if (result) {
+            result.textContent = t('createUserSuccess') || 'User created.';
+            result.className = 'api-test-result success';
+        }
+        ['new-user-display-name', 'new-user-username', 'new-user-password'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        await loadManagedUsers();
+    } catch (e) {
+        if (result) {
+            result.textContent = e.message || (t('createUserFailed') || 'Failed to create user.');
+            result.className = 'api-test-result error';
+        }
+    }
+}
+
 // ==================== 初始化 ====================
 // NOTE: 不使用 DOMContentLoaded，因为此脚本在 </body> 前加载
 // 此时 DOM 已完全可用，直接执行初始化
-function _skytraceInit() {
+async function _skytraceInit() {
     console.log('[SkyTrace] Starting init...');
     // 第一步: 同步初始化 — UI 必须立即可交互
     try { initTheme(); console.log('[SkyTrace] initTheme OK'); } catch(e) { console.error('[SkyTrace] initTheme:', e); }
@@ -407,6 +639,8 @@ function _skytraceInit() {
 
     // 第二步: 初始化地图 (依赖 Leaflet)
     try { initHomeMap(); console.log('[SkyTrace] initHomeMap OK'); } catch(e) { console.error('[SkyTrace] initHomeMap:', e); }
+    const ready = await ensureAuthReady();
+    if (!ready) return;
 
     // 第三步: 异步加载数据 (并行, 不阻塞 UI)
     Promise.all([
@@ -2470,6 +2704,7 @@ async function openSettings() {
     document.getElementById('settings-modal').classList.add('active');
     updateSettingsLangButtons();
     updateSettingsThemeUI(document.documentElement.getAttribute('data-theme') || 'dark');
+    _applyAuthState(_authState);
     try {
         const settings = await (await fetch('/api/settings')).json();
         document.getElementById('aviationstack-key').value = settings.aviationstack_key || '';
@@ -2481,7 +2716,12 @@ async function openSettings() {
     } catch (e) {}
     try { const stats = await (await fetch('/api/cache/stats')).json(); document.getElementById('cache-count').textContent = stats.total_cached || 0; } catch (e) {}
     // 加载 GitHub 同步配置
-    _loadSyncConfigToUI();
+    if (_authState?.storage_mode !== 'multi_user') {
+        _loadSyncConfigToUI();
+    }
+    if (_authState?.user?.is_admin) {
+        loadManagedUsers().catch(() => {});
+    }
 }
 function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
 function updateApiStatusBadge(prefix, isSet) {

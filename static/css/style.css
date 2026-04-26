@@ -1659,6 +1659,19 @@ body.is-standalone .modal-overlay {
     gap: 12px;
 }
 
+.header-user-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(59, 130, 246, 0.12);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 600;
+}
+
 .btn-settings {
     width: 40px;
     height: 40px;
@@ -1677,6 +1690,119 @@ body.is-standalone .modal-overlay {
     background: var(--bg-card-hover);
     border-color: var(--accent);
     transform: rotate(30deg);
+}
+
+.auth-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 12000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(6, 10, 18, 0.82);
+    backdrop-filter: blur(18px);
+}
+
+.auth-card {
+    width: min(100%, 460px);
+    padding: 28px;
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(26, 26, 36, 0.98), rgba(18, 18, 26, 0.98));
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.auth-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.auth-brand-logo {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(59, 130, 246, 0.15);
+    font-size: 26px;
+}
+
+.auth-brand-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.auth-brand-subtitle {
+    margin-top: 4px;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.auth-panel h2 {
+    margin-bottom: 8px;
+    font-size: 22px;
+    color: var(--text-primary);
+}
+
+.auth-panel-hint {
+    margin-bottom: 18px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.auth-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.auth-field label {
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.auth-field input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.auth-field input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16);
+}
+
+.auth-submit {
+    width: 100%;
+    margin-top: 8px;
+}
+
+.auth-message {
+    min-height: 22px;
+    margin-top: 14px;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.auth-message.is-error {
+    color: var(--danger);
+}
+
+.auth-message.is-success {
+    color: var(--success);
 }
 
 /* ==================== 设置模态框 ==================== */
@@ -4801,6 +4927,13 @@ body.fmap-fullscreen-active .flights-sub-view {
     font-weight: 500;
 }
 
+.settings-account-value {
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: right;
+}
+
 .settings-lang-options {
     display: flex;
     gap: 4px;
@@ -4908,6 +5041,34 @@ body.fmap-fullscreen-active .flights-sub-view {
     display: flex;
     gap: 8px;
     margin-top: 12px;
+}
+
+.managed-users-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.managed-user-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+}
+
+.managed-user-name {
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.managed-user-meta {
+    color: var(--text-secondary);
+    font-size: 12px;
 }
 .btn-sync {
     flex: 1;
