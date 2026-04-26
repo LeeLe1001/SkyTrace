@@ -36,7 +36,7 @@ let _currentCenterSlide = null;
 let _isOffline = false;
 let _hoState = 'hidden'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
-const SKYTRACE_VERSION = window.SKYTRACE_VERSION || 44;
+const SKYTRACE_VERSION = window.SKYTRACE_VERSION || 45;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -2994,6 +2994,10 @@ async function exportAnnualReport() {
     const fun = stats.fun_stats || {}, sp = fun.seat_preference || {};
     const totalSeats = (sp.window || 0) + (sp.aisle || 0) + (sp.middle || 0);
     const pref = (sp.window || 0) >= (sp.aisle || 0) && (sp.window || 0) >= (sp.middle || 0) ? 'window' : (sp.aisle || 0) >= (sp.middle || 0) ? 'aisle' : 'middle';
-    document.getElementById('share-card').innerHTML = `<div class="share-card-inner share-report"><div class="share-card-header"><span class="share-logo">✈️ SkyTrace</span><span class="share-date">${t('annualReport')} ${reportYear}</span></div><div class="report-hero"><div class="report-hero-value">${stats.total_flights}</div><div class="report-hero-label">${t('totalFlights')}</div></div><div class="report-stats-row"><div class="report-stat"><div class="report-stat-value">${stats.total_distance.toLocaleString()}</div><div class="report-stat-label">${t('totalDistance')}</div></div><div class="report-stat"><div class="report-stat-value">${stats.total_hours}h</div><div class="report-stat-label">${t('totalHours')}</div></div><div class="report-stat"><div class="report-stat-value">${stats.visited_airports}</div><div class="report-stat-label">${t('visitedAirports')}</div></div></div><div class="report-insights"><div class="report-insight-item"><span>🏆 ${t('topAirlines')}</span><strong>${stats.top_airlines?.[0]?.airline || '-'}</strong></div><div class="report-insight-item"><span>✈️ ${t('topRoutes')}</span><strong>${stats.top_routes?.[0]?.route || '-'}</strong></div><div class="report-insight-item"><span>${pref === 'window' ? '🪟' : '🚶'} ${t('favoriteSeat')}</span><strong>${totalSeats > 0 ? t('seatPref_' + pref) : '-'}</strong></div></div><div class="share-footer"><span>${t('shareGeneratedBy')}</span><span>${new Date().toLocaleDateString(getLocale())}</span></div></div>`;
+    const topAirlineRaw = stats.top_airlines?.[0]?.airline || '';
+    const topAirline = topAirlineRaw
+        ? (typeof translateAirline === 'function' ? translateAirline(topAirlineRaw) : topAirlineRaw)
+        : '-';
+    document.getElementById('share-card').innerHTML = `<div class="share-card-inner share-report"><div class="share-card-header"><span class="share-logo">✈️ SkyTrace</span><span class="share-date">${t('annualReport')} ${reportYear}</span></div><div class="report-hero"><div class="report-hero-value">${stats.total_flights}</div><div class="report-hero-label">${t('totalFlights')}</div></div><div class="report-stats-row"><div class="report-stat"><div class="report-stat-value">${stats.total_distance.toLocaleString()}</div><div class="report-stat-label">${t('totalDistance')}</div></div><div class="report-stat"><div class="report-stat-value">${stats.total_hours}h</div><div class="report-stat-label">${t('totalHours')}</div></div><div class="report-stat"><div class="report-stat-value">${stats.visited_airports}</div><div class="report-stat-label">${t('visitedAirports')}</div></div></div><div class="report-insights"><div class="report-insight-item"><span>🏆 ${t('topAirlines')}</span><strong>${topAirline}</strong></div><div class="report-insight-item"><span>✈️ ${t('topRoutes')}</span><strong>${stats.top_routes?.[0]?.route || '-'}</strong></div><div class="report-insight-item"><span>${pref === 'window' ? '🪟' : '🚶'} ${t('favoriteSeat')}</span><strong>${totalSeats > 0 ? t('seatPref_' + pref) : '-'}</strong></div></div><div class="share-footer"><span>${t('shareGeneratedBy')}</span><span>${new Date().toLocaleDateString(getLocale())}</span></div></div>`;
     document.getElementById('share-modal').classList.add('active');
 }

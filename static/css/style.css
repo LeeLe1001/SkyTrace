@@ -4226,7 +4226,7 @@ html.standalone-mode body.is-standalone {
 
 .fmap-filter-bar {
     position: absolute;
-    top: 12px;
+    top: 56px;
     left: 12px;
     right: 12px;
     display: flex;
@@ -4404,7 +4404,7 @@ body.fmap-fullscreen-active .flights-sub-view {
     right: 16px;
 }
 .fmap-fullscreen .fmap-filter-bar {
-    top: calc(60px + env(safe-area-inset-top, 0px));
+    top: calc(64px + env(safe-area-inset-top, 0px));
 }
 .fmap-fullscreen .fmap-stats-card {
     bottom: calc(24px + env(safe-area-inset-bottom, 0px));
