@@ -8,7 +8,7 @@
  * - HTML 页面: network-first (确保最新)
  */
 
-const SW_QUERY_VERSION = new URL(self.location.href).searchParams.get('v') || '46';
+const SW_QUERY_VERSION = new URL(self.location.href).searchParams.get('v') || '47';
 const CACHE_VERSION = `skytrace-v${SW_QUERY_VERSION}`;
 const STATIC_CACHE = CACHE_VERSION + '-static';
 const API_CACHE    = CACHE_VERSION + '-api';
@@ -18,6 +18,7 @@ const TILE_CACHE   = CACHE_VERSION + '-tiles';
 const PRECACHE_URLS = [
   './',
   './static/css/style.css',
+  './static/js/time-utils.js',
   './static/js/static-mode.js',
   './static/js/app.js',
   './static/js/i18n.js',
@@ -32,6 +33,7 @@ const PRECACHE_URLS = [
   './favicon.ico',
   './static/manifest.json',
   './data/airports.json',
+  './data/airport_timezones.json',
   './data/airlines.json',
 ];
 

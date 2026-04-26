@@ -25,6 +25,7 @@
     const _modeReady = new Promise(r => _modeResolve = r);
     const _origFetch = window.fetch.bind(window);
     let _airportsData = null;
+    let _airportTimezonesData = null;
     let _airlinesData = null;
     let _dataInitialized = false;
 
@@ -82,12 +83,17 @@
     async function _ensureStaticData() {
         if (_dataInitialized) return;
         try {
-            const [airportsResp, airlinesResp] = await Promise.all([
+            const [airportsResp, airportTzResp, airlinesResp] = await Promise.all([
                 _origFetch('data/airports.json'),
+                _origFetch('data/airport_timezones.json').catch(() => null),
                 _origFetch('data/airlines.json'),
             ]);
             _airportsData = airportsResp.ok ? await airportsResp.json() : {};
+            _airportTimezonesData = airportTzResp && airportTzResp.ok ? await airportTzResp.json() : {};
             _airlinesData = airlinesResp.ok ? await airlinesResp.json() : {};
+            if (window.SkyTraceTime?.setAirportTimezoneMap) {
+                window.SkyTraceTime.setAirportTimezoneMap(_airportTimezonesData);
+            }
 
             // 首次运行: 如果 localStorage 没有航班数据，尝试从静态文件导入
             if (!localStorage.getItem(LS_KEY_FLIGHTS)) {
@@ -136,7 +142,7 @@
         try {
             // --- 版本 ---
             if (path === '/api/version') {
-                const version = typeof window.SKYTRACE_VERSION !== 'undefined' ? window.SKYTRACE_VERSION : 46;
+                const version = typeof window.SKYTRACE_VERSION !== 'undefined' ? window.SKYTRACE_VERSION : 47;
                 return _json({ version });
             }
 
@@ -287,6 +293,7 @@
     function _getFlightStatusInfo(flight) {
         try {
             const now = new Date();
+            const nowMs = now.getTime();
             const explicitCompleted = (flight.status || '').toLowerCase() === 'completed';
             const baseStatus = {
                 checkin_open: null,
@@ -311,7 +318,6 @@
             }
 
             const depTimeStr = (flight.dep_time || '').trim();
-            const arrTimeStr = (flight.arr_time || '').trim();
             if (!depTimeStr) {
                 if (explicitCompleted || flightDate < new Date(now.getFullYear(), now.getMonth(), now.getDate())) {
                     return { ...baseStatus, status: 'completed', progress: 100 };
@@ -323,67 +329,73 @@
                 };
             }
 
-            const depTime = new Date(`${flight.date}T${depTimeStr}:00`);
-            if (Number.isNaN(depTime.getTime())) {
+            const timeline = window.SkyTraceTime?.resolveFlightInstants(flight, _airportsData);
+            if (!timeline) {
                 if (explicitCompleted) return { ...baseStatus, status: 'completed', progress: 100 };
                 return { status: 'unknown', countdown: null };
             }
 
-            const arrClock = arrTimeStr || depTimeStr;
-            const arrTime = new Date(`${flight.date}T${arrClock}:00`);
-            if (Number.isNaN(arrTime.getTime())) {
-                if (explicitCompleted) return { ...baseStatus, status: 'completed', progress: 100 };
-                return { status: 'unknown', countdown: null };
-            }
+            const depTime = new Date(timeline.depUtcMs);
+            const arrTime = new Date(timeline.arrUtcMs);
+            const checkinOpen = new Date(timeline.depUtcMs - 24 * 3600000);
+            const checkinClose = new Date(timeline.depUtcMs - 45 * 60000);
+            const boardingTime = new Date(timeline.depUtcMs - 40 * 60000);
 
-            const dayOffset = flight.arr_day_offset || (flight.arr_next_day ? 1 : 0);
-            if (dayOffset) arrTime.setDate(arrTime.getDate() + dayOffset);
-            else if (arrTime < depTime) arrTime.setDate(arrTime.getDate() + 1);
-
-            const checkinOpen = new Date(depTime.getTime() - 24 * 3600000);
-            const checkinClose = new Date(depTime.getTime() - 45 * 60000);
-            const boardingTime = new Date(depTime.getTime() - 40 * 60000);
-
-            const flightDuration = (arrTime - depTime) / 1000;
+            const flightDuration = (timeline.arrUtcMs - timeline.depUtcMs) / 1000;
             let progress = 0;
-            if (now > depTime && now < arrTime && flightDuration > 0) {
-                progress = Math.min(100, Math.round(((now - depTime) / 1000 / flightDuration) * 100));
+            if (nowMs > timeline.depUtcMs && nowMs < timeline.arrUtcMs && flightDuration > 0) {
+                progress = Math.min(100, Math.round(((nowMs - timeline.depUtcMs) / 1000 / flightDuration) * 100));
             }
 
-            const fmt = d => d.toISOString().slice(0, 16).replace('T', ' ');
+            const fmt = (date, timeZone) => {
+                const parts = {};
+                new Intl.DateTimeFormat('en-CA', {
+                    timeZone: timeZone || 'UTC',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hourCycle: 'h23',
+                }).formatToParts(date).forEach(part => {
+                    if (part.type !== 'literal') parts[part.type] = part.value;
+                });
+                return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}`;
+            };
             const si = {
-                checkin_open: fmt(checkinOpen),
-                checkin_close: fmt(checkinClose),
-                boarding_time: fmt(boardingTime),
-                dep_datetime: fmt(depTime),
-                arr_datetime: fmt(arrTime),
+                checkin_open: fmt(checkinOpen, timeline.depTimeZone),
+                checkin_close: fmt(checkinClose, timeline.depTimeZone),
+                boarding_time: fmt(boardingTime, timeline.depTimeZone),
+                dep_datetime: fmt(depTime, timeline.depTimeZone),
+                arr_datetime: fmt(arrTime, timeline.arrTimeZone),
                 status: 'scheduled',
                 countdown: null,
                 progress,
             };
 
-            if (explicitCompleted || now > arrTime) {
+            if (explicitCompleted || nowMs > timeline.arrUtcMs) {
                 si.status = 'completed';
                 si.progress = 100;
-            } else if (now > depTime) {
+            } else if (nowMs > timeline.depUtcMs) {
                 si.status = 'in_flight';
-                si.countdown = { key: 'etaMinutes', args: [Math.floor((arrTime - now) / 60000)] };
-            } else if (now > boardingTime) {
+                si.countdown = { key: 'etaMinutes', args: [Math.floor((timeline.arrUtcMs - nowMs) / 60000)] };
+            } else if (nowMs > boardingTime.getTime()) {
                 si.status = 'boarding';
-                si.countdown = { key: 'depInMinutes', args: [Math.floor((depTime - now) / 60000)] };
-            } else if (now > checkinOpen) {
+                si.countdown = { key: 'depInMinutes', args: [Math.floor((timeline.depUtcMs - nowMs) / 60000)] };
+            } else if (nowMs > checkinOpen.getTime()) {
                 si.status = 'checkin_open';
-                const hoursLeft = (depTime - now) / 3600000;
+                const hoursLeft = (timeline.depUtcMs - nowMs) / 3600000;
                 si.countdown = hoursLeft >= 1
                     ? { key: 'depInHours', args: [Math.floor(hoursLeft)] }
                     : { key: 'depInMinutes', args: [Math.floor(hoursLeft * 60)] };
             } else {
-                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const depNow = new Date(now.toLocaleString('en-US', { timeZone: timeline.depTimeZone || 'UTC' }));
+                const todayStart = new Date(depNow.getFullYear(), depNow.getMonth(), depNow.getDate());
                 const daysLeft = Math.floor((flightDate - todayStart) / 86400000);
                 if (daysLeft > 0) {
                     si.countdown = { key: 'daysLeft', args: [daysLeft] };
                 } else {
-                    const hours = Math.floor((checkinOpen - now) / 3600000);
+                    const hours = Math.floor((checkinOpen.getTime() - nowMs) / 3600000);
                     if (hours > 0) si.countdown = { key: 'hoursToCheckin', args: [hours] };
                 }
             }
@@ -810,6 +822,13 @@
         const durations = [];
         flights.forEach(f => {
             try {
+                const minutes = window.SkyTraceTime?.calculateDurationMinutes(f, _airportsData);
+                if (minutes) {
+                    const diff = minutes / 60;
+                    totalHours += diff;
+                    durations.push(Math.round(diff * 10) / 10);
+                    return;
+                }
                 const [dh, dm] = (f.dep_time || '').split(':').map(Number);
                 const [ah, am] = (f.arr_time || '').split(':').map(Number);
                 

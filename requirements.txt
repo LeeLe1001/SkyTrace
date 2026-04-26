@@ -1,2 +1,4 @@
 flask>=2.0.0
 sqlalchemy>=2.0.0
+cryptography>=41.0.0
+timezonefinder>=8.0.0

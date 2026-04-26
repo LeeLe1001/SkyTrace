@@ -30,6 +30,9 @@ let selectedConnectIds = new Set();
 let currentStatsYear = 'all';
 let cachedStatsData = null;
 let homeRoutesByFlight = {};
+let homeFocusBoundsByFlight = {};
+let _homeViewportBounds = null;
+let _fmapViewportBounds = null;
 let _homePendingBounds = null;  // 当首页不可见时暂存 fitBounds 参数
 let _homePendingRender = false;  // 首页不可见时标记需要重新渲染
 let _currentCenterSlide = null;
@@ -37,7 +40,7 @@ let _isOffline = false;
 let _hoState = 'hidden'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
 let _authState = null;
-const SKYTRACE_VERSION = window.SKYTRACE_VERSION || 46;
+const SKYTRACE_VERSION = window.SKYTRACE_VERSION || 47;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -81,6 +84,27 @@ function _fixAntimeridianCoords(geometries) {
     ];
 }
 
+function _buildBoundsFromCoords(coords) {
+    const bounds = L.latLngBounds([]);
+    (coords || []).forEach(point => {
+        if (Array.isArray(point) && point.length >= 2) bounds.extend([point[0], point[1]]);
+    });
+    return bounds;
+}
+
+function _mergeBounds(targetBounds, nextBounds) {
+    if (!nextBounds?.isValid()) return targetBounds;
+    if (!targetBounds || !targetBounds.isValid()) return L.latLngBounds(nextBounds);
+    targetBounds.extend(nextBounds.getSouthWest());
+    targetBounds.extend(nextBounds.getNorthEast());
+    return targetBounds;
+}
+
+function _fitMapToBounds(mapInstance, bounds, options = {}) {
+    if (!mapInstance || !bounds?.isValid()) return;
+    mapInstance.fitBounds(bounds, { padding: [50, 50], maxZoom: 6, ...options });
+}
+
 /** 格式化到达时间: 跨日到达加 +1/-1/+2 标识 */
 function formatArrTime(flight) {
     if (!flight.arr_time) return '';
@@ -121,6 +145,8 @@ function _estimateUtcOffset(lon) {
 /** 计算飞行时长, 先转 UTC 再比较, 避免跨时区 +1 天误判 */
 function calcDuration(flight) {
     if (!flight.dep_time || !flight.arr_time) return '';
+    const duration = window.SkyTraceTime?.formatDuration(flight, airports) || '';
+    if (duration) return duration;
     const d1 = new Date(`2000-01-01T${flight.dep_time}`);
     let d2 = new Date(`2000-01-01T${flight.arr_time}`);
     // NaN 保护: 时间格式不合法时直接返回空
@@ -378,10 +404,12 @@ function switchLang(lang) {
     setLanguage(lang);
     document.getElementById('lang-dropdown')?.classList.remove('active');
     updateSettingsLangButtons();
+    _applyAuthState(_authState);
 }
 function switchLangFromSettings(lang) {
     setLanguage(lang);
     updateSettingsLangButtons();
+    _applyAuthState(_authState);
 }
 function updateSettingsLangButtons() {
     document.querySelectorAll('.settings-lang-btn').forEach(btn => {
@@ -570,10 +598,37 @@ async function logoutUser() {
     try {
         await fetch('/api/auth/logout', { method: 'POST' });
     } catch (e) {}
+    _clearManagedUserResult();
     _authState = { authenticated: false, needs_setup: false, storage_mode: 'multi_user', user: null };
     _applyAuthState(_authState);
     closeSettings();
     _showAuthGate('login');
+}
+
+let _managedUserResultTimer = null;
+function _clearManagedUserResult() {
+    if (_managedUserResultTimer) {
+        clearTimeout(_managedUserResultTimer);
+        _managedUserResultTimer = null;
+    }
+    const result = document.getElementById('user-admin-result');
+    if (result) {
+        result.textContent = '';
+        result.className = 'api-test-result';
+    }
+}
+
+function _setManagedUserResult(message, kind = 'info', timeoutMs = 4000) {
+    const result = document.getElementById('user-admin-result');
+    if (!result) return;
+    if (_managedUserResultTimer) clearTimeout(_managedUserResultTimer);
+    result.textContent = message;
+    result.className = `api-test-result ${kind}`;
+    if (timeoutMs > 0) {
+        _managedUserResultTimer = setTimeout(() => {
+            if (result.textContent === message) _clearManagedUserResult();
+        }, timeoutMs);
+    }
 }
 
 async function loadManagedUsers() {
@@ -583,25 +638,17 @@ async function loadManagedUsers() {
         const data = await _readJsonResponse(resp);
         _renderManagedUsers(data.users || []);
     } catch (e) {
-        const result = document.getElementById('user-admin-result');
-        if (result) {
-            result.textContent = e.message || (t('manageUsersLoadFailed') || 'Failed to load users.');
-            result.className = 'api-test-result error';
-        }
+        _setManagedUserResult(e.message || (t('manageUsersLoadFailed') || 'Failed to load users.'), 'error', 5000);
     }
 }
 
 async function createManagedUser() {
-    const result = document.getElementById('user-admin-result');
     const body = {
         display_name: document.getElementById('new-user-display-name')?.value?.trim() || '',
         username: document.getElementById('new-user-username')?.value?.trim() || '',
         password: document.getElementById('new-user-password')?.value || '',
     };
-    if (result) {
-        result.textContent = t('authWorking') || 'Working...';
-        result.className = 'api-test-result info';
-    }
+    _setManagedUserResult(t('authWorking') || 'Working...', 'info', 0);
     try {
         const resp = await fetch('/api/admin/users', {
             method: 'POST',
@@ -609,20 +656,14 @@ async function createManagedUser() {
             body: JSON.stringify(body),
         });
         await _readJsonResponse(resp);
-        if (result) {
-            result.textContent = t('createUserSuccess') || 'User created.';
-            result.className = 'api-test-result success';
-        }
+        _setManagedUserResult(t('createUserSuccess') || 'User created.', 'success');
         ['new-user-display-name', 'new-user-username', 'new-user-password'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';
         });
         await loadManagedUsers();
     } catch (e) {
-        if (result) {
-            result.textContent = e.message || (t('createUserFailed') || 'Failed to create user.');
-            result.className = 'api-test-result error';
-        }
+        _setManagedUserResult(e.message || (t('createUserFailed') || 'Failed to create user.'), 'error', 5000);
     }
 }
 
@@ -766,6 +807,8 @@ function renderHomeRoutes() {
     homeArcLayers = [];
     _homeMirrorMarkers = [];
     homeRoutesByFlight = {};
+    homeFocusBoundsByFlight = {};
+    _homeViewportBounds = null;
 
     const todayStr = getLocalTodayStr();
     const upcoming = filterFlightsByStatus(flights, 'upcoming', todayStr);
@@ -785,6 +828,7 @@ function renderHomeRoutes() {
         const generator = new arc.GreatCircle({ x: dep.lon, y: dep.lat }, { x: arr.lon, y: arr.lat });
         const arcLine = generator.Arc(50);
         const fixedSegments = _fixAntimeridianCoords(arcLine.geometries);
+        const focusBounds = _buildBoundsFromCoords(fixedSegments[0] || []);
         fixedSegments.forEach(coords => {
             const glow = L.polyline(coords, { color: '#3b82f6', weight: 4, opacity: 0.3 }).addTo(homeMap);
             const line = L.polyline(coords, { color: '#60a5fa', weight: 2, opacity: 0.8 }).addTo(homeMap);
@@ -792,6 +836,8 @@ function renderHomeRoutes() {
             flightLayers.push(glow, line);
         });
         homeRoutesByFlight[flight.id] = flightLayers;
+        homeFocusBoundsByFlight[flight.id] = focusBounds;
+        _homeViewportBounds = _mergeBounds(_homeViewportBounds, focusBounds);
     });
 
     visitedAirports.forEach(code => {
@@ -808,6 +854,7 @@ function renderHomeRoutes() {
         const marker = L.marker([airport.lat, airport.lon], { icon: dotIcon }).addTo(homeMap);
         marker.bindPopup(popupHtml, { className: 'airport-popup' });
         homeArcLayers.push(marker);
+        _homeViewportBounds = _mergeBounds(_homeViewportBounds, _buildBoundsFromCoords([[airport.lat, airport.lon]]));
         // 反子午线镜像: 在 lon±360 处创建副本，确保跨世界副本可见
         [-360, 360].forEach(offset => {
             const m = L.marker([airport.lat, airport.lon + offset], { icon: dotIcon }).addTo(homeMap);
@@ -819,17 +866,17 @@ function renderHomeRoutes() {
     if (homeArcLayers.length > 0) {
         // 优先定位到最近一个待出行航班，而非所有航班
         let targetBounds;
-    const sortedUpcoming = sortFlightsBySchedule(upcoming.filter(f => f.dep_airport?.lat && f.arr_airport?.lat));
+        const sortedUpcoming = sortFlightsBySchedule(upcoming.filter(f => f.dep_airport?.lat && f.arr_airport?.lat));
         const nearestFlight = sortedUpcoming[0];
-        if (nearestFlight && homeRoutesByFlight[nearestFlight.id]?.length) {
-            targetBounds = L.featureGroup(homeRoutesByFlight[nearestFlight.id]).getBounds();
+        if (nearestFlight && homeFocusBoundsByFlight[nearestFlight.id]?.isValid()) {
+            targetBounds = homeFocusBoundsByFlight[nearestFlight.id];
         } else {
-            targetBounds = L.featureGroup(homeArcLayers).getBounds();
+            targetBounds = _homeViewportBounds;
         }
         const homeView = document.getElementById('home-view');
         if (homeView && homeView.classList.contains('active')) {
             homeMap.invalidateSize();
-            homeMap.fitBounds(targetBounds, { padding: [50, 50] });
+            _fitMapToBounds(homeMap, targetBounds);
             _homePendingBounds = null;
         } else {
             _homePendingBounds = targetBounds;
@@ -1524,6 +1571,7 @@ function renderFlightsMapRoutes() {
     fmapArcLayers = [];
     _fmapMirrorMarkers = [];
     const visitedAirports = new Set();
+    _fmapViewportBounds = null;
 
     fmapFilteredFlights.forEach(flight => {
         const dep = flight.dep_airport;
@@ -1539,6 +1587,7 @@ function renderFlightsMapRoutes() {
         const generator = new arc.GreatCircle({ x: dep.lon, y: dep.lat }, { x: arr.lon, y: arr.lat });
         const arcLine = generator.Arc(50);
         const fixedSegments = _fixAntimeridianCoords(arcLine.geometries);
+        _fmapViewportBounds = _mergeBounds(_fmapViewportBounds, _buildBoundsFromCoords(fixedSegments[0] || []));
         fixedSegments.forEach(coords => {
             fmapArcLayers.push(L.polyline(coords, { color: glowColor, weight: 4, opacity: 0.3 }).addTo(fmap));
             fmapArcLayers.push(L.polyline(coords, { color: color, weight: 2, opacity: 0.8 }).addTo(fmap));
@@ -1558,6 +1607,7 @@ function renderFlightsMapRoutes() {
         const marker = L.marker([airport.lat, airport.lon], { icon: dotIcon }).addTo(fmap);
         marker.bindPopup(popupHtml, { className: 'airport-popup' });
         fmapArcLayers.push(marker);
+        _fmapViewportBounds = _mergeBounds(_fmapViewportBounds, _buildBoundsFromCoords([[airport.lat, airport.lon]]));
         // 反子午线镜像
         [-360, 360].forEach(offset => {
             const m = L.marker([airport.lat, airport.lon + offset], { icon: dotIcon }).addTo(fmap);
@@ -1574,8 +1624,8 @@ function renderFlightsMapRoutes() {
         fmapArcLayers.concat(_fmapMirrorMarkers).forEach(l => fmap.removeLayer(l));
     }
 
-    if (fmapArcLayers.length > 0) {
-        fmap.fitBounds(L.featureGroup(fmapArcLayers).getBounds(), { padding: [50, 50] });
+    if (_fmapViewportBounds?.isValid()) {
+        _fitMapToBounds(fmap, _fmapViewportBounds);
     }
 }
 
@@ -1631,7 +1681,16 @@ function renderAnimatedFlightOnMap(mapInstance, layersArray, flightList) {
 
 // ==================== 数据加载 ====================
 async function loadAirports() {
-    try { airports = await (await fetch('/api/airports')).json(); } catch (e) { console.error('加载机场数据失败:', e); }
+    try {
+        airports = await (await fetch('/api/airports')).json();
+        if (window.SkyTraceTime?.setAirportTimezoneMap) {
+            const timezoneMap = {};
+            Object.entries(airports || {}).forEach(([code, airport]) => {
+                if (!String(code).startsWith('_') && airport?.timezone) timezoneMap[code] = airport.timezone;
+            });
+            window.SkyTraceTime.setAirportTimezoneMap(timezoneMap);
+        }
+    } catch (e) { console.error('加载机场数据失败:', e); }
 }
 async function loadAirlines() {
     try { airlines = await (await fetch('/api/airlines')).json(); } catch (e) { console.error('加载航空公司数据失败:', e); }
@@ -2157,15 +2216,15 @@ function initTabs() {
                         homeMap.invalidateSize();
                         if (homeArcLayers.length > 0) {
                             // 优先定位最近一个待出行航班
-    const todayStr = getLocalTodayStr();
-    const upcoming = sortFlightsBySchedule(
-        filterFlightsByStatus(flights, 'upcoming', todayStr).filter(f => f.dep_airport?.lat && f.arr_airport?.lat)
-    );
+                            const todayStr = getLocalTodayStr();
+                            const upcoming = sortFlightsBySchedule(
+                                filterFlightsByStatus(flights, 'upcoming', todayStr).filter(f => f.dep_airport?.lat && f.arr_airport?.lat)
+                            );
                             const nearest = upcoming[0];
-                            if (nearest && homeRoutesByFlight[nearest.id]?.length) {
-                                homeMap.fitBounds(L.featureGroup(homeRoutesByFlight[nearest.id]).getBounds(), { padding: [50, 50] });
+                            if (nearest && homeFocusBoundsByFlight[nearest.id]?.isValid()) {
+                                _fitMapToBounds(homeMap, homeFocusBoundsByFlight[nearest.id]);
                             } else {
-                                homeMap.fitBounds(L.featureGroup(homeArcLayers).getBounds(), { padding: [50, 50] });
+                                _fitMapToBounds(homeMap, _homeViewportBounds);
                             }
                         }
                     }
@@ -2197,7 +2256,7 @@ function initTabs() {
                     if (homeMap) {
                         homeMap.invalidateSize();
                         if (_homePendingBounds) {
-                            homeMap.fitBounds(_homePendingBounds, { padding: [50, 50] });
+                            _fitMapToBounds(homeMap, _homePendingBounds);
                             _homePendingBounds = null;
                         }
                     }
@@ -2702,6 +2761,7 @@ async function checkApiStatus() {
 // ==================== 设置管理 ====================
 async function openSettings() {
     document.getElementById('settings-modal').classList.add('active');
+    _clearManagedUserResult();
     updateSettingsLangButtons();
     updateSettingsThemeUI(document.documentElement.getAttribute('data-theme') || 'dark');
     _applyAuthState(_authState);

@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from security_utils import decrypt_secret, encrypt_secret
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, create_engine, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -19,6 +20,8 @@ DEFAULT_USER_SETTINGS = {
     "preferred_api": "auto",
     "auto_cache": True,
 }
+
+SECRET_SETTING_FIELDS = ("aviationstack_key", "airlabs_key", "aerodata_key")
 
 
 class Base(DeclarativeBase):
@@ -188,9 +191,9 @@ def _settings_to_dict(settings: UserSetting | None, defaults: dict[str, Any] | N
         return base
     base.update(
         {
-            "aviationstack_key": settings.aviationstack_key or "",
-            "airlabs_key": settings.airlabs_key or "",
-            "aerodata_key": settings.aerodata_key or "",
+            "aviationstack_key": decrypt_secret(settings.aviationstack_key or ""),
+            "airlabs_key": decrypt_secret(settings.airlabs_key or ""),
+            "aerodata_key": decrypt_secret(settings.aerodata_key or ""),
             "preferred_api": settings.preferred_api or "auto",
             "auto_cache": bool(settings.auto_cache),
         }
@@ -269,6 +272,9 @@ def save_user_settings(user_id: int, new_settings: dict[str, Any], defaults: dic
             if key not in merged:
                 continue
             if isinstance(value, str) and "****" in value:
+                continue
+            if key in SECRET_SETTING_FIELDS:
+                setattr(settings, key, encrypt_secret((value or "").strip()))
                 continue
             setattr(settings, key, value)
         db.commit()
@@ -482,9 +488,9 @@ def import_legacy_data_for_user(
         settings = _ensure_user_settings(db, user_id)
         merged = dict(defaults)
         merged.update(legacy_settings or {})
-        settings.aviationstack_key = merged.get("aviationstack_key", "")
-        settings.airlabs_key = merged.get("airlabs_key", "")
-        settings.aerodata_key = merged.get("aerodata_key", "")
+        settings.aviationstack_key = encrypt_secret(merged.get("aviationstack_key", ""))
+        settings.airlabs_key = encrypt_secret(merged.get("airlabs_key", ""))
+        settings.aerodata_key = encrypt_secret(merged.get("aerodata_key", ""))
         settings.preferred_api = merged.get("preferred_api", "auto")
         settings.auto_cache = bool(merged.get("auto_cache", True))
         db.commit()

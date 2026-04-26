@@ -42,6 +42,7 @@ from storage import (
     update_user_flight,
     verify_user_credentials,
 )
+from time_utils import UTC, attach_airport_timezones, calculate_duration_minutes, resolve_flight_timeline
 
 app = Flask(__name__)
 
@@ -255,6 +256,10 @@ def get_settings():
     return {**DEFAULT_SETTINGS, **settings}
 
 
+def load_airports_data():
+    return attach_airport_timezones(load_json(AIRPORTS_FILE))
+
+
 def is_legacy_mode():
     return not storage_has_users()
 
@@ -343,7 +348,7 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     return 2 * R * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
-def get_flight_status_info(flight):
+def get_flight_status_info(flight, airports_data=None):
     """根据航班信息计算状态和提醒。
 
     航班记录里存在少量只有日期、没有时刻的历史数据。旧实现会直接返回
@@ -351,6 +356,7 @@ def get_flight_status_info(flight):
     ``status=completed``，并在缺失时刻时退化为基于日期的状态判断。
     """
     now = datetime.now()
+    now_utc = datetime.now(UTC)
     explicit_completed = (flight.get('status') or '').lower() == 'completed'
     base_status = {
         'checkin_open': None,
@@ -374,8 +380,6 @@ def get_flight_status_info(flight):
         return {'status': 'unknown', 'countdown': None}
 
     dep_time_str = (flight.get('dep_time') or '').strip()
-    arr_time_str = (flight.get('arr_time') or '').strip()
-
     if not dep_time_str:
         status_info = base_status.copy()
         if explicit_completed or flight_date.date() < now.date():
@@ -387,11 +391,8 @@ def get_flight_status_info(flight):
                 status_info['countdown'] = {'key': 'daysLeft', 'args': [days_left]}
         return status_info
 
-    try:
-        dep_time = datetime.strptime(f"{flight['date']} {dep_time_str}", '%Y-%m-%d %H:%M')
-        arr_clock = arr_time_str or dep_time_str
-        arr_time = datetime.strptime(f"{flight['date']} {arr_clock}", '%Y-%m-%d %H:%M')
-    except ValueError:
+    timeline = resolve_flight_timeline(flight, airports_data=airports_data)
+    if not timeline:
         if explicit_completed:
             status_info = base_status.copy()
             status_info['status'] = 'completed'
@@ -399,57 +400,59 @@ def get_flight_status_info(flight):
             return status_info
         return {'status': 'unknown', 'countdown': None}
 
-    day_offset = flight.get('arr_day_offset', 1 if flight.get('arr_next_day') else 0)
-    if day_offset:
-        arr_time += timedelta(days=day_offset)
-    elif arr_time < dep_time:
-        arr_time += timedelta(days=1)
+    dep_local = timeline['dep_local']
+    arr_local = timeline['arr_local']
+    dep_utc = timeline['dep_utc']
+    arr_utc = timeline['arr_utc']
+    dep_now = now_utc.astimezone(dep_local.tzinfo)
 
-    checkin_open = dep_time - timedelta(hours=24)
-    checkin_close = dep_time - timedelta(minutes=45)
-    boarding_time = dep_time - timedelta(minutes=40)
+    checkin_open = dep_local - timedelta(hours=24)
+    checkin_close = dep_local - timedelta(minutes=45)
+    boarding_time = dep_local - timedelta(minutes=40)
+    checkin_open_utc = checkin_open.astimezone(UTC)
+    boarding_time_utc = boarding_time.astimezone(UTC)
 
-    flight_duration = (arr_time - dep_time).total_seconds()
+    flight_duration = (arr_utc - dep_utc).total_seconds()
     progress = 0
-    if dep_time < now < arr_time and flight_duration > 0:
-        elapsed = (now - dep_time).total_seconds()
+    if dep_utc < now_utc < arr_utc and flight_duration > 0:
+        elapsed = (now_utc - dep_utc).total_seconds()
         progress = min(100, round(elapsed / flight_duration * 100))
 
     status_info = {
         'checkin_open': checkin_open.strftime('%Y-%m-%d %H:%M'),
         'checkin_close': checkin_close.strftime('%Y-%m-%d %H:%M'),
         'boarding_time': boarding_time.strftime('%Y-%m-%d %H:%M'),
-        'dep_datetime': dep_time.strftime('%Y-%m-%d %H:%M'),
-        'arr_datetime': arr_time.strftime('%Y-%m-%d %H:%M'),
+        'dep_datetime': dep_local.strftime('%Y-%m-%d %H:%M'),
+        'arr_datetime': arr_local.strftime('%Y-%m-%d %H:%M'),
         'status': 'scheduled',
         'countdown': None,
         'progress': progress,
     }
 
-    if explicit_completed or now > arr_time:
+    if explicit_completed or now_utc > arr_utc:
         status_info['status'] = 'completed'
         status_info['progress'] = 100
-    elif now > dep_time:
+    elif now_utc > dep_utc:
         status_info['status'] = 'in_flight'
-        remaining = int((arr_time - now).total_seconds() // 60)
+        remaining = int((arr_utc - now_utc).total_seconds() // 60)
         status_info['countdown'] = {'key': 'etaMinutes', 'args': [remaining]}
-    elif now > boarding_time:
+    elif now_utc > boarding_time_utc:
         status_info['status'] = 'boarding'
-        minutes_to_dep = int((dep_time - now).total_seconds() // 60)
+        minutes_to_dep = int((dep_utc - now_utc).total_seconds() // 60)
         status_info['countdown'] = {'key': 'depInMinutes', 'args': [minutes_to_dep]}
-    elif now > checkin_open:
+    elif now_utc > checkin_open_utc:
         status_info['status'] = 'checkin_open'
-        hours_left = (dep_time - now).total_seconds() / 3600
+        hours_left = (dep_utc - now_utc).total_seconds() / 3600
         if hours_left >= 1:
             status_info['countdown'] = {'key': 'depInHours', 'args': [int(hours_left)]}
         else:
             status_info['countdown'] = {'key': 'depInMinutes', 'args': [int(hours_left * 60)]}
     else:
-        days_left = (flight_date.date() - now.date()).days
+        days_left = (flight_date.date() - dep_now.date()).days
         if days_left > 0:
             status_info['countdown'] = {'key': 'daysLeft', 'args': [days_left]}
         else:
-            hours = int((checkin_open - now).total_seconds() // 3600)
+            hours = int((checkin_open_utc - now_utc).total_seconds() // 3600)
             if hours > 0:
                 status_info['countdown'] = {'key': 'hoursToCheckin', 'args': [hours]}
 
@@ -704,7 +707,7 @@ def logo_proxy():
 
 # ==================== 页面路由 ====================
 
-APP_VERSION = 46
+APP_VERSION = 47
 
 @app.route('/api/version')
 def get_app_version():
@@ -909,7 +912,7 @@ def create_admin_user():
 
 @app.route('/api/airports', methods=['GET'])
 def get_airports():
-    return jsonify(load_json(AIRPORTS_FILE))
+    return jsonify(load_airports_data())
 
 
 @app.route('/api/airports/search', methods=['GET'])
@@ -918,7 +921,7 @@ def search_airports():
     if not query:
         return jsonify({})
 
-    airports = load_json(AIRPORTS_FILE)
+    airports = load_airports_data()
     q = query.lower()
     results = {}
     for code, info in airports.items():
@@ -1123,7 +1126,7 @@ def get_flights():
         flights = data.get('flights', [])
     else:
         flights = list_user_flights(get_current_user_id())
-    airports = load_json(AIRPORTS_FILE)
+    airports = load_airports_data()
 
     enhanced = []
     for flight in flights:
@@ -1150,7 +1153,7 @@ def get_flights():
         else:
             f['distance'] = 0
 
-        f['status_info'] = get_flight_status_info(flight)
+        f['status_info'] = get_flight_status_info(f, airports)
         enhanced.append(f)
 
     enhanced.sort(key=lambda x: x.get('date', ''), reverse=True)
@@ -1324,7 +1327,7 @@ def get_stats():
         all_flights = data.get('flights', [])
     else:
         all_flights = list_user_flights(get_current_user_id())
-    airports_data = load_json(AIRPORTS_FILE)
+    airports_data = load_airports_data()
 
     # 年份筛选
     year = request.args.get('year', '')
@@ -1359,19 +1362,13 @@ def get_stats():
 
     total_hours = 0
     for flight in flights:
-        try:
-            dt = datetime.strptime(flight['dep_time'], '%H:%M')
-            at = datetime.strptime(flight['arr_time'], '%H:%M')
-            diff = (at - dt).total_seconds() / 3600
-            day_offset = flight.get('arr_day_offset', 1 if flight.get('arr_next_day') else 0)
-            if day_offset:
-                diff += 24 * day_offset
-            elif diff < 0:
-                diff += 24
-            total_hours += diff
-            durations.append(round(diff, 1))
-        except (ValueError, KeyError):
+        minutes = calculate_duration_minutes(flight, airports_data=airports_data)
+        if minutes is None:
             durations.append(0)
+            continue
+        diff = minutes / 60
+        total_hours += diff
+        durations.append(round(diff, 1))
 
     visited_airports.discard('')
     visited_countries.discard('')
