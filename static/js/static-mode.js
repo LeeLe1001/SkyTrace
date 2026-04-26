@@ -142,7 +142,7 @@
         try {
             // --- 版本 ---
             if (path === '/api/version') {
-                const version = typeof window.SKYTRACE_VERSION !== 'undefined' ? window.SKYTRACE_VERSION : 48;
+                const version = typeof window.SKYTRACE_VERSION !== 'undefined' ? window.SKYTRACE_VERSION : 49;
                 return _json({ version });
             }
 

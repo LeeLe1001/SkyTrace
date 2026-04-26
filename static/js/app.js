@@ -41,7 +41,7 @@ let _isOffline = false;
 let _hoState = 'hidden'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
 let _authState = null;
-const SKYTRACE_VERSION = window.SKYTRACE_VERSION || 48;
+const SKYTRACE_VERSION = window.SKYTRACE_VERSION || 49;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -603,6 +603,9 @@ function _applyAuthState(state) {
         };
         storageModeEl.textContent = modeMap[_authState?.storage_mode] || (_authState?.storage_mode || '-');
     }
+
+    const versionEl = document.getElementById('settings-current-version');
+    if (versionEl) versionEl.textContent = `v${SKYTRACE_VERSION}`;
 
     const syncSection = document.getElementById('settings-sync-section');
     if (syncSection) {
@@ -3484,6 +3487,8 @@ function toggleConnectMode() {
         // 自动切换到行程列表页
         const flightsTab = document.querySelector('.mobile-nav-tab[data-tab="flights"]') || document.querySelector('.nav-tab[data-tab="flights"]');
         if (flightsTab) flightsTab.click();
+        const listSubtab = document.querySelector('.flights-sub-tab[data-subtab="list"]');
+        if (listSubtab && !listSubtab.classList.contains('active')) listSubtab.click();
         let bar = document.getElementById('connect-action-bar');
         if (!bar) { bar = document.createElement('div'); bar.id = 'connect-action-bar'; bar.className = 'connect-action-bar'; const subview = document.getElementById('flights-list-subview'); if (subview) subview.appendChild(bar); }
         _updateConnectBar();
@@ -3511,7 +3516,12 @@ function _updateConnectBar() {
 function toggleConnectSelect(id) { if (selectedConnectIds.has(id)) selectedConnectIds.delete(id); else selectedConnectIds.add(id); _updateConnectBar(); renderFlightsList(); }
 async function confirmConnect() {
     if (selectedConnectIds.size < 2) return;
-    try { await fetch('/api/flights/connect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ flight_ids: Array.from(selectedConnectIds) }) }); connectMode = false; selectedConnectIds.clear(); const bar = document.getElementById('connect-action-bar'); if (bar) bar.style.display = 'none'; loadFlights(); } catch (e) {}
+    try {
+        const resp = await fetch('/api/flights/connect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ flight_ids: Array.from(selectedConnectIds) }) });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok || !data.success) throw new Error(data.error || `HTTP ${resp.status}`);
+        connectMode = false; selectedConnectIds.clear(); const bar = document.getElementById('connect-action-bar'); if (bar) bar.style.display = 'none'; loadFlights();
+    } catch (e) { alert(e.message || t('saveFailed')); }
 }
 async function batchDeleteFlights() {
     if (selectedConnectIds.size < 1) return;

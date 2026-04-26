@@ -71,6 +71,55 @@ class MultiUserFoundationTests(unittest.TestCase):
             self.assertEqual(resp.status_code, 401)
             self.assertTrue(resp.get_json()["auth_required"])
 
+    def test_connect_flights_groups_selected_user_flights(self):
+        with app.test_client() as client:
+            setup_resp = client.post(
+                "/api/setup",
+                json={"username": "admin", "password": "secret123", "display_name": "Owner"},
+            )
+            self.assertEqual(setup_resp.status_code, 200)
+
+            first = client.post(
+                "/api/flights",
+                json={
+                    "flight_no": "MU5101",
+                    "airline": "China Eastern",
+                    "departure": "PVG",
+                    "arrival": "ICN",
+                    "date": "2026-05-02",
+                    "dep_time": "08:00",
+                    "arr_time": "11:00",
+                    "status": "scheduled",
+                },
+            ).get_json()
+            second = client.post(
+                "/api/flights",
+                json={
+                    "flight_no": "KE081",
+                    "airline": "Korean Air",
+                    "departure": "ICN",
+                    "arrival": "JFK",
+                    "date": "2026-05-02",
+                    "dep_time": "13:00",
+                    "arr_time": "14:00",
+                    "status": "scheduled",
+                },
+            ).get_json()
+
+            resp = client.post(
+                "/api/flights/connect",
+                json={"flight_ids": [first["id"], second["id"]]},
+            )
+            self.assertEqual(resp.status_code, 200)
+            body = resp.get_json()
+            self.assertTrue(body["success"])
+            self.assertTrue(body["group_id"])
+
+            flights = client.get("/api/flights").get_json()
+            groups = {flight["connected_group"] for flight in flights if flight["id"] in {first["id"], second["id"]}}
+            self.assertEqual(len(groups), 1)
+            self.assertNotIn(None, groups)
+
 
 if __name__ == "__main__":
     unittest.main()
