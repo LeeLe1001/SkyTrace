@@ -231,7 +231,8 @@ SkyTrace/
 │   │   │                     #   - 双地图 / 弧线渲染 / 热力图
 │   │   │                     #   - 行程管理 / 联程 / 统计
 │   │   │                     #   - 拖拽覆盖层 / 轮播 / 分享
-│   │   └── i18n.js           # 多语言翻译 (1280+ 行, 5语言)
+│   │   ├── i18n.js           # 多语言翻译 (1280+ 行, 5语言)
+│   │   └── static-mode.js    # GitHub Pages / 纯静态模式 API 适配
 │   ├── lib/                  # 第三方库 (本地化, 无 CDN)
 │   │   ├── leaflet.js        # Leaflet 地图引擎
 │   │   ├── leaflet.css
@@ -243,10 +244,8 @@ SkyTrace/
 │   │   └── icon-512.png
 │   ├── img/airlines/         # 航司 Logo (本地缓存)
 │   ├── manifest.json         # PWA 清单
-│   └── sw.js                 # Service Worker (离线缓存)
-│
-└── templates/
-    └── index.html            # 主页面模板 (500+ 行)
+├── index.html                # Web / PWA 统一入口页
+└── sw.js                     # Service Worker (离线缓存)
 ```
 
 ---
