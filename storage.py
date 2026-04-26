@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from security_utils import decrypt_secret, encrypt_secret
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, create_engine, select
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, create_engine, inspect, select, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -17,11 +17,13 @@ DEFAULT_USER_SETTINGS = {
     "aviationstack_key": "",
     "airlabs_key": "",
     "aerodata_key": "",
+    "github_backup_token": "",
+    "github_backup_repo": "LeeLe1001/SkyTrace",
     "preferred_api": "auto",
     "auto_cache": True,
 }
 
-SECRET_SETTING_FIELDS = ("aviationstack_key", "airlabs_key", "aerodata_key")
+SECRET_SETTING_FIELDS = ("aviationstack_key", "airlabs_key", "aerodata_key", "github_backup_token")
 
 
 class Base(DeclarativeBase):
@@ -57,6 +59,8 @@ class UserSetting(Base):
     aviationstack_key: Mapped[str] = mapped_column(Text, default="")
     airlabs_key: Mapped[str] = mapped_column(Text, default="")
     aerodata_key: Mapped[str] = mapped_column(Text, default="")
+    github_backup_token: Mapped[str] = mapped_column(Text, default="")
+    github_backup_repo: Mapped[str] = mapped_column(String(255), default="LeeLe1001/SkyTrace")
     preferred_api: Mapped[str] = mapped_column(String(32), default="auto")
     auto_cache: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -104,6 +108,26 @@ _SESSION_FACTORY = None
 _DATABASE_URL = None
 
 
+def _run_schema_migrations(engine) -> None:
+    inspector = inspect(engine)
+    if "user_settings" not in inspector.get_table_names():
+        return
+
+    existing_columns = {column["name"] for column in inspector.get_columns("user_settings")}
+    statements = []
+    if "github_backup_token" not in existing_columns:
+        statements.append("ALTER TABLE user_settings ADD COLUMN github_backup_token TEXT DEFAULT ''")
+    if "github_backup_repo" not in existing_columns:
+        statements.append("ALTER TABLE user_settings ADD COLUMN github_backup_repo VARCHAR(255) DEFAULT 'LeeLe1001/SkyTrace'")
+
+    if not statements:
+        return
+
+    with engine.begin() as conn:
+        for statement in statements:
+            conn.execute(text(statement))
+
+
 def default_database_url(data_dir: str = "data") -> str:
     env_url = os.environ.get("SKYTRACE_DATABASE_URL") or os.environ.get("DATABASE_URL")
     if env_url:
@@ -126,6 +150,7 @@ def configure_database(database_url: str | None = None) -> str:
     _SESSION_FACTORY = sessionmaker(bind=_ENGINE, autoflush=False, expire_on_commit=False, future=True)
     _DATABASE_URL = target_url
     Base.metadata.create_all(_ENGINE)
+    _run_schema_migrations(_ENGINE)
     return target_url
 
 
@@ -194,6 +219,8 @@ def _settings_to_dict(settings: UserSetting | None, defaults: dict[str, Any] | N
             "aviationstack_key": decrypt_secret(settings.aviationstack_key or ""),
             "airlabs_key": decrypt_secret(settings.airlabs_key or ""),
             "aerodata_key": decrypt_secret(settings.aerodata_key or ""),
+            "github_backup_token": decrypt_secret(settings.github_backup_token or ""),
+            "github_backup_repo": settings.github_backup_repo or "LeeLe1001/SkyTrace",
             "preferred_api": settings.preferred_api or "auto",
             "auto_cache": bool(settings.auto_cache),
         }
@@ -491,6 +518,21 @@ def import_legacy_data_for_user(
         settings.aviationstack_key = encrypt_secret(merged.get("aviationstack_key", ""))
         settings.airlabs_key = encrypt_secret(merged.get("airlabs_key", ""))
         settings.aerodata_key = encrypt_secret(merged.get("aerodata_key", ""))
+        settings.github_backup_token = encrypt_secret(merged.get("github_backup_token", ""))
+        settings.github_backup_repo = merged.get("github_backup_repo", "LeeLe1001/SkyTrace")
         settings.preferred_api = merged.get("preferred_api", "auto")
         settings.auto_cache = bool(merged.get("auto_cache", True))
         db.commit()
+
+
+def replace_user_flights(user_id: int, payloads: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    normalized_payloads = [_normalize_flight_payload(payload) for payload in (payloads or [])]
+    with get_session() as db:
+        db.query(Flight).filter(Flight.user_id == user_id).delete()
+        for payload in normalized_payloads:
+            db.add(Flight(user_id=user_id, **payload))
+        db.commit()
+        flights = db.scalars(
+            select(Flight).where(Flight.user_id == user_id).order_by(Flight.created_at.asc(), Flight.id.asc())
+        ).all()
+        return [_serialize_flight(flight) for flight in flights]

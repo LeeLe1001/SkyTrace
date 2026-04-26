@@ -398,6 +398,40 @@ function _updateOfflineBanner() {
 // ==================== 主题系统 ====================
 const TILE_DARK = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 const TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+const TILE_OSM = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+function _attachTileErrorRecovery(tileLayer, preferredUrl) {
+    if (!tileLayer) return;
+    tileLayer._preferredUrl = preferredUrl;
+    tileLayer._tileErrorWindowStart = Date.now();
+    tileLayer._tileErrorCount = 0;
+    tileLayer._tileFallbackApplied = false;
+
+    tileLayer.on('tileerror', () => {
+        const now = Date.now();
+        if (now - tileLayer._tileErrorWindowStart > 10000) {
+            tileLayer._tileErrorWindowStart = now;
+            tileLayer._tileErrorCount = 0;
+        }
+        tileLayer._tileErrorCount += 1;
+
+        // 10 秒内连续错误过多时，自动切到 OSM，避免整屏瓦片空白
+        if (!tileLayer._tileFallbackApplied && tileLayer._tileErrorCount >= 8) {
+            tileLayer._tileFallbackApplied = true;
+            tileLayer.setUrl(TILE_OSM);
+            console.warn('[SkyTrace] tile fallback -> OpenStreetMap');
+        }
+    });
+}
+
+function _setTileLayerPreferredUrl(tileLayer, url) {
+    if (!tileLayer) return;
+    tileLayer._preferredUrl = url;
+    tileLayer._tileErrorWindowStart = Date.now();
+    tileLayer._tileErrorCount = 0;
+    tileLayer._tileFallbackApplied = false;
+    tileLayer.setUrl(url);
+}
 
 function initTheme() {
     const saved = localStorage.getItem('skytrace-theme') || 'dark';
@@ -438,8 +472,8 @@ function updateSettingsThemeUI(theme) {
 
 function updateMapTiles(theme) {
     const url = theme === 'light' ? TILE_LIGHT : TILE_DARK;
-    if (homeMap && homeTileLayer) homeTileLayer.setUrl(url);
-    if (fmap && fmapTileLayer) fmapTileLayer.setUrl(url);
+    if (homeMap && homeTileLayer) _setTileLayerPreferredUrl(homeTileLayer, url);
+    if (fmap && fmapTileLayer) _setTileLayerPreferredUrl(fmapTileLayer, url);
 }
 
 // ==================== 语言切换 ====================
@@ -452,11 +486,13 @@ function switchLang(lang) {
     document.getElementById('lang-dropdown')?.classList.remove('active');
     updateSettingsLangButtons();
     _applyAuthState(_authState);
+    _updateSyncSectionCopy();
 }
 function switchLangFromSettings(lang) {
     setLanguage(lang);
     updateSettingsLangButtons();
     _applyAuthState(_authState);
+    _updateSyncSectionCopy();
 }
 function updateSettingsLangButtons() {
     document.querySelectorAll('.settings-lang-btn').forEach(btn => {
@@ -524,6 +560,23 @@ function _renderManagedUsers(users) {
     `).join('');
 }
 
+function _isServerBackupMode() {
+    return _authState?.storage_mode === 'multi_user';
+}
+
+function _updateSyncSectionCopy() {
+    const titleEl = document.querySelector('#settings-sync-section [data-i18n="settingsSync"]');
+    const introEl = document.querySelector('#settings-sync-section [data-i18n="syncIntro"]');
+    if (!titleEl || !introEl) return;
+    if (_isServerBackupMode()) {
+        titleEl.textContent = t('settingsBackup') || t('settingsSync');
+        introEl.textContent = t('backupIntro') || t('syncIntro');
+    } else {
+        titleEl.textContent = t('settingsSync');
+        introEl.textContent = t('syncIntro');
+    }
+}
+
 function _applyAuthState(state) {
     _authState = state || null;
     const user = _authState?.user || null;
@@ -553,7 +606,7 @@ function _applyAuthState(state) {
 
     const syncSection = document.getElementById('settings-sync-section');
     if (syncSection) {
-        syncSection.style.display = _authState?.storage_mode === 'multi_user' ? 'none' : '';
+        syncSection.style.display = '';
     }
 
     const adminSection = document.getElementById('settings-user-admin-section');
@@ -786,9 +839,10 @@ function initHomeMap() {
     const tileUrl = theme === 'light' ? TILE_LIGHT : TILE_DARK;
     homeTileLayer = L.tileLayer(tileUrl, {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
-        subdomains: 'abcd',
+        subdomains: 'abc',
         maxZoom: 19
     }).addTo(homeMap);
+    _attachTileErrorRecovery(homeTileLayer, tileUrl);
 }
 
 function getLocalTodayStr() {
@@ -1438,9 +1492,10 @@ function initFlightsMap() {
     const tileUrl = theme === 'light' ? TILE_LIGHT : TILE_DARK;
     fmapTileLayer = L.tileLayer(tileUrl, {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
-        subdomains: 'abcd',
+        subdomains: 'abc',
         maxZoom: 19
     }).addTo(fmap);
+    _attachTileErrorRecovery(fmapTileLayer, tileUrl);
     L.control.zoom({ position: 'bottomright' }).addTo(fmap);
     fmapInited = true;
 
@@ -1789,27 +1844,120 @@ function initTimeFilterDefaults() {
     });
 }
 
+function _computeLocalStatsFallback(year) {
+    const selected = (year && year !== 'all')
+        ? flights.filter(f => (f.date || '').startsWith(year))
+        : flights;
+
+    const availableYears = [...new Set(
+        flights.map(f => (f.date || '').slice(0, 4)).filter(y => y && y.length === 4)
+    )].sort().reverse();
+
+    let totalDistance = 0;
+    let totalMinutes = 0;
+    const visitedAirports = new Set();
+    const visitedCountries = new Set();
+
+    selected.forEach(f => {
+        totalDistance += Number(f.distance || 0);
+        if (f.departure) visitedAirports.add(f.departure);
+        if (f.arrival) visitedAirports.add(f.arrival);
+
+        const depCountry = f.dep_airport?.country || airports[f.departure]?.country;
+        const arrCountry = f.arr_airport?.country || airports[f.arrival]?.country;
+        if (depCountry) visitedCountries.add(depCountry);
+        if (arrCountry) visitedCountries.add(arrCountry);
+
+        const durationText = calcDuration(f);
+        const m = durationText && durationText.match(/(\d+)h\s+(\d+)m/);
+        if (m) totalMinutes += (parseInt(m[1], 10) * 60 + parseInt(m[2], 10));
+    });
+
+    return {
+        total_flights: selected.length,
+        total_distance: Math.round(totalDistance),
+        total_hours: Math.round((totalMinutes / 60) * 10) / 10,
+        visited_airports: visitedAirports.size,
+        visited_countries: visitedCountries.size,
+        available_years: availableYears,
+    };
+}
+
 // ==================== 统计加载 ====================
+/** 请求 /api/stats 并验证响应有效性 */
+async function _fetchStats(year) {
+    const param = year && year !== 'all' ? `?year=${year}` : '';
+    const response = await fetch('/api/stats' + param);
+    const stats = await response.json();
+    if (!response.ok || typeof stats.total_hours !== 'number' || typeof stats.total_flights !== 'number') {
+        throw new Error(stats.error || 'Failed to load stats');
+    }
+    return stats;
+}
+
+/** 用前端已加载航班数据填补后端返回的空字段 (SW 缓存错配等场景) */
+function _patchStatsFromLocal(stats, year) {
+    const local = _computeLocalStatsFallback(year);
+    if (local.total_flights === 0) return stats;
+
+    if (!Array.isArray(stats.available_years) || stats.available_years.length === 0) {
+        stats.available_years = local.available_years;
+    }
+    if ((stats.total_flights || 0) === 0) stats.total_flights = local.total_flights;
+    if ((stats.total_distance || 0) === 0 && local.total_distance > 0) stats.total_distance = local.total_distance;
+    if ((stats.total_hours || 0) === 0 && local.total_hours > 0) stats.total_hours = local.total_hours;
+    if ((stats.visited_airports || 0) === 0) stats.visited_airports = local.visited_airports;
+    if ((stats.visited_countries || 0) === 0) stats.visited_countries = local.visited_countries;
+    return stats;
+}
+
+/** 年份筛选失配 → 需要回退到 "all" */
+function _statsYearMismatch(stats, yearWasExplicit) {
+    if (yearWasExplicit) return false;
+    if (currentStatsYear === 'all') return false;
+    if (stats.total_flights > 0) return false;
+    return Array.isArray(stats.available_years)
+        && stats.available_years.length > 0
+        && !stats.available_years.includes(currentStatsYear);
+}
+
+function _renderStatsCards(stats) {
+    cachedStatsData = stats;
+    animateCountUp(document.getElementById('total-flights'), stats.total_flights || 0);
+    animateCountUp(document.getElementById('total-distance'), stats.total_distance || 0);
+    animateCountUp(document.getElementById('total-hours'), stats.total_hours || 0, {decimals: 1});
+    animateCountUp(document.getElementById('visited-airports'), stats.visited_airports || 0);
+    animateCountUp(document.getElementById('visited-countries'), stats.visited_countries || 0);
+    animateCountUp(document.getElementById('earth-rounds'), (stats.total_distance || 0) / 40075, {decimals: 2});
+    renderYearSelector(stats.available_years);
+    renderFunStats(stats.fun_stats, stats.top_routes, stats.top_airlines);
+}
+
 async function loadStats(year) {
     try {
-        if (year !== undefined) currentStatsYear = year;
-        const yearParam = currentStatsYear && currentStatsYear !== 'all' ? `?year=${currentStatsYear}` : '';
-        const response = await fetch('/api/stats' + yearParam);
-        const stats = await response.json();
-        if (!response.ok || typeof stats.total_hours !== 'number' || typeof stats.total_flights !== 'number') {
-            throw new Error(stats.error || 'Failed to load stats');
-        }
-        cachedStatsData = stats;
+        const yearWasExplicit = year !== undefined;
+        if (yearWasExplicit) currentStatsYear = year;
 
-        animateCountUp(document.getElementById('total-flights'), stats.total_flights || 0);
-        animateCountUp(document.getElementById('total-distance'), stats.total_distance || 0);
-        animateCountUp(document.getElementById('total-hours'), stats.total_hours || 0, {decimals: 1});
-        animateCountUp(document.getElementById('visited-airports'), stats.visited_airports || 0);
-        animateCountUp(document.getElementById('visited-countries'), stats.visited_countries || 0);
-        animateCountUp(document.getElementById('earth-rounds'), (stats.total_distance || 0) / 40075, {decimals: 2});
-        renderYearSelector(stats.available_years);
-        renderFunStats(stats.fun_stats, stats.top_routes, stats.top_airlines);
-    } catch (e) { console.error('加载统计失败:', e); }
+        let stats = await _fetchStats(currentStatsYear);
+
+        // 年份筛选失配 → 自动回退到 "all" 并重拉
+        if (_statsYearMismatch(stats, yearWasExplicit)) {
+            currentStatsYear = 'all';
+            stats = await _fetchStats('all');
+        }
+
+        // 接口返回可疑全 0 时用前端本地数据兜底
+        stats = _patchStatsFromLocal(stats, currentStatsYear);
+
+        _renderStatsCards(stats);
+    } catch (e) {
+        console.error('加载统计失败:', e);
+        // 网络完全不可用时，尝试纯本地兜底
+        const local = _computeLocalStatsFallback(currentStatsYear);
+        if (local.total_flights > 0) {
+            _renderStatsCards(local);
+        }
+    }
 }
 
 function renderYearSelector(years) {
@@ -2842,6 +2990,7 @@ async function openSettings() {
     updateSettingsLangButtons();
     updateSettingsThemeUI(document.documentElement.getAttribute('data-theme') || 'dark');
     _applyAuthState(_authState);
+    _updateSyncSectionCopy();
     try {
         const settings = await (await fetch('/api/settings')).json();
         document.getElementById('aviationstack-key').value = settings.aviationstack_key || '';
@@ -2850,10 +2999,15 @@ async function openSettings() {
         updateApiStatusBadge('avstack', settings.aviationstack_key_set);
         updateApiStatusBadge('airlabs', settings.airlabs_key_set);
         updateApiStatusBadge('aerodata', settings.aerodata_key_set);
+        if (_isServerBackupMode()) {
+            _loadSyncConfigToUI({
+                token: settings.github_backup_token || '',
+                repo: settings.github_backup_repo || 'LeeLe1001/SkyTrace',
+            });
+        }
     } catch (e) {}
     try { const stats = await (await fetch('/api/cache/stats')).json(); document.getElementById('cache-count').textContent = stats.total_cached || 0; } catch (e) {}
-    // 加载 GitHub 同步配置
-    if (_authState?.storage_mode !== 'multi_user') {
+    if (!_isServerBackupMode()) {
         _loadSyncConfigToUI();
     }
     if (_authState?.user?.is_admin) {
@@ -2866,8 +3020,29 @@ function updateApiStatusBadge(prefix, isSet) {
     if (el) { el.textContent = isSet ? t('apiConfigured') : t('apiNotConfigured'); el.className = 'api-status ' + (isSet ? 'configured' : ''); }
 }
 async function saveSettings() {
-    const settings = { aviationstack_key: document.getElementById('aviationstack-key').value.trim(), airlabs_key: document.getElementById('airlabs-key').value.trim(), aerodata_key: document.getElementById('aerodata-key').value.trim() };
-    try { await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) }); closeSettings(); checkApiStatus(); } catch (e) { alert(t('settingsSaveFailed')); }
+    const settings = {
+        aviationstack_key: document.getElementById('aviationstack-key').value.trim(),
+        airlabs_key: document.getElementById('airlabs-key').value.trim(),
+        aerodata_key: document.getElementById('aerodata-key').value.trim(),
+    };
+    if (_isServerBackupMode()) {
+        settings.github_backup_token = document.getElementById('github-token').value.trim();
+        settings.github_backup_repo = document.getElementById('github-repo').value.trim() || 'LeeLe1001/SkyTrace';
+    }
+    try {
+        const resp = await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(settings),
+        });
+        if (!resp.ok) {
+            throw new Error(`HTTP ${resp.status}`);
+        }
+        closeSettings();
+        checkApiStatus();
+    } catch (e) {
+        alert(t('settingsSaveFailed'));
+    }
 }
 async function testApi(apiName) {
     const keyMap = { 'aviationstack': 'aviationstack-key', 'airlabs': 'airlabs-key', 'aerodata': 'aerodata-key' };
@@ -2927,11 +3102,22 @@ function _saveSyncConfig(token, repo) {
     if (repo) localStorage.setItem(_SYNC_REPO_KEY, repo);
 }
 
-function _loadSyncConfigToUI() {
-    const cfg = _getSyncConfig();
+function _getSyncFormConfig() {
+    return {
+        token: document.getElementById('github-token')?.value.trim() || '',
+        repo: document.getElementById('github-repo')?.value.trim() || 'LeeLe1001/SkyTrace',
+    };
+}
+
+function _loadSyncConfigToUI(cfgOverride) {
+    const cfg = cfgOverride || _getSyncConfig();
     const tokenEl = document.getElementById('github-token');
     const repoEl = document.getElementById('github-repo');
-    if (tokenEl && cfg.token) tokenEl.value = cfg.token.slice(0, 4) + '****' + cfg.token.slice(-4);
+    if (tokenEl) {
+        tokenEl.value = cfg.token
+            ? (cfg.token.includes('****') ? cfg.token : cfg.token.slice(0, 4) + '****' + cfg.token.slice(-4))
+            : '';
+    }
     if (repoEl && cfg.repo) repoEl.value = cfg.repo;
 }
 
@@ -2952,10 +3138,7 @@ async function _githubApi(path, method, body, token) {
 
 async function testGithubSync() {
     const resultEl = document.getElementById('sync-result');
-    const tokenEl = document.getElementById('github-token');
-    const repoEl = document.getElementById('github-repo');
-    const token = tokenEl.value.trim();
-    const repo = repoEl.value.trim();
+    const { token, repo } = _getSyncFormConfig();
 
     if (!token || !repo) {
         resultEl.textContent = t('syncNeedConfig');
@@ -2964,15 +3147,34 @@ async function testGithubSync() {
     }
 
     // 如果是打码的旧 token，用存储的真实值
+    resultEl.textContent = t('testing');
+    resultEl.className = 'api-test-result info';
+
+    if (_isServerBackupMode()) {
+        try {
+            const resp = await fetch('/api/backup/github/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, repo }),
+            });
+            const data = await resp.json();
+            if (!resp.ok || !data.success) throw new Error(data.error || `HTTP ${resp.status}`);
+            _loadSyncConfigToUI({ token, repo: data.repo || repo });
+            resultEl.textContent = `✅ ${t('syncConnected')} — ${data.full_name || data.repo || repo} (${data.visibility || 'repo'})`;
+            resultEl.className = 'api-test-result success';
+        } catch (e) {
+            resultEl.textContent = `❌ ${e.message}`;
+            resultEl.className = 'api-test-result error';
+        }
+        return;
+    }
+
     const realToken = token.includes('****') ? _getSyncConfig().token : token;
     if (!realToken) {
         resultEl.textContent = t('syncNeedConfig');
         resultEl.className = 'api-test-result error';
         return;
     }
-
-    resultEl.textContent = t('testing');
-    resultEl.className = 'api-test-result info';
 
     try {
         const data = await _githubApi(`/repos/${repo}`, 'GET', null, realToken);
@@ -2987,13 +3189,9 @@ async function testGithubSync() {
 
 async function syncToGithub() {
     const resultEl = document.getElementById('sync-result');
-    const tokenEl = document.getElementById('github-token');
-    const repoEl = document.getElementById('github-repo');
-    const token = tokenEl.value.trim();
-    const repo = repoEl.value.trim();
-    const realToken = token.includes('****') ? _getSyncConfig().token : token;
+    const { token, repo } = _getSyncFormConfig();
 
-    if (!realToken || !repo) {
+    if (!token || !repo) {
         resultEl.textContent = t('syncNeedConfig');
         resultEl.className = 'api-test-result error';
         return;
@@ -3003,6 +3201,35 @@ async function syncToGithub() {
     if (btn) btn.disabled = true;
     resultEl.textContent = t('syncPushing');
     resultEl.className = 'api-test-result info';
+
+    if (_isServerBackupMode()) {
+        try {
+            const resp = await fetch('/api/backup/github/push', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, repo }),
+            });
+            const data = await resp.json();
+            if (!resp.ok || !data.success) throw new Error(data.error || `HTTP ${resp.status}`);
+            _loadSyncConfigToUI({ token, repo: data.repo || repo });
+            resultEl.textContent = `✅ ${t('syncPushSuccess')} (${data.flight_count || 0} ${t('syncFlightsUnit')})`;
+            resultEl.className = 'api-test-result success';
+        } catch (e) {
+            resultEl.textContent = `❌ ${t('syncPushFailed')}: ${e.message}`;
+            resultEl.className = 'api-test-result error';
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+        return;
+    }
+
+    const realToken = token.includes('****') ? _getSyncConfig().token : token;
+    if (!realToken) {
+        resultEl.textContent = t('syncNeedConfig');
+        resultEl.className = 'api-test-result error';
+        if (btn) btn.disabled = false;
+        return;
+    }
 
     try {
         // 获取当前航班数据
@@ -3050,13 +3277,9 @@ async function syncToGithub() {
 
 async function syncFromGithub() {
     const resultEl = document.getElementById('sync-result');
-    const tokenEl = document.getElementById('github-token');
-    const repoEl = document.getElementById('github-repo');
-    const token = tokenEl.value.trim();
-    const repo = repoEl.value.trim();
-    const realToken = token.includes('****') ? _getSyncConfig().token : token;
+    const { token, repo } = _getSyncFormConfig();
 
-    if (!realToken || !repo) {
+    if (!token || !repo) {
         resultEl.textContent = t('syncNeedConfig');
         resultEl.className = 'api-test-result error';
         return;
@@ -3068,6 +3291,36 @@ async function syncFromGithub() {
     if (btn) btn.disabled = true;
     resultEl.textContent = t('syncPulling');
     resultEl.className = 'api-test-result info';
+
+    if (_isServerBackupMode()) {
+        try {
+            const resp = await fetch('/api/backup/github/pull', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, repo }),
+            });
+            const data = await resp.json();
+            if (!resp.ok || !data.success) throw new Error(data.error || `HTTP ${resp.status}`);
+            _loadSyncConfigToUI({ token, repo: data.repo || repo });
+            resultEl.textContent = `✅ ${t('syncPullSuccess')} (${data.flight_count || 0} ${t('syncFlightsUnit')})`;
+            resultEl.className = 'api-test-result success';
+            setTimeout(() => location.reload(), 1500);
+        } catch (e) {
+            resultEl.textContent = `❌ ${t('syncPullFailed')}: ${e.message}`;
+            resultEl.className = 'api-test-result error';
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+        return;
+    }
+
+    const realToken = token.includes('****') ? _getSyncConfig().token : token;
+    if (!realToken) {
+        resultEl.textContent = t('syncNeedConfig');
+        resultEl.className = 'api-test-result error';
+        if (btn) btn.disabled = false;
+        return;
+    }
 
     try {
         const file = await _githubApi(`/repos/${repo}/contents/data/flights.json`, 'GET', null, realToken);

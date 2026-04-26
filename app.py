@@ -9,6 +9,7 @@ Flask 后端主程序 v2.0
 """
 
 from flask import Flask, g, jsonify, request, send_from_directory, session
+import base64
 import json
 import os
 import math
@@ -38,6 +39,7 @@ from storage import (
     has_users as storage_has_users,
     list_user_flights,
     list_users,
+    replace_user_flights,
     save_user_settings,
     update_user_flight,
     verify_user_credentials,
@@ -56,6 +58,8 @@ SETTINGS_FILE = os.path.join(DATA_DIR, 'settings.json')
 LOGO_CACHE_DIR = os.path.join('static', 'img', 'airlines', 'cache')
 
 DEFAULT_SETTINGS = dict(DEFAULT_USER_SETTINGS)
+GITHUB_API_BASE = 'https://api.github.com'
+GITHUB_BACKUP_REPO_DEFAULT = DEFAULT_SETTINGS.get('github_backup_repo', 'LeeLe1001/SkyTrace')
 
 
 def _load_or_create_secret_key():
@@ -281,6 +285,90 @@ def get_active_settings():
     if not user_id:
         return dict(DEFAULT_SETTINGS)
     return get_user_settings(user_id, DEFAULT_SETTINGS)
+
+
+def _mask_secret(value: str) -> str:
+    if not value:
+        return ''
+    return value[:4] + '****' + value[-4:] if len(value) > 8 else '****'
+
+
+def _normalize_repo_name(repo_name: str) -> str:
+    return (repo_name or '').strip()
+
+
+def _get_current_backup_path() -> str:
+    user = get_current_user() or {}
+    username = re.sub(r'[^a-zA-Z0-9._-]+', '_', user.get('username', '') or 'user')
+    return f'data/user-backups/{username}.json'
+
+
+def _build_backup_payload() -> dict:
+    user = get_current_user() or {}
+    settings = get_active_settings()
+    return {
+        'schema_version': 1,
+        'exported_at': datetime.utcnow().isoformat() + 'Z',
+        'user': {
+            'username': user.get('username', ''),
+            'display_name': user.get('display_name', ''),
+        },
+        'settings': {
+            'preferred_api': settings.get('preferred_api', 'auto'),
+            'auto_cache': bool(settings.get('auto_cache', True)),
+        },
+        'flights': list_user_flights(get_current_user_id()) if not is_legacy_mode() else load_json(FLIGHTS_FILE).get('flights', []),
+    }
+
+
+def _github_api_request(path, method='GET', body=None, token=''):
+    req = urllib.request.Request(f'{GITHUB_API_BASE}{path}', method=method or 'GET')
+    req.add_header('User-Agent', 'SkyTrace/2.0')
+    req.add_header('Authorization', f'Bearer {token}')
+    req.add_header('Accept', 'application/vnd.github+json')
+    payload = None
+    if body is not None:
+        payload = json.dumps(body).encode('utf-8')
+        req.add_header('Content-Type', 'application/json')
+    try:
+        with urllib.request.urlopen(req, data=payload, timeout=20) as resp:
+            raw = resp.read().decode('utf-8')
+            return json.loads(raw) if raw else {}
+    except urllib.error.HTTPError as exc:
+        raw = exc.read().decode('utf-8', errors='ignore')
+        try:
+            data = json.loads(raw) if raw else {}
+        except json.JSONDecodeError:
+            data = {}
+        message = data.get('message') or f'HTTP {exc.code}'
+        raise ValueError(message) from exc
+
+
+def _resolve_backup_credentials(override=None):
+    settings = get_active_settings()
+    override = override or {}
+    raw_token = (override.get('token') or '').strip()
+    raw_repo = _normalize_repo_name(override.get('repo') or '')
+    token = settings.get('github_backup_token', '')
+    repo = settings.get('github_backup_repo', GITHUB_BACKUP_REPO_DEFAULT) or GITHUB_BACKUP_REPO_DEFAULT
+
+    if raw_token and '****' not in raw_token:
+        token = raw_token
+    if raw_repo:
+        repo = raw_repo
+
+    if not token or not repo:
+        raise ValueError('GitHub backup is not configured.')
+    return token, repo
+
+
+def base64_encode_utf8(content: str) -> str:
+    return base64.b64encode(content.encode('utf-8')).decode('ascii')
+
+
+def decode_github_base64(content: str) -> str:
+    normalized = (content or '').replace('\n', '')
+    return base64.b64decode(normalized).decode('utf-8')
 
 
 @app.before_request
@@ -1052,11 +1140,12 @@ def get_settings_api():
     """获取设置（API key 打码显示）"""
     settings = get_active_settings()
     safe = {}
+    sensitive_fields = {'aviationstack_key', 'airlabs_key', 'aerodata_key', 'github_backup_token'}
     for k, v in settings.items():
-        if k.endswith('_key') and v:
-            safe[k] = v[:4] + '****' + v[-4:] if len(v) > 8 else '****'
+        if k in sensitive_fields and v:
+            safe[k] = _mask_secret(v)
             safe[k + '_set'] = True
-        elif k.endswith('_key'):
+        elif k in sensitive_fields:
             safe[k] = ''
             safe[k + '_set'] = False
         else:
@@ -1074,6 +1163,7 @@ def save_settings_api():
         for k, v in new.items():
             if isinstance(v, str) and '****' in v:
                 continue  # 不覆盖打码值
+            current[k] = v
             current[k] = v
         save_json(SETTINGS_FILE, current)
     else:
@@ -1117,6 +1207,113 @@ def test_api_connection():
 
 
 # ==================== API 路由: 航班 CRUD ====================
+
+@app.route('/api/backup/github/test', methods=['POST'])
+@login_required
+def test_github_backup():
+    try:
+        body = request.json or {}
+        token, repo = _resolve_backup_credentials(body)
+        data = _github_api_request(f'/repos/{repo}', 'GET', None, token)
+        return jsonify({
+            'success': True,
+            'repo': data.get('full_name', repo),
+            'visibility': data.get('visibility', ''),
+            'path': _get_current_backup_path(),
+        })
+    except ValueError as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 400
+    except Exception as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 500
+
+
+@app.route('/api/backup/github/push', methods=['POST'])
+@login_required
+def push_github_backup():
+    try:
+        body = request.json or {}
+        token, repo = _resolve_backup_credentials(body)
+        payload = _build_backup_payload()
+        content = json.dumps(payload, ensure_ascii=False, indent=2)
+        backup_path = _get_current_backup_path()
+
+        sha = None
+        try:
+            existing = _github_api_request(f'/repos/{repo}/contents/{backup_path}', 'GET', None, token)
+            sha = existing.get('sha')
+        except ValueError:
+            sha = None
+
+        request_body = {
+            'message': f"backup: sync {payload['user']['username']} ({len(payload['flights'])} flights) via SkyTrace",
+            'content': base64_encode_utf8(content),
+        }
+        if sha:
+            request_body['sha'] = sha
+
+        _github_api_request(f'/repos/{repo}/contents/{backup_path}', 'PUT', request_body, token)
+
+        if not is_legacy_mode():
+            save_user_settings(get_current_user_id(), {
+                'github_backup_token': token,
+                'github_backup_repo': repo,
+            }, DEFAULT_SETTINGS)
+        return jsonify({
+            'success': True,
+            'repo': repo,
+            'path': backup_path,
+            'flight_count': len(payload['flights']),
+        })
+    except ValueError as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 400
+    except Exception as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 500
+
+
+@app.route('/api/backup/github/pull', methods=['POST'])
+@login_required
+def pull_github_backup():
+    try:
+        body = request.json or {}
+        token, repo = _resolve_backup_credentials(body)
+        backup_path = _get_current_backup_path()
+        file = _github_api_request(f'/repos/{repo}/contents/{backup_path}', 'GET', None, token)
+        content = decode_github_base64(file.get('content', ''))
+        payload = json.loads(content)
+        flights = payload.get('flights', [])
+        settings = payload.get('settings', {})
+
+        if not isinstance(flights, list):
+            raise ValueError('Backup payload is invalid.')
+
+        if is_legacy_mode():
+            save_json(FLIGHTS_FILE, {'flights': flights})
+            current = get_settings()
+            for key in ('preferred_api', 'auto_cache'):
+                if key in settings:
+                    current[key] = settings[key]
+            save_json(SETTINGS_FILE, current)
+        else:
+            replace_user_flights(get_current_user_id(), flights)
+            safe_settings = {key: settings[key] for key in ('preferred_api', 'auto_cache') if key in settings}
+            if safe_settings:
+                save_user_settings(get_current_user_id(), safe_settings, DEFAULT_SETTINGS)
+            save_user_settings(get_current_user_id(), {
+                'github_backup_token': token,
+                'github_backup_repo': repo,
+            }, DEFAULT_SETTINGS)
+
+        return jsonify({
+            'success': True,
+            'repo': repo,
+            'path': backup_path,
+            'flight_count': len(flights),
+        })
+    except ValueError as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 400
+    except Exception as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 500
+
 
 @app.route('/api/flights', methods=['GET'])
 @login_required

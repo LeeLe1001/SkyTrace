@@ -4,136 +4,139 @@
 
 - Workspace: `D:\Files\Coding\FootPrint`
 - Active branch: `codex/multi-user-foundation`
-- Previous pushed branch head before this batch: `38e5fda`
-- This handover reflects the current fix set for:
-  - stats-page heatmap crash
-  - `0.0 Flight Hours (h)` symptom when stats loading aborts
-  - restoring the wrapped dual-world map behavior for antimeridian routes
+- This handover reflects the multi-user database build through the current backend-backed GitHub backup pass.
 
-## User-Reported Issues In This Batch
+## What Is Already Working
 
-1. Clicking `Stat` could throw:
-   - `Uncaught IndexSizeError: Failed to execute 'getImageData' on 'CanvasRenderingContext2D': The source width is 0. @ leaflet-heat.js`
-2. Stats page then showed `0.0 Flight Hours (h)`.
-3. Map tiles still had blank areas.
-4. The previous map change was wrong for this product:
-   - the app intentionally uses wrapped worlds / mirrored geometry to avoid antimeridian jumps
-   - forcing `noWrap: true` + `[-180, 180]` bounds broke that design
+### Phase 1: Accounts + User-Isolated Flights
 
-## What Changed In This Fix Set
+- Admin bootstrap flow is in place.
+- Login/logout is in place.
+- Admin can create users.
+- Flights are isolated by `user_id`.
+- Legacy JSON data is imported into the first admin account during setup.
 
-### 1. Restored wrapped-map strategy
-
-File: [static/js/app.js](D:/Files/Coding/FootPrint/static/js/app.js)
-
-- Reverted both home map and flights map away from single-world mode.
-- Current map config now uses:
-  - `worldCopyJump: true`
-  - wider `maxBounds: [[-85, -540], [85, 540]]`
-  - removed tile-layer `noWrap: true`
-- This restores the intended “stitched worlds” experience for Pacific / antimeridian routes while still constraining runaway panning better than the original infinite bounds.
-
-### 2. Heatmap render guard for hidden / zero-size containers
-
-File: [static/js/app.js](D:/Files/Coding/FootPrint/static/js/app.js)
-
-- Added helpers:
-  - `_isRenderableMapContainer(...)`
-  - `_clearFmapHeatRefreshTimer()`
-  - `_clearFmapHeatLayer()`
-  - `_scheduleFmapHeatRefresh(...)`
-  - `_refreshFlightsMapLayout(...)`
-- `leaflet-heat` is no longer added when the map container is hidden or still `0x0`.
-- When leaving `行程 -> 地图`, the heat layer is explicitly removed.
-- When re-entering the map, toggling fullscreen, or opening/closing the filter bar, the map now:
-  - invalidates size
-  - optionally refits bounds
-  - re-schedules heatmap rendering after layout settles
-
-This is the main fix for the `getImageData(...): source width is 0` crash.
-
-### 3. Stats loading now validates the API response
-
-File: [static/js/app.js](D:/Files/Coding/FootPrint/static/js/app.js)
-
-- `loadStats()` now validates that `/api/stats` returned an OK response and numeric `total_hours` / `total_flights`.
-- This prevents silent fallback to zeros when the request is actually an auth error or a broken payload.
-
-Note:
-- The backend stats math itself was already correct.
-- The more likely real symptom chain was: map heat layer crashed during subtab switch -> stats load flow became unstable -> page stayed at default zero values.
-
-### 4. Cache-busting version bump
-
-Files:
+Key files:
 - [app.py](D:/Files/Coding/FootPrint/app.py)
-- [index.html](D:/Files/Coding/FootPrint/index.html)
-- [static/js/app.js](D:/Files/Coding/FootPrint/static/js/app.js)
-- [static/js/static-mode.js](D:/Files/Coding/FootPrint/static/js/static-mode.js)
-- [sw.js](D:/Files/Coding/FootPrint/sw.js)
+- [storage.py](D:/Files/Coding/FootPrint/storage.py)
+- [tests/test_multi_user_foundation.py](D:/Files/Coding/FootPrint/tests/test_multi_user_foundation.py)
 
-- Version bumped from `47` to `48`.
-- This is important because the affected code sits in JS + service-worker-cached assets.
+### Phase 2: Per-User Settings + Encrypted API Keys
 
-### 5. Regression coverage
+- User settings are stored in the database.
+- API keys are encrypted at rest via [security_utils.py](D:/Files/Coding/FootPrint/security_utils.py).
+- `/api/settings` returns masked values to the frontend.
+- Manual cross-timezone duration now uses airport timezone data instead of naive local-time subtraction.
 
-File: [tests/test_phase_two_regressions.py](D:/Files/Coding/FootPrint/tests/test_phase_two_regressions.py)
-
-Added end-to-end stats coverage:
-- bootstrap admin
-- add manual `WEH -> ICN 11:00 -> 13:15`
-- assert `/api/stats` returns:
-  - `total_flights == 1`
-  - `total_hours == 1.2`
-  - `avg_hours == 1.2`
-
-This complements the existing lower-level timezone duration regression test.
-
-## Files Changed In This Batch
-
-- [static/js/app.js](D:/Files/Coding/FootPrint/static/js/app.js)
+Key files:
+- [storage.py](D:/Files/Coding/FootPrint/storage.py)
+- [security_utils.py](D:/Files/Coding/FootPrint/security_utils.py)
+- [time_utils.py](D:/Files/Coding/FootPrint/time_utils.py)
 - [tests/test_phase_two_regressions.py](D:/Files/Coding/FootPrint/tests/test_phase_two_regressions.py)
-- [app.py](D:/Files/Coding/FootPrint/app.py)
-- [index.html](D:/Files/Coding/FootPrint/index.html)
-- [static/js/static-mode.js](D:/Files/Coding/FootPrint/static/js/static-mode.js)
-- [sw.js](D:/Files/Coding/FootPrint/sw.js)
-- [HANDOVER.md](D:/Files/Coding/FootPrint/HANDOVER.md)
+
+### Phase 3: Automatic Cloud Save + Optional GitHub Backup
+
+- Regular flight CRUD is already automatic in multi-user mode because writes go straight to the server database.
+- Login already auto-loads each user’s own flights and settings.
+- GitHub is now being shifted from “frontend sync database” to “optional per-user backup target”.
+
+What changed in this pass:
+- Added per-user encrypted backup credentials in [storage.py](D:/Files/Coding/FootPrint/storage.py):
+  - `github_backup_token`
+  - `github_backup_repo`
+- Added lightweight schema migration for existing `user_settings` tables.
+- Added backend backup endpoints in [app.py](D:/Files/Coding/FootPrint/app.py):
+  - `POST /api/backup/github/test`
+  - `POST /api/backup/github/push`
+  - `POST /api/backup/github/pull`
+- Added backup payload helpers in [app.py](D:/Files/Coding/FootPrint/app.py):
+  - `_build_backup_payload()`
+  - `_resolve_backup_credentials()`
+  - `_github_api_request()`
+  - `_get_current_backup_path()`
+- Added server-side flight replacement helper in [storage.py](D:/Files/Coding/FootPrint/storage.py):
+  - `replace_user_flights(user_id, payloads)`
+- Updated [static/js/app.js](D:/Files/Coding/FootPrint/static/js/app.js):
+  - multi-user mode no longer hides the GitHub section
+  - settings modal loads masked backup token + repo from `/api/settings`
+  - saving settings in multi-user mode persists backup token/repo through `/api/settings`
+  - `testGithubSync()`, `syncToGithub()`, `syncFromGithub()` now call backend backup endpoints in multi-user mode
+  - legacy/static mode still keeps the old localStorage + browser PAT fallback for compatibility
+
+## Backup Behavior After This Pass
+
+### Multi-User Mode
+
+- Users can configure a GitHub backup repo and token per account.
+- Tokens are stored encrypted on the server, not in the browser as the source of truth.
+- Push writes a per-user backup file:
+  - `data/user-backups/<username>.json`
+- Pull replaces only that user’s flights and restores safe settings:
+  - `preferred_api`
+  - `auto_cache`
+
+### Legacy / Static Compatibility
+
+- Old browser-side GitHub sync logic still exists for non-multi-user environments.
+- This preserves backward compatibility for static GitHub Pages style usage.
+
+## Regression Coverage Added
+
+File:
+- [tests/test_phase_two_regressions.py](D:/Files/Coding/FootPrint/tests/test_phase_two_regressions.py)
+
+Added coverage for:
+- real airport timezone duration for manual `WEH -> ICN 11:00 -> 13:15`
+- API key encryption + masking
+- GitHub backup token encryption + masking
+- multi-user server-side GitHub backup push
+- multi-user server-side GitHub backup pull with flight replacement and safe settings restore
 
 ## Validation Run
 
-Run after these edits:
-
-- `python -m py_compile app.py storage.py time_utils.py security_utils.py`
+Passed in this workspace:
+- `python -m py_compile app.py storage.py security_utils.py time_utils.py`
 - `python -m unittest tests.test_cleanup_regressions tests.test_multi_user_foundation tests.test_phase_two_regressions`
-- `git diff --check`
 
-## Still Important To Verify Manually
+Note:
+- I also attempted JS syntax validation through the available Node runtime path, but this environment still returns access denied for Node execution, so browser-script syntax was validated by targeted inspection plus backend regression tests instead.
 
-These need actual browser / iPhone verification:
+## Remaining Work / Next Recommended Phase
 
-1. `行程 -> 统计`
-   - no more `leaflet-heat` canvas crash
-   - `Flight Hours (h)` is no longer stuck at `0.0`
-2. Home map
-   - no blank tiles
-   - no forced “western hemisphere only” behavior
-3. `行程 -> 地图`
-   - wrapped-world behavior is back for antimeridian routes
-   - blank tiles are gone
-   - fullscreen / filter toggle do not break heatmap or tile rendering
+The multi-user foundation is now in a much safer state, but it is not yet the final production SaaS shape.
 
-## Known Local Dirty Files That Were Not Touched
+Recommended next steps:
 
-These were already modified in the user workspace and must not be reverted casually:
+1. Move backup UI copy from “data sync” to explicit “GitHub backup”.
+- In multi-user mode, data is already auto-saved to the server.
+- GitHub should be framed as backup / restore, not the main sync transport.
+
+2. Remove or heavily de-emphasize the legacy client-side PAT path when you no longer need static-mode support.
+- Right now it is intentionally preserved for backward compatibility.
+
+3. Add conflict metadata to backups.
+- Example: last exported timestamp, backup source version, maybe a checksum.
+
+4. Decide deployment target for the real multi-user build.
+- GitHub Pages alone is no longer enough.
+- You now need a Python server process plus the SQLite database file or a future PostgreSQL instance.
+
+5. Future PostgreSQL migration remains straightforward if you keep using the SQLAlchemy/Alembic-style path.
+- The current code is already much closer to that than the old JSON-only structure.
+
+## Important Local Dirty Files
+
+These were already dirty in the local workspace and were intentionally not cleaned up or reverted:
 
 - [README.md](D:/Files/Coding/FootPrint/README.md)
 - [static/css/style.css](D:/Files/Coding/FootPrint/static/css/style.css)
 - [data/flight_schedules.json](D:/Files/Coding/FootPrint/data/flight_schedules.json)
+- [sw.js](D:/Files/Coding/FootPrint/sw.js)
 
-## If More Map Problems Remain
+## Files Touched In This Multi-User Backup Pass
 
-Next likely places to inspect, in order:
-
-1. Hidden-container timing around Leaflet initialization and `invalidateSize()`
-2. Whether some route bounds should be normalized separately for viewport-fit while still keeping mirrored geometry for display
-3. Service worker cache interactions for tile-related JS/CSS asset updates in [sw.js](D:/Files/Coding/FootPrint/sw.js)
+- [app.py](D:/Files/Coding/FootPrint/app.py)
+- [storage.py](D:/Files/Coding/FootPrint/storage.py)
+- [static/js/app.js](D:/Files/Coding/FootPrint/static/js/app.js)
+- [tests/test_phase_two_regressions.py](D:/Files/Coding/FootPrint/tests/test_phase_two_regressions.py)
+- [HANDOVER.md](D:/Files/Coding/FootPrint/HANDOVER.md)
