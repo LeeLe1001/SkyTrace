@@ -1,11 +1,11 @@
 """
-SkyTrace - 涓汉鑸梾绠＄悊绯荤粺
-Flask 鍚庣涓荤▼搴?v2.0
+SkyTrace - 个人航旅管理系统
+Flask 后端主程序 v2.0
 
-鏀寔澶欰PI婧愯埅鐝煡璇?
-- AviationStack (鍏嶈垂500娆?鏈?: https://aviationstack.com/
-- AirLabs (鍏嶈垂1000娆?鏈?: https://airlabs.co/
-- AeroDataBox (RapidAPI鍏嶈垂鐗?: https://rapidapi.com/aedbx-aedbx/api/aerodatabox
+支持多API源航班查询:
+- AviationStack (免费500次/月): https://aviationstack.com/
+- AirLabs (免费1000次/月): https://airlabs.co/
+- AeroDataBox (RapidAPI免费版): https://rapidapi.com/aedbx-aedbx/api/aerodatabox
 """
 
 from flask import Flask, g, jsonify, request, send_from_directory, session
@@ -50,7 +50,7 @@ from time_utils import UTC, attach_airport_timezones, calculate_duration_minutes
 
 app = Flask(__name__)
 
-# ==================== 閰嶇疆 ====================
+# ==================== 配置 ====================
 DATA_DIR = 'data'
 FLIGHTS_FILE = os.path.join(DATA_DIR, 'flights.json')
 AIRPORTS_FILE = os.path.join(DATA_DIR, 'airports.json')
@@ -105,11 +105,11 @@ def _record_login_attempt(key: str):
 
 configure_database()
 
-# ==================== 鑸珯妤艰嚜鍔ㄨˉ鍏?====================
-# 宸茬煡鑸徃鍦ㄥ悇鏈哄満鐨勫父鐢ㄨ埅绔欐ゼ鏄犲皠 (API杩斿洖绌烘椂鍏滃簳)
-# 鏍煎紡: { 鏈哄満IATA: { 鑸徃IATA: 鑸珯妤肩紪鍙?} }
+# ==================== 航站楼自动补全 ====================
+# 已知航司在各机场的常用航站楼映射 (API返回空时兜底)
+# 格式: { 机场IATA: { 航司IATA: 航站楼编号 } }
 AIRLINE_TERMINAL_MAP = {
-    # ====== 涓浗澶ч檰 ======
+    # ====== 中国大陆 ======
     'PEK': {'CA': '3', 'ZH': '3', 'MU': '2', 'FM': '2', 'CZ': '2', 'MF': '2',
             'SC': '2', 'NH': '3', 'SQ': '3', 'LH': '3', 'BA': '3', 'AF': '2',
             'HU': '1', 'GS': '1', 'JD': '2', 'CX': '3', '3U': '2', 'SU': '2'},
@@ -120,10 +120,10 @@ AIRLINE_TERMINAL_MAP = {
     'CTU': {'MU': '2', 'CA': '1', 'CZ': '1', '3U': '1', 'ZH': '1', 'EU': '2',
             'HU': '1', 'SC': '1', '9C': '1', 'GJ': '1', 'HO': '1', 'MI': '2',
             'NS': '2', 'TV': '2'},
-    'TFU': {# T1: 鍥介檯鑸嚎 + 宸濊埅/鎴愰兘鑸┖
+    'TFU': {# T1: 国际航线 + 川航/成都航空
             '3U': '1', 'EU': '1', 'QR': '1', 'KE': '1', 'CX': '1', 'TG': '1',
             'SQ': '1', 'MU': '1',
-            # T2: 澶ч儴鍒嗗浗鍐呰埅绾?
+            # T2: 大部分国内航线
             'CA': '2', 'CZ': '2', 'ZH': '2', 'HU': '2', 'SC': '2',
             'GJ': '2', 'TV': '2', 'MF': '2', 'GS': '2', '9C': '2', 'HO': '2'},
     'CAN': {'CZ': '2', 'MU': '2', 'CA': '1', 'ZH': '1', 'HU': '1', 'SC': '1',
@@ -140,7 +140,7 @@ AIRLINE_TERMINAL_MAP = {
     'XNN': {'CA': '2', 'MU': '2', 'TV': '2', 'CZ': '2'},
     'YNT': {'CZ': '2', 'MU': '2', 'SC': '2'},
     'SHE': {'3U': '3', 'CZ': '3', 'MU': '3', 'CA': '3', 'SC': '3'},
-    # ====== 涓滀簹 ======
+    # ====== 东亚 ======
     'HKG': {'CX': '1', 'KA': '1', 'HX': '1', 'CA': '1', 'MU': '1', 'CZ': '1',
             'SQ': '1', 'QR': '1', 'NH': '1', 'JL': '1', 'BA': '1'},
     'NRT': {'NH': '1', 'CA': '1', 'MU': '1', 'CZ': '1', 'JL': '2', 'ZH': '1'},
@@ -148,25 +148,25 @@ AIRLINE_TERMINAL_MAP = {
     'ICN': {'KE': '2', 'OZ': '1', 'CA': '1', 'MU': '1', 'CZ': '1', 'AA': '1',
             'AS': '1', 'MF': '1', 'SQ': '1', 'DL': '1', 'MH': '1'},
     'TPE': {'JX': '1', 'CI': '1', 'BR': '2', 'MU': '1', 'CA': '2', 'CZ': '1'},
-    # ====== 涓滃崡浜?======
+    # ====== 东南亚 ======
     'SIN': {'SQ': '3', 'NH': '1', 'CA': '2', 'MU': '1', 'CZ': '1', 'CX': '4',
             'MI': '2', 'MH': '1', 'TG': '1'},
-    # ====== 涓笢/闈炴床 ======
+    # ====== 中东/非洲 ======
     'CAI': {'MS': '3', 'QR': '2', 'VF': '2', 'NP': '2', 'AF': '2', 'BA': '2'},
     'CMN': {'AT': '1', 'AF': '1'},
-    # ====== 娆ф床 ======
+    # ====== 欧洲 ======
     'CDG': {'AF': '2E', 'MU': '2E', 'CA': '2E', 'CZ': '2E', 'AZ': '1'},
     'ORY': {'AT': '4'},
     'FCO': {'AZ': '1', 'AT': '3'},
     'MAD': {'IB': '4', 'QR': '1', 'AT': '1', 'BA': '4', 'AA': '4'},
     'BCN': {'QR': '1', 'IB': '1', 'BA': '1'},
     'SVO': {'SU': 'D', 'S7': 'D', 'AF': 'E', 'KE': 'D'},
-    # ====== 婢虫床 ======
+    # ====== 澳洲 ======
     'SYD': {'CA': '1', 'MF': '1', 'MH': '1', 'CZ': '1', 'SQ': '1',
             'VA': '2', 'JQ': '2', 'QF': '3'},
     'MEL': {'CZ': '2', 'MF': '2', 'MH': '2', 'SQ': '2', 'CA': '2',
             'VA': '3', 'JQ': '4', 'QF': '1'},
-    # ====== 鍖楃編 ======
+    # ====== 北美 ======
     'DFW': {'AA': 'C', 'KE': 'D', 'AS': 'E', 'QR': 'D'},
     'JFK': {'AA': '8', 'DL': '4', 'BA': '7', 'CX': '8'},
     'LAX': {'MU': 'B', 'DL': '3', 'AA': '4', 'CX': 'B', 'SQ': 'B'},
@@ -174,70 +174,70 @@ AIRLINE_TERMINAL_MAP = {
     'LGA': {'AA': 'C', 'DL': 'C', 'UA': 'A'},
 }
 
-# 宸茬煡鐨勫崟鑸珯妤兼満鍦猴紙鏃犺埅绔欐ゼ缂栧彿鎴栦粎鏈変竴涓埅绔欐ゼ锛?
-# 杩欎簺鏈哄満鐨勮埅绔欐ゼ鏄剧ず涓?MAIN
+# 已知的单航站楼机场（无航站楼编号或仅有一个航站楼）
+# 这些机场的航站楼显示为 MAIN
 SINGLE_TERMINAL_AIRPORTS = {
-    # ====== 涓浗澶ч檰 ======
-    'PKX',   # 鍖椾含澶у叴
-    'DZH',   # 杈惧窞
-    'XFN',   # 瑗勯槼
-    'HUZ',   # 鎯犲窞
-    'KWE',   # 璐甸槼榫欐礊鍫?
-    'SJW',   # 鐭冲搴勬瀹?
-    'SYX',   # 涓変簹鍑ゅ嚢
-    # ====== 涓滀簹 ======
-    'NGO',   # 鍚嶅彜灞嬩腑閮?
-    'ITM',   # 澶ч槳浼婁腹
-    'KMJ',   # 鐔婃湰
-    'GMP',   # 棣栧皵閲戞郸 (鍥介檯鑸珯妤?
-    'MFM',   # 婢抽棬
-    # ====== 涓滃崡浜?======
-    'KBV',   # 鐢茬背
-    'HKT',   # 鏅悏
-    'BKK',   # 鏇艰胺绱犱竾閭ｆ櫘 (鍗曡埅绔欐ゼ澶фゼ)
-    'KUL',   # 鍚夐殕鍧LIA (涓绘ゼ)
-    # ====== 涓笢 ======
-    'DOH',   # 澶氬搱鍝堥┈寰峰浗闄?(鍗曡埅绔欐ゼ)
-    'IST',   # 浼婃柉鍧﹀竷灏旀柊鏈哄満 (鍗曡埅绔欐ゼ)
-    'SAW',   # 浼婃柉鍧﹀竷灏旇惃姣斿搱鏍煎厠鐞?
-    # ====== 闈炴床 ======
-    'LXR',   # 鍗㈠厠绱?
-    'HRG',   # 璧皵鏍艰揪
-    # ====== 淇勭綏鏂?涓簹 ======
-    'VVO',   # 娴峰弬宕?
-    'KJA',   # 鍏嬫媺鏂浜氬皵鏂厠
-    'DME',   # 鑾柉绉戝鑾澃澶氭矁
-    'LED',   # 鍦ｅ郊寰楀牎鏅皵绉戞矁
-    'TAS',   # 濉斾粈骞?
-    # ====== 婢虫床 ======
-    'OOL',   # 榛勯噾娴峰哺
-    'HBA',   # 闇嶅反鐗?
-    'ADL',   # 闃垮痉鑾卞痉
-    'BNE',   # 甯冮噷鏂彮
-    # ====== 娆ф床 ======
-    'OPO',   # 娉㈠皵鍥?
-    # ====== 鍖楃編 ======
-    'LAS',   # 鎷夋柉缁村姞鏂?
-    'AUS',   # 濂ユ柉姹€
-    'SEA',   # 瑗块泤鍥?濉旂椹?
-    'DTW',   # 搴曠壒寰?
-    'PHX',   # 鍑ゅ嚢鍩?
+    # ====== 中国大陆 ======
+    'PKX',   # 北京大兴
+    'DZH',   # 达州
+    'XFN',   # 襄阳
+    'HUZ',   # 惠州
+    'KWE',   # 贵阳龙洞堡
+    'SJW',   # 石家庄正定
+    'SYX',   # 三亚凤凰
+    # ====== 东亚 ======
+    'NGO',   # 名古屋中部
+    'ITM',   # 大阪伊丹
+    'KMJ',   # 熊本
+    'GMP',   # 首尔金浦 (国际航站楼)
+    'MFM',   # 澳门
+    # ====== 东南亚 ======
+    'KBV',   # 甲米
+    'HKT',   # 普吉
+    'BKK',   # 曼谷素万那普 (单航站楼大楼)
+    'KUL',   # 吉隆坡KLIA (主楼)
+    # ====== 中东 ======
+    'DOH',   # 多哈哈马德国际 (单航站楼)
+    'IST',   # 伊斯坦布尔新机场 (单航站楼)
+    'SAW',   # 伊斯坦布尔萨比哈格克琴
+    # ====== 非洲 ======
+    'LXR',   # 卢克索
+    'HRG',   # 赫尔格达
+    # ====== 俄罗斯/中亚 ======
+    'VVO',   # 海参崴
+    'KJA',   # 克拉斯诺亚尔斯克
+    'DME',   # 莫斯科多莫杰多沃
+    'LED',   # 圣彼得堡普尔科沃
+    'TAS',   # 塔什干
+    # ====== 澳洲 ======
+    'OOL',   # 黄金海岸
+    'HBA',   # 霍巴特
+    'ADL',   # 阿德莱德
+    'BNE',   # 布里斯班
+    # ====== 欧洲 ======
+    'OPO',   # 波尔图
+    # ====== 北美 ======
+    'LAS',   # 拉斯维加斯
+    'AUS',   # 奥斯汀
+    'SEA',   # 西雅图-塔科马
+    'DTW',   # 底特律
+    'PHX',   # 凤凰城
 }
 
 
 def fill_terminal(flight_data):
-    """涓虹己澶辫埅绔欐ゼ淇℃伅鐨勮埅鐝ˉ鍏呭凡鐭ユ暟鎹?""
+    """为缺失航站楼信息的航班补充已知数据"""
     airline_code = extract_airline_code(flight_data.get('flight_no', ''))
     dep = flight_data.get('departure', '')
     arr = flight_data.get('arrival', '')
 
-    # 1. 鍗曡埅绔欐ゼ鏈哄満: 濉厖 MAIN
+    # 1. 单航站楼机场: 填充 MAIN
     if not flight_data.get('dep_terminal') and dep in SINGLE_TERMINAL_AIRPORTS:
         flight_data['dep_terminal'] = 'MAIN'
     if not flight_data.get('arr_terminal') and arr in SINGLE_TERMINAL_AIRPORTS:
         flight_data['arr_terminal'] = 'MAIN'
 
-    # 2. 澶氳埅绔欐ゼ鏈哄満: 鎸夎埅鍙告槧灏勮ˉ鍏?
+    # 2. 多航站楼机场: 按航司映射补全
     if not flight_data.get('dep_terminal') and dep in AIRLINE_TERMINAL_MAP:
         terminal = AIRLINE_TERMINAL_MAP[dep].get(airline_code, '')
         if terminal:
@@ -248,7 +248,7 @@ def fill_terminal(flight_data):
         if terminal:
             flight_data['arr_terminal'] = terminal
 
-    # 3. 鍏滃簳: 浠嶇劧娌℃湁鑸珯妤间俊鎭殑, 榛樿濉?MAIN
+    # 3. 兜底: 仍然没有航站楼信息的, 默认填 MAIN
     if not flight_data.get('dep_terminal'):
         flight_data['dep_terminal'] = 'MAIN'
     if not flight_data.get('arr_terminal'):
@@ -257,9 +257,9 @@ def fill_terminal(flight_data):
     return flight_data
 
 
-# ==================== 宸ュ叿鍑芥暟 ====================
+# ==================== 工具函数 ====================
 def load_json(filepath):
-    """鍔犺浇JSON鏂囦欢"""
+    """加载JSON文件"""
     if os.path.exists(filepath):
         with open(filepath, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -267,7 +267,7 @@ def load_json(filepath):
 
 
 def save_json(filepath, data):
-    """淇濆瓨JSON鏂囦欢"""
+    """保存JSON文件"""
     d = os.path.dirname(filepath)
     if d:
         os.makedirs(d, exist_ok=True)
@@ -276,7 +276,7 @@ def save_json(filepath, data):
 
 
 def get_settings():
-    """鑾峰彇璁剧疆锛堝悎骞堕粯璁ゅ€硷級"""
+    """获取设置（合并默认值）"""
     settings = load_json(SETTINGS_FILE)
     return {**DEFAULT_SETTINGS, **settings}
 
@@ -436,19 +436,19 @@ def admin_required(view):
 
 
 def normalize_flight_no(flight_no):
-    """鏍囧噯鍖栬埅鐝彿: 鍘荤┖鏍?妯潬, 杞ぇ鍐?""
+    """标准化航班号: 去空格/横杠, 转大写"""
     return re.sub(r'[\s\-]', '', flight_no.upper().strip())
 
 
 def extract_airline_code(flight_no):
-    """浠庤埅鐝彿鎻愬彇鑸┖鍏徃浠ｇ爜 (2瀛楃)"""
+    """从航班号提取航空公司代码 (2字符)"""
     fn = normalize_flight_no(flight_no)
     match = re.match(r'^([A-Z0-9]{2})', fn)
     return match.group(1) if match else ''
 
 
 def haversine_distance(lat1, lon1, lat2, lon2):
-    """璁＄畻涓ょ偣闂寸殑澶у渾璺濈锛堝叕閲岋級"""
+    """计算两点间的大圆距离（公里）"""
     R = 6371
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
@@ -458,11 +458,11 @@ def haversine_distance(lat1, lon1, lat2, lon2):
 
 
 def get_flight_status_info(flight, airports_data=None):
-    """鏍规嵁鑸彮淇℃伅璁＄畻鐘舵€佸拰鎻愰啋銆?
+    """根据航班信息计算状态和提醒。
 
-    鑸彮璁板綍閲屽瓨鍦ㄥ皯閲忓彧鏈夋棩鏈熴€佹病鏈夋椂鍒荤殑鍘嗗彶鏁版嵁銆傛棫瀹炵幇浼氱洿鎺ヨ繑鍥?
-    ``unknown``锛屽鑷村湴鍥炬妸杩欎簺鍘嗗彶鑸彮褰撲綔 upcoming銆傝繖閲屼紭鍏堝皧閲嶆樉寮?
-    ``status=completed``锛屽苟鍦ㄧ己澶辨椂鍒绘椂閫€鍖栦负鍩轰簬鏃ユ湡鐨勭姸鎬佸垽鏂€?
+    航班记录里存在少量只有日期、没有时刻的历史数据。旧实现会直接返回
+    ``unknown``，导致地图把这些历史航班当作 upcoming。这里优先尊重显式
+    ``status=completed``，并在缺失时刻时退化为基于日期的状态判断。
     """
     now = datetime.now()
     now_utc = datetime.now(UTC)
@@ -568,10 +568,10 @@ def get_flight_status_info(flight, airports_data=None):
     return status_info
 
 
-# ==================== 澶欰PI鑸彮鏌ヨ绯荤粺 ====================
+# ==================== 多API航班查询系统 ====================
 
 def _http_get_json(url, headers=None, timeout=10):
-    """閫氱敤 HTTP GET 杩斿洖 JSON"""
+    """通用 HTTP GET 返回 JSON"""
     req = urllib.request.Request(url)
     req.add_header('User-Agent', 'SkyTrace/2.0')
     if headers:
@@ -582,7 +582,7 @@ def _http_get_json(url, headers=None, timeout=10):
 
 
 def query_aviationstack(flight_no, date, api_key):
-    """AviationStack API (鍏嶈垂鐗?500娆?鏈? 浠匟TTP)"""
+    """AviationStack API (免费版 500次/月, 仅HTTP)"""
     if not api_key:
         return None
     try:
@@ -610,12 +610,12 @@ def query_aviationstack(flight_no, date, api_key):
                 'api_source': 'AviationStack',
             }
     except Exception as e:
-        print(f"[AviationStack] 鏌ヨ澶辫触: {e}")
+        print(f"[AviationStack] 查询失败: {e}")
     return None
 
 
 def query_airlabs(flight_no, date, api_key):
-    """AirLabs API (鍏嶈垂鐗?1000娆?鏈? HTTPS)"""
+    """AirLabs API (免费版 1000次/月, HTTPS)"""
     if not api_key:
         return None
     try:
@@ -638,12 +638,12 @@ def query_airlabs(flight_no, date, api_key):
                 'api_source': 'AirLabs',
             }
     except Exception as e:
-        print(f"[AirLabs] 鏌ヨ澶辫触: {e}")
+        print(f"[AirLabs] 查询失败: {e}")
     return None
 
 
 def query_aerodata(flight_no, date, api_key):
-    """AeroDataBox via RapidAPI (鍏嶈垂鐗堟湁闄愭鏁?"""
+    """AeroDataBox via RapidAPI (免费版有限次数)"""
     if not api_key:
         return None
     try:
@@ -682,12 +682,12 @@ def query_aerodata(flight_no, date, api_key):
         except: pass
         print(f"[AeroDataBox] HTTP {e.code}: {body}")
     except Exception as e:
-        print(f"[AeroDataBox] 鏌ヨ澶辫触: {e}")
+        print(f"[AeroDataBox] 查询失败: {e}")
     return None
 
 
 def query_all_apis(flight_no, date, settings=None):
-    """鎸変紭鍏堢骇渚濇灏濊瘯鎵€鏈夊凡閰嶇疆鐨?API"""
+    """按优先级依次尝试所有已配置的 API"""
     settings = settings or get_active_settings()
     preferred = settings.get('preferred_api', 'auto')
 
@@ -697,7 +697,7 @@ def query_all_apis(flight_no, date, settings=None):
         ('aviationstack', query_aviationstack, settings.get('aviationstack_key', '')),
     ]
 
-    # 浼樺厛浣跨敤鐢ㄦ埛鎸囧畾鐨?API
+    # 优先使用用户指定的 API
     if preferred != 'auto':
         apis.sort(key=lambda x: 0 if x[0] == preferred else 1)
 
@@ -705,14 +705,14 @@ def query_all_apis(flight_no, date, settings=None):
         if key:
             result = query_fn(flight_no, date, key)
             if result and result.get('departure'):
-                # 鑷姩缂撳瓨鍒版湰鍦?
+                # 自动缓存到本地
                 cache_flight_result(flight_no, result)
                 return result
     return None
 
 
 def cache_flight_result(flight_no, result):
-    """灏?API 鏌ヨ缁撴灉缂撳瓨鍒版湰鍦版椂鍒昏〃"""
+    """将 API 查询结果缓存到本地时刻表"""
     try:
         schedules = load_json(SCHEDULES_FILE)
         fn = normalize_flight_no(flight_no)
@@ -729,14 +729,14 @@ def cache_flight_result(flight_no, result):
         }
         save_json(SCHEDULES_FILE, schedules)
     except Exception as e:
-        print(f"[缂撳瓨] 鍐欏叆澶辫触: {e}")
+        print(f"[缓存] 写入失败: {e}")
 
 
 def find_in_local_data(flight_no):
-    """浠庢湰鍦版椂鍒昏〃缂撳瓨 + 鐢ㄦ埛鍘嗗彶璁板綍涓煡鎵?""
+    """从本地时刻表缓存 + 用户历史记录中查找"""
     fn = normalize_flight_no(flight_no)
 
-    # 1. 鏈湴鏃跺埢琛ㄧ紦瀛?
+    # 1. 本地时刻表缓存
     schedules = load_json(SCHEDULES_FILE)
     if fn in schedules:
         entry = schedules[fn]
@@ -752,7 +752,7 @@ def find_in_local_data(flight_no):
                 'source': 'schedule',
             }
 
-    # 2. 鐢ㄦ埛鐨勫巻鍙茶埅鐝褰?
+    # 2. 用户的历史航班记录
     if is_legacy_mode():
         data = load_json(FLIGHTS_FILE)
         for flight in data.get('flights', []):
@@ -786,7 +786,7 @@ def find_in_local_data(flight_no):
     return None
 
 
-# ==================== Logo 浠ｇ悊缂撳瓨 ====================
+# ==================== Logo 代理缓存 ====================
 
 @app.route('/api/logo-proxy')
 def logo_proxy():
@@ -814,7 +814,7 @@ def logo_proxy():
         return '', 404
 
 
-# ==================== 椤甸潰璺敱 ====================
+# ==================== 页面路由 ====================
 
 APP_VERSION = 49
 
@@ -849,7 +849,7 @@ def favicon():
 
 @app.route('/debug')
 def debug_page():
-    """绾唴鑱旇瘖鏂〉闈?- 涓嶄緷璧栦换浣曞閮ㄨ祫婧?""
+    """纯内联诊断页面 - 不依赖任何外部资源"""
     return '''<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SkyTrace Debug</title>
@@ -862,10 +862,10 @@ button{background:#3b82f6;color:#fff;border:none;padding:10px 20px;border-radius
 button:hover{background:#2563eb;}
 #results{margin-top:20px;}
 </style></head><body>
-<h1>鉁堬笍 SkyTrace 璇婃柇宸ュ叿</h1>
-<button onclick="runTests()">馃攳 寮€濮嬭瘖鏂?/button>
-<button onclick="clearSW()">馃棏锔?娓呴櫎SW+缂撳瓨</button>
-<button onclick="location.href='/'">馃彔 鍥炲埌棣栭〉</button>
+<h1>✈️ SkyTrace 诊断工具</h1>
+<button onclick="runTests()">🔍 开始诊断</button>
+<button onclick="clearSW()">🗑️ 清除SW+缓存</button>
+<button onclick="location.href='/'">🏠 回到首页</button>
 <div id="results"></div>
 <script>
 var results = document.getElementById('results');
@@ -873,21 +873,21 @@ function log(msg, cls) { results.innerHTML += '<div class="test ' + (cls||'') + 
 
 async function runTests() {
     results.innerHTML = '';
-    log('鈴?寮€濮嬭瘖鏂?..');
+    log('⏳ 开始诊断...');
 
-    // 1. Service Worker 鐘舵€?
+    // 1. Service Worker 状态
     if ('serviceWorker' in navigator) {
         var regs = await navigator.serviceWorker.getRegistrations();
-        log('Service Worker 鏁伴噺: ' + regs.length, regs.length > 0 ? 'warn' : 'ok');
+        log('Service Worker 数量: ' + regs.length, regs.length > 0 ? 'warn' : 'ok');
         regs.forEach(function(r) { log('  SW scope: ' + r.scope + ', active: ' + (r.active ? r.active.scriptURL : 'none')); });
-    } else { log('Service Worker: 涓嶆敮鎸?, 'warn'); }
+    } else { log('Service Worker: 不支持', 'warn'); }
 
     // 2. Cache Storage
     var cacheNames = await caches.keys();
-    log('缂撳瓨鏁伴噺: ' + cacheNames.length, cacheNames.length > 0 ? 'warn' : 'ok');
-    cacheNames.forEach(function(n) { log('  缂撳瓨: ' + n); });
+    log('缓存数量: ' + cacheNames.length, cacheNames.length > 0 ? 'warn' : 'ok');
+    cacheNames.forEach(function(n) { log('  缓存: ' + n); });
 
-    // 3. 娴嬭瘯鍏抽敭璧勬簮
+    // 3. 测试关键资源
     var files = [
         {url: '/static/lib/leaflet.js', name: 'Leaflet.js'},
         {url: '/static/lib/arc.js', name: 'arc.js'},
@@ -908,35 +908,35 @@ async function runTests() {
             if (!size) { var blob = await resp.clone().blob(); size = blob.size; }
             var sizeStr = size > 1024 ? (size/1024).toFixed(0) + 'KB' : size + 'B';
             log(f.name + ': ' + resp.status + ' (' + sizeStr + ', ' + elapsed + 'ms)', resp.ok ? 'ok' : 'fail');
-        } catch(e) { log(f.name + ': 鉂?' + e.message, 'fail'); }
+        } catch(e) { log(f.name + ': ❌ ' + e.message, 'fail'); }
     }
 
-    // 4. 娴嬭瘯澶栭儴鍦板浘鐡︾墖
+    // 4. 测试外部地图瓦片
     try {
         var start2 = Date.now();
         var tileResp = await fetch('https://a.basemaps.cartocdn.com/dark_all/3/4/3.png');
-        log('鍦板浘鐡︾墖 (CartoDB): ' + tileResp.status + ' (' + (Date.now()-start2) + 'ms)', tileResp.ok ? 'ok' : 'fail');
-    } catch(e) { log('鍦板浘鐡︾墖 (CartoDB): 鉂?鏃犳硶杩炴帴 - ' + e.message, 'fail'); }
+        log('地图瓦片 (CartoDB): ' + tileResp.status + ' (' + (Date.now()-start2) + 'ms)', tileResp.ok ? 'ok' : 'fail');
+    } catch(e) { log('地图瓦片 (CartoDB): ❌ 无法连接 - ' + e.message, 'fail'); }
 
-    log('鉁?璇婃柇瀹屾垚');
+    log('✅ 诊断完成');
 }
 
 async function clearSW() {
     results.innerHTML = '';
-    // 娉ㄩ攢鎵€鏈?SW
+    // 注销所有 SW
     if ('serviceWorker' in navigator) {
         var regs = await navigator.serviceWorker.getRegistrations();
-        for (var r of regs) { await r.unregister(); log('宸叉敞閿€ SW: ' + r.scope, 'ok'); }
+        for (var r of regs) { await r.unregister(); log('已注销 SW: ' + r.scope, 'ok'); }
     }
-    // 娓呴櫎鎵€鏈夌紦瀛?
+    // 清除所有缓存
     var names = await caches.keys();
-    for (var n of names) { await caches.delete(n); log('宸插垹闄ょ紦瀛? ' + n, 'ok'); }
-    log('鉁?鎵€鏈?SW 鍜岀紦瀛樺凡娓呴櫎! 鐜板湪鍙互鍥炲埌棣栭〉浜?, 'ok');
+    for (var n of names) { await caches.delete(n); log('已删除缓存: ' + n, 'ok'); }
+    log('✅ 所有 SW 和缓存已清除! 现在可以回到首页了', 'ok');
 }
 </script></body></html>''', 200, {'Content-Type': 'text/html; charset=utf-8'}
 
 
-# ==================== API 璺敱: 璁よ瘉 & 鍒濆鍖?====================
+# ==================== API 路由: 认证 & 初始化 ====================
 
 @app.route('/api/auth/state', methods=['GET'])
 def auth_state():
@@ -1057,7 +1057,7 @@ def change_own_password():
     return jsonify({'success': True})
 
 
-# ==================== API 璺敱: 鏈哄満 & 鑸┖鍏徃 ====================
+# ==================== API 路由: 机场 & 航空公司 ====================
 
 @app.route('/api/airports', methods=['GET'])
 def get_airports():
@@ -1092,23 +1092,23 @@ def get_airlines():
     return jsonify(load_json(AIRLINES_FILE))
 
 
-# ==================== API 璺敱: 鑸彮鏅鸿兘鏌ヨ ====================
+# ==================== API 路由: 航班智能查询 ====================
 
 @app.route('/api/flight/lookup', methods=['GET'])
 @login_required
 def lookup_flight():
     """
-    鏅鸿兘鑸彮鏌ヨ 鈥?澶氱骇 fallback:
-      1. 鍦ㄧ嚎 API (AviationStack / AirLabs / AeroDataBox)
-      2. 鏈湴鏃跺埢琛ㄧ紦瀛?
-      3. 鐢ㄦ埛鍘嗗彶鑸彮
+    智能航班查询 — 多级 fallback:
+      1. 在线 API (AviationStack / AirLabs / AeroDataBox)
+      2. 本地时刻表缓存
+      3. 用户历史航班
     """
     raw = request.args.get('flight_no', '')
     date = request.args.get('date', '')
     flight_no = normalize_flight_no(raw)
 
     if not flight_no or len(flight_no) < 3:
-        return jsonify({'success': False, 'error': '璇疯緭鍏ユ湁鏁堣埅鐝彿'}), 400
+        return jsonify({'success': False, 'error': '请输入有效航班号'}), 400
 
     airline_code = extract_airline_code(flight_no)
     airlines = load_json(AIRLINES_FILE)
@@ -1133,14 +1133,14 @@ def lookup_flight():
         'api_configured': False,
     }
 
-    # 妫€鏌ユ槸鍚︽湁鍙敤鐨?API
+    # 检查是否有可用的 API
     settings = get_active_settings()
     has_api = bool(settings.get('aviationstack_key') or
                    settings.get('airlabs_key') or
                    settings.get('aerodata_key'))
     result['api_configured'] = has_api
 
-    # --- Level 1: API鏌ヨ ---
+    # --- Level 1: API查询 ---
     if has_api:
         api_result = query_all_apis(flight_no, date, settings=settings)
         if api_result and api_result.get('departure'):
@@ -1148,11 +1148,11 @@ def lookup_flight():
                 if v:
                     result[k] = v
             result['source'] = 'api'
-            # 鑷姩琛ュ叏缂哄け鐨勮埅绔欐ゼ
+            # 自动补全缺失的航站楼
             fill_terminal(result)
             return jsonify(result)
 
-    # --- Level 2 & 3: 鏈湴鏁版嵁 ---
+    # --- Level 2 & 3: 本地数据 ---
     local = find_in_local_data(flight_no)
     if local and local.get('departure'):
         for k in ['departure', 'arrival', 'dep_time', 'arr_time', 'aircraft',
@@ -1160,7 +1160,7 @@ def lookup_flight():
             if local.get(k):
                 result[k] = local[k]
         result['source'] = local.get('source', 'local')
-        # 鑷姩琛ュ叏缂哄け鐨勮埅绔欐ゼ
+        # 自动补全缺失的航站楼
         fill_terminal(result)
         return jsonify(result)
 
@@ -1170,12 +1170,12 @@ def lookup_flight():
 @app.route('/api/flight/status', methods=['GET'])
 @login_required
 def get_flight_live_status():
-    """鑾峰彇鑸彮瀹炴椂鐘舵€侊紙闇€閰嶇疆API锛?""
+    """获取航班实时状态（需配置API）"""
     flight_no = normalize_flight_no(request.args.get('flight_no', ''))
     date = request.args.get('date', '')
 
     if not flight_no:
-        return jsonify({'success': False, 'error': '璇疯緭鍏ヨ埅鐝彿'}), 400
+        return jsonify({'success': False, 'error': '请输入航班号'}), 400
 
     api_result = query_all_apis(flight_no, date, settings=get_active_settings())
     if api_result:
@@ -1190,15 +1190,15 @@ def get_flight_live_status():
             'source': api_result.get('api_source', ''),
         })
 
-    return jsonify({'success': False, 'error': '鏃犳硶鑾峰彇瀹炴椂鐘舵€侊紝璇烽厤缃瓵PI瀵嗛挜'})
+    return jsonify({'success': False, 'error': '无法获取实时状态，请配置API密钥'})
 
 
-# ==================== API 璺敱: 璁剧疆绠＄悊 ====================
+# ==================== API 路由: 设置管理 ====================
 
 @app.route('/api/settings', methods=['GET'])
 @login_required
 def get_settings_api():
-    """鑾峰彇璁剧疆锛圓PI key 鎵撶爜鏄剧ず锛?""
+    """获取设置（API key 打码显示）"""
     settings = get_active_settings()
     safe = {}
     sensitive_fields = {'aviationstack_key', 'airlabs_key', 'aerodata_key', 'github_backup_token'}
@@ -1217,13 +1217,13 @@ def get_settings_api():
 @app.route('/api/settings', methods=['POST'])
 @login_required
 def save_settings_api():
-    """淇濆瓨璁剧疆"""
+    """保存设置"""
     new = request.json or {}
     if is_legacy_mode():
         current = get_settings()
         for k, v in new.items():
             if isinstance(v, str) and '****' in v:
-                continue  # 涓嶈鐩栨墦鐮佸€?
+                continue  # 不覆盖打码值
             current[k] = v
             current[k] = v
         save_json(SETTINGS_FILE, current)
@@ -1235,16 +1235,16 @@ def save_settings_api():
 @app.route('/api/settings/test', methods=['POST'])
 @login_required
 def test_api_connection():
-    """娴嬭瘯 API 杩炴帴"""
+    """测试 API 连接"""
     try:
         body = request.json or {}
         api_name = body.get('api', '')
         api_key = body.get('key', '')
 
         if not api_key or '****' in api_key:
-            return jsonify({'success': False, 'message': '璇疯緭鍏ユ湁鏁堢殑API瀵嗛挜'})
+            return jsonify({'success': False, 'message': '请输入有效的API密钥'})
 
-        # 鐢ㄤ竴涓父瑙佽埅鐝彿鍋氭祴璇?
+        # 用一个常见航班号做测试
         test_fn = 'CZ3101'
         result = None
         if api_name == 'aviationstack':
@@ -1255,19 +1255,19 @@ def test_api_connection():
             result = query_aerodata(test_fn, '', api_key)
 
         if result and result.get('departure'):
-            return jsonify({'success': True, 'message': f'鉁?杩炴帴鎴愬姛锛佹煡鍒?{test_fn} 鑸彮淇℃伅'})
+            return jsonify({'success': True, 'message': f'✅ 连接成功！查到 {test_fn} 航班信息'})
         elif result:
-            return jsonify({'success': True, 'message': '鉁?API杩炴帴鎴愬姛 (娴嬭瘯鑸彮鏆傛棤鏁版嵁)'})
+            return jsonify({'success': True, 'message': '✅ API连接成功 (测试航班暂无数据)'})
         elif result is None:
-            return jsonify({'success': False, 'message': '鉂?杩炴帴澶辫触锛岃妫€鏌ュ瘑閽ユ槸鍚︽纭紙璇︽儏瑙佹帶鍒跺彴锛?})
+            return jsonify({'success': False, 'message': '❌ 连接失败，请检查密钥是否正确（详情见控制台）'})
         else:
-            return jsonify({'success': False, 'message': '鉂?杩炴帴澶辫触锛岃妫€鏌ュ瘑閽ユ槸鍚︽纭?})
+            return jsonify({'success': False, 'message': '❌ 连接失败，请检查密钥是否正确'})
     except Exception as e:
-        print(f'[API Test] 寮傚父: {e}')
-        return jsonify({'success': False, 'message': f'鉂?娴嬭瘯寮傚父: {e}'})
+        print(f'[API Test] 异常: {e}')
+        return jsonify({'success': False, 'message': f'❌ 测试异常: {e}'})
 
 
-# ==================== API 璺敱: 鑸彮 CRUD ====================
+# ==================== API 路由: 航班 CRUD ====================
 
 @app.route('/api/backup/github/test', methods=['POST'])
 @login_required
@@ -1389,10 +1389,10 @@ def get_flights():
     enhanced = []
     for flight in flights:
         f = flight.copy()
-        # 鑷姩琛ュ叏缂哄け鐨勮埅绔欐ゼ淇℃伅
+        # 自动补全缺失的航站楼信息
         fill_terminal(f)
 
-        # 缁忓仠淇℃伅: 鏌ユ壘缁忓仠鏈哄満鍚嶇О
+        # 经停信息: 查找经停机场名称
         if f.get('stopover'):
             stop_code = f['stopover']
             stop_airport = airports.get(stop_code, {})
@@ -1424,7 +1424,7 @@ def add_flight():
     flight = request.json
     flight['id'] = str(uuid.uuid4())[:8]
 
-    # 鑷姩缂撳瓨鑸彮璺嚎鍒版湰鍦版椂鍒昏〃
+    # 自动缓存航班路线到本地时刻表
     fn = normalize_flight_no(flight.get('flight_no', ''))
     if fn and flight.get('departure') and flight.get('arrival'):
         try:
@@ -1463,7 +1463,7 @@ def update_flight(flight_id):
         for i, f in enumerate(data.get('flights', [])):
             if f['id'] == flight_id:
                 updated['id'] = flight_id
-                # 淇濈暀鍚庡彴绠＄悊鐨勫瓧娈碉紙濡傝仈绋嬪垎缁勶級锛屽墠绔湭浼犳椂涓嶄涪澶?
+                # 保留后台管理的字段（如联程分组），前端未传时不丢失
                 for key in ('connected_group',):
                     if key in f and key not in updated:
                         updated[key] = f[key]
@@ -1474,7 +1474,7 @@ def update_flight(flight_id):
         saved = update_user_flight(get_current_user_id(), flight_id, updated)
         if saved is not None:
             return jsonify({'success': True})
-    return jsonify({'success': False, 'error': '鑸彮涓嶅瓨鍦?}), 404
+    return jsonify({'success': False, 'error': '航班不存在'}), 404
 
 
 @app.route('/api/flights/<flight_id>', methods=['DELETE'])
@@ -1486,47 +1486,47 @@ def delete_flight(flight_id):
         save_json(FLIGHTS_FILE, data)
     else:
         if not delete_user_flight(get_current_user_id(), flight_id):
-            return jsonify({'success': False, 'error': '鑸彮涓嶅瓨鍦?}), 404
+            return jsonify({'success': False, 'error': '航班不存在'}), 404
     return jsonify({'success': True})
 
 
-# ==================== API 璺敱: 缁熻 ====================
+# ==================== API 路由: 统计 ====================
 
 @app.route('/api/flights/connect', methods=['POST'])
 @login_required
 def connect_flights():
-    """鑱旂▼: 灏嗗涓埅鐝粦瀹氫负涓€缁?(鑷姩鍚堝苟宸叉湁鑱旂▼)"""
+    """联程: 将多个航班绑定为一组 (自动合并已有联程)"""
     body = request.json or {}
     flight_ids = body.get('flight_ids', [])
     if len(flight_ids) < 2:
-        return jsonify({'success': False, 'error': '鑷冲皯閫夋嫨2涓埅鐝?}), 400
+        return jsonify({'success': False, 'error': '至少选择2个航班'}), 400
 
     if not is_legacy_mode():
         group_id = connect_user_flights(get_current_user_id(), flight_ids)
         if not group_id:
-            return jsonify({'success': False, 'error': '鑷冲皯閫夋嫨2涓埅鐝?}), 400
+            return jsonify({'success': False, 'error': '至少选择2个航班'}), 400
         return jsonify({'success': True, 'group_id': group_id})
 
     data = load_json(FLIGHTS_FILE)
     all_flights = data.get('flights', [])
 
-    # 鏀堕泦鎵€閫夎埅鐝凡鏈夌殑 connected_group
+    # 收集所选航班已有的 connected_group
     existing_groups = set()
     for f in all_flights:
         if f['id'] in flight_ids and f.get('connected_group'):
             existing_groups.add(f['connected_group'])
 
-    # 浣跨敤宸叉湁鐨?group_id 涔嬩竴, 鎴栧垱寤烘柊鐨?
+    # 使用已有的 group_id 之一, 或创建新的
     if existing_groups:
         group_id = sorted(existing_groups)[0]
-        # 灏嗗叾浠栫粍鐨勮埅鐝篃鍚堝苟杩涙潵
+        # 将其他组的航班也合并进来
         for f in all_flights:
             if f.get('connected_group') in existing_groups:
                 f['connected_group'] = group_id
     else:
         group_id = str(uuid.uuid4())[:8]
 
-    # 缁欓€変腑鐨勮埅鐝墦涓?group_id
+    # 给选中的航班打上 group_id
     for f in all_flights:
         if f['id'] in flight_ids:
             f['connected_group'] = group_id
@@ -1538,37 +1538,37 @@ def connect_flights():
 @app.route('/api/flights/disconnect', methods=['POST'])
 @login_required
 def disconnect_flights():
-    """鑱旂▼: 瑙ｉ櫎鑱旂▼缁戝畾 (鏀寔鏁寸粍瑙ｉ櫎鎴栭儴鍒嗚В闄?"""
+    """联程: 解除联程绑定 (支持整组解除或部分解除)"""
     body = request.json or {}
     group_id = body.get('group_id', '')
     flight_ids = body.get('flight_ids', [])
 
     if not group_id and not flight_ids:
-        return jsonify({'success': False, 'error': '缂哄皯group_id鎴杅light_ids'}), 400
+        return jsonify({'success': False, 'error': '缺少group_id或flight_ids'}), 400
 
     if not is_legacy_mode():
         if not disconnect_user_flights(get_current_user_id(), group_id=group_id, flight_ids=flight_ids):
-            return jsonify({'success': False, 'error': '缂哄皯group_id鎴杅light_ids'}), 400
+            return jsonify({'success': False, 'error': '缺少group_id或flight_ids'}), 400
         return jsonify({'success': True})
 
     data = load_json(FLIGHTS_FILE)
     all_flights = data.get('flights', [])
 
     if flight_ids:
-        # 閮ㄥ垎瑙ｉ櫎: 鍙Щ闄ゆ寚瀹氳埅鐝殑 connected_group
+        # 部分解除: 只移除指定航班的 connected_group
         affected_groups = set()
         for f in all_flights:
             if f['id'] in flight_ids and f.get('connected_group'):
                 affected_groups.add(f['connected_group'])
                 f.pop('connected_group', None)
-        # 娓呯悊娈嬩綑: 濡傛灉鏌愪釜缁勫墿浣?鈮? 涓埅鐝? 涔熻В闄?
+        # 清理残余: 如果某个组剩余 ≤1 个航班, 也解除
         for gid in affected_groups:
             remaining = [f for f in all_flights if f.get('connected_group') == gid]
             if len(remaining) <= 1:
                 for f in remaining:
                     f.pop('connected_group', None)
     else:
-        # 鏁寸粍瑙ｉ櫎
+        # 整组解除
         for f in all_flights:
             if f.get('connected_group') == group_id:
                 f.pop('connected_group', None)
@@ -1587,21 +1587,21 @@ def get_stats():
         all_flights = list_user_flights(get_current_user_id())
     airports_data = load_airports_data()
 
-    # 骞翠唤绛涢€?
+    # 年份筛选
     year = request.args.get('year', '')
     if year and year != 'all':
         flights = [f for f in all_flights if f.get('date', '').startswith(year)]
     else:
         flights = all_flights
 
-    # 鏀堕泦鎵€鏈夊彲鐢ㄥ勾浠?
+    # 收集所有可用年份
     available_years = sorted(set(f.get('date', '')[:4] for f in all_flights if len(f.get('date', '')) >= 4), reverse=True)
 
     total_distance = 0
     visited_airports = set()
     visited_countries = set()
-    durations = []          # 姣忔椋炶鏃堕暱(h)
-    distances = []          # 姣忔椋炶璺濈(km)
+    durations = []          # 每段飞行时长(h)
+    distances = []          # 每段飞行距离(km)
 
     for flight in flights:
         visited_airports.add(flight.get('departure', ''))
@@ -1631,7 +1631,7 @@ def get_stats():
     visited_airports.discard('')
     visited_countries.discard('')
 
-    # 鏈€甯搁鑸嚎
+    # 最常飞航线
     route_counts = {}
     for flight in flights:
         route = f"{flight.get('departure','')}-{flight.get('arrival','')}"
@@ -1639,7 +1639,7 @@ def get_stats():
             route_counts[route] = route_counts.get(route, 0) + 1
     top_routes = sorted(route_counts.items(), key=lambda x: -x[1])[:5]
 
-    # 鏈€甯哥敤鑸┖鍏徃
+    # 最常用航空公司
     airline_counts = {}
     for flight in flights:
         al = flight.get('airline', '') or extract_airline_code(flight.get('flight_no', ''))
@@ -1647,8 +1647,8 @@ def get_stats():
             airline_counts[al] = airline_counts.get(al, 0) + 1
     top_airlines = sorted(airline_counts.items(), key=lambda x: -x[1])[:5]
 
-    # ========== 瓒ｅ懗缁熻 ==========
-    # 1. 搴т綅鍋忓ソ鍒嗘瀽
+    # ========== 趣味统计 ==========
+    # 1. 座位偏好分析
     seat_window, seat_aisle, seat_middle = 0, 0, 0
     for flight in flights:
         seat = (flight.get('seat') or '').upper().strip()
@@ -1662,13 +1662,13 @@ def get_stats():
         else:
             seat_middle += 1
 
-    # 2. 鑸变綅鍒嗗竷
+    # 2. 舱位分布
     cabin_counts = {}
     for flight in flights:
         cab = flight.get('class', 'economy') or 'economy'
         cabin_counts[cab] = cabin_counts.get(cab, 0) + 1
 
-    # 3. 鏈€鏃?鏈€鏅氳埅鐝?
+    # 3. 最早/最晚航班
     earliest_flight = None
     latest_flight = None
     for flight in flights:
@@ -1680,18 +1680,18 @@ def get_stats():
         if latest_flight is None or dep_t > latest_flight.get('dep_time', ''):
             latest_flight = flight
 
-    # 4. 鏈€闀?鏈€鐭埅鐝?
+    # 4. 最长/最短航班
     longest_idx = max(range(len(distances)), key=lambda i: distances[i]) if distances else -1
     shortest_idx = min(range(len(distances)), key=lambda i: distances[i] if distances[i] > 0 else 99999) if distances else -1
 
-    # 5. 鏈堝害鍒嗗竷
+    # 5. 月度分布
     month_counts = {}
     for flight in flights:
         d = flight.get('date', '')
         if len(d) >= 7:
             month_counts[d[:7]] = month_counts.get(d[:7], 0) + 1
 
-    # 6. 鏄熸湡鍒嗗竷 (鍚瘡澶╄埅鐝槑缁?
+    # 6. 星期分布 (含每天航班明细)
     weekday_counts = [0] * 7
     weekday_flights_detail = [[] for _ in range(7)]
     for flight in flights:
@@ -1706,7 +1706,7 @@ def get_stats():
         except (ValueError, KeyError):
             pass
 
-    # 鏈堝害鑸彮鏄庣粏
+    # 月度航班明细
     month_flights_detail = {}
     day_flights_detail = {}
     for flight in flights:
@@ -1726,7 +1726,7 @@ def get_stats():
                     day_flights_detail[d] = []
                 day_flights_detail[d].append(flight_info)
 
-    # 7. 骞冲潎椋炶璺濈/鏃堕暱
+    # 7. 平均飞行距离/时长
     avg_distance = round(total_distance / len(flights)) if flights else 0
     avg_hours = round(total_hours / len(flights), 1) if flights else 0
 
@@ -1781,11 +1781,11 @@ def get_stats():
     })
 
 
-# ==================== API 璺敱: 澶╂皵 ====================
+# ==================== API 路由: 天气 ====================
 
 @app.route('/api/weather', methods=['GET'])
 def get_weather():
-    """閫氳繃 Open-Meteo API 鑾峰彇鐩殑鍦板ぉ姘?(鏃犻渶API Key)"""
+    """通过 Open-Meteo API 获取目的地天气 (无需API Key)"""
     lat = request.args.get('lat', type=float)
     lon = request.args.get('lon', type=float)
     if lat is None or lon is None:
@@ -1805,7 +1805,7 @@ def get_weather():
 @app.route('/api/cache/stats', methods=['GET'])
 @login_required
 def cache_stats():
-    """鑾峰彇鏈湴缂撳瓨缁熻"""
+    """获取本地缓存统计"""
     schedules = load_json(SCHEDULES_FILE)
     total = len([k for k in schedules if not k.startswith('_')])
     return jsonify({
@@ -1814,11 +1814,11 @@ def cache_stats():
     })
 
 
-# ==================== 鍋ュ悍妫€鏌?====================
+# ==================== 健康检查 ====================
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    """鍋ュ悍妫€鏌ョ鐐?鈥?鐢ㄤ簬浜戝钩鍙板拰鐩戞帶"""
+    """健康检查端点 — 用于云平台和监控"""
     try:
         from sqlalchemy import select as _health_select
         from storage import get_session, User
@@ -1834,7 +1834,7 @@ def health_check():
 
 
 
-# ==================== 鍚姩 ====================
+# ==================== 启动 ====================
 
 if __name__ == '__main__':
     os.makedirs(DATA_DIR, exist_ok=True)
@@ -1849,7 +1849,7 @@ if __name__ == '__main__':
     print(f"  URL: http://0.0.0.0:{port}")
     print(f"  DB:  {db_url}")
     if is_legacy:
-        print("  [!] First run 鈥?open browser to create admin account")
+        print("  [!] First run — open browser to create admin account")
     else:
         print("  [OK] Multi-user mode active")
     print(f"  Health check: http://0.0.0.0:{port}/api/health")
