@@ -857,7 +857,15 @@ async function changeOwnPassword() {
 // ==================== 初始化 ====================
 // NOTE: 不使用 DOMContentLoaded，因为此脚本在 </body> 前加载
 // 此时 DOM 已完全可用，直接执行初始化
+var _initRunning = false;
+var _initDone = false;
 async function _skytraceInit() {
+    // 防止重复初始化 (SW controllerchange 等可能触发脚本二次执行)
+    if (_initRunning || _initDone) {
+        console.warn('[SkyTrace] Init already running/done, skipping duplicate call');
+        return;
+    }
+    _initRunning = true;
     console.log('[SkyTrace] Starting init...');
 
     // 安全网: 无论什么情况，8 秒后强制隐藏开屏（最早注册，最可靠）
@@ -888,6 +896,7 @@ async function _skytraceInit() {
     if (!ready) {
         _dismissSplash();
         clearTimeout(splashGuard);
+        _initDone = true;
         return;
     }
 
@@ -913,6 +922,8 @@ async function _skytraceInit() {
     checkApiStatus().catch(() => {});
     // 版本检查
     _checkVersionAndRefresh();
+    // 标记初始化完成
+    _initDone = true;
 }
 
 /** 隐藏开屏动画 (带淡出过渡) */

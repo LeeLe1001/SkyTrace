@@ -21,6 +21,35 @@ window.SKYTRACE_VERSION = 50;
     <script>
     (function(){
         var V = String(window.SKYTRACE_VERSION || '50');
+        // 页面加载频率防护: 10 秒内加载超过 2 次 → 可能是 SW 更新循环,
+        // 暂时禁用 SW 注册并清除所有 SW, 下一次正常访问时恢复
+        var _rlKey = '_skytrace_rl';
+        var now = Date.now();
+        var rlData = {};
+        try { rlData = JSON.parse(localStorage.getItem(_rlKey) || '{}'); } catch(e) {}
+        if (!rlData.times) rlData.times = [];
+        rlData.times.push(now);
+        // 只保留最近 10 秒的记录
+        rlData.times = rlData.times.filter(function(t) { return now - t < 10000; });
+        if (rlData.times.length > 2) {
+            // 检测到频繁加载, 可能是 SW 循环
+            console.warn('[SkyTrace] Frequent reload detected (' + rlData.times.length + 'x in 10s), clearing SW');
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(rs) {
+                    return Promise.all(rs.map(function(r) { return r.unregister(); }));
+                }).catch(function(){});
+            }
+            if ('caches' in window) {
+                caches.keys().then(function(ns) {
+                    return Promise.all(ns.map(function(n) { return caches.delete(n); }));
+                }).catch(function(){});
+            }
+            // 清空计数，等正常访问时恢复
+            localStorage.removeItem(_rlKey);
+        } else {
+            try { localStorage.setItem(_rlKey, JSON.stringify(rlData)); } catch(e) {}
+        }
+
         if (localStorage.getItem('_stv') === V) return;
         localStorage.setItem('_stv', V);
         if ('serviceWorker' in navigator) {

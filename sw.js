@@ -140,11 +140,15 @@ async function networkFirst(request, cacheName, options = {}) {
 async function cacheThenNetwork(request, cacheName, options = {}) {
   const { stripQueryKey = true } = options;
   const cache = await caches.open(cacheName);
-  const cacheKey = stripQueryKey ? stripQuery(request) : request;
+  const url = new URL(request.url);
+  // 瓦片缓存键只用 URL (不含 headers), 避免因请求头差异导致缓存未命中
+  const cacheKey = stripQueryKey
+    ? new Request(url.toString())
+    : new Request(url.toString());
   const cached = await cache.match(cacheKey);
 
-  // 后台异步更新
-  const networkPromise = fetch(request, { cache: 'no-cache' })
+  // 后台异步更新: 使用原始 URL 构造不带特殊 cache 模式的请求
+  const networkPromise = fetch(url.toString(), { cache: 'no-cache' })
     .then(response => {
       if (response.ok) cache.put(cacheKey, response.clone());
       return response;
