@@ -1,15 +1,15 @@
 /**
- * SkyTrace Service Worker v7 - Network First + Offline Cache
+ * SkyTrace Service Worker v8
  *
  * 策略:
- * - 静态资源 (JS/CSS/图标): stale-while-revalidate (先缓存后更新)
- * - API 请求: network-first (优先网络, 失败用缓存)
- * - 地图瓦片: cache-first (优先缓存, 大幅提升地图加载速度)
+ * - 静态资源 (JS/CSS/图标): network-first (确保最新, 失败用缓存)
+ * - API 请求: network-first (保留完整 query, 避免年份等参数被错误复用)
+ * - 地图瓦片: network-first + cache fallback (减少空白瓦片长期驻留)
  * - HTML 页面: network-first (确保最新)
  */
 
-const SW_QUERY_VERSION = new URL(self.location.href).searchParams.get('v') || '48';
-const CACHE_VERSION = `skytrace-v${SW_QUERY_VERSION}`;
+const SW_QUERY_VERSION = new URL(self.location.href).searchParams.get('v') || '49';
+const CACHE_VERSION = `skytrace-v${SW_QUERY_VERSION}-r2`;
 const STATIC_CACHE = CACHE_VERSION + '-static';
 const API_CACHE    = CACHE_VERSION + '-api';
 const TILE_CACHE   = CACHE_VERSION + '-tiles';
@@ -69,20 +69,20 @@ self.addEventListener('fetch', event => {
   // 跳过非 GET 请求
   if (event.request.method !== 'GET') return;
 
-  // 1. 地图瓦片: cache-first (大幅提升地图体验)
+  // 1. 地图瓦片: network-first + cache fallback（减少空白瓦片长期驻留）
   if (url.hostname.includes('basemaps.cartocdn.com') ||
       url.hostname.includes('tile.openstreetmap.org')) {
-    event.respondWith(cacheFirst(event.request, TILE_CACHE));
+    event.respondWith(networkFirst(event.request, TILE_CACHE, { stripQueryKey: false }));
     return;
   }
 
   // 2. API 请求: network-first
   if (url.pathname.startsWith('/api/')) {
-    event.respondWith(networkFirst(event.request, API_CACHE));
+    event.respondWith(networkFirst(event.request, API_CACHE, { stripQueryKey: false }));
     return;
   }
 
-  // 3. 静态资源: stale-while-revalidate (不缓存sw.js自身)
+  // 3. 静态资源: network-first (确保最新版本)
   if (url.pathname.startsWith('/static/')) {
     event.respondWith(networkFirst(event.request, STATIC_CACHE));
     return;
@@ -100,25 +100,9 @@ self.addEventListener('fetch', event => {
 
 // ==================== 缓存策略 ====================
 
-/** Cache-first: 优先缓存, 无缓存才走网络 (适合地图瓦片) */
-async function cacheFirst(request, cacheName) {
-  const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
-  if (cached) return cached;
-
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch (err) {
-    return new Response('', { status: 408, statusText: 'Offline' });
-  }
-}
-
 /** Network-first: 优先网络, 网络失败用缓存 */
-async function networkFirst(request, cacheName) {
+async function networkFirst(request, cacheName, options = {}) {
+  const { stripQueryKey = true } = options;
   const cache = await caches.open(cacheName);
   try {
     // 👇 关键修改：强制 Safari 绕过本地磁盘缓存，真正去网络请求！
@@ -130,12 +114,12 @@ async function networkFirst(request, cacheName) {
     
     const response = await fetch(fetchReq);
     if (response.ok) {
-      const cacheKey = stripQuery(request);
+      const cacheKey = stripQueryKey ? stripQuery(request) : request;
       cache.put(cacheKey, response.clone());
     }
     return response;
   } catch (err) {
-    const cacheKey = stripQuery(request);
+    const cacheKey = stripQueryKey ? stripQuery(request) : request;
     const cached = await cache.match(cacheKey);
     if (cached) return cached;
     if (request.headers.get('accept')?.includes('text/html')) {
@@ -144,28 +128,6 @@ async function networkFirst(request, cacheName) {
     }
     return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
   }
-}
-
-/** Stale-while-revalidate: 先返回缓存, 后台更新 */
-async function staleWhileRevalidate(request, cacheName) {
-  const cache = await caches.open(cacheName);
-  const cacheKey = stripQuery(request);
-  const cached = await cache.match(cacheKey);
-
-  const fetchPromise = fetch(request).then(response => {
-    if (response.ok) {
-      cache.put(cacheKey, response.clone());
-    }
-    return response;
-  }).catch(() => null);
-
-  if (cached) {
-    fetchPromise; // fire-and-forget
-    return cached;
-  }
-
-  const response = await fetchPromise;
-  return response || new Response('Offline', { status: 503 });
 }
 
 /** 去掉 URL query string 用于缓存匹配 */

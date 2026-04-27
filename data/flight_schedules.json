@@ -2650,5 +2650,41 @@
     "arr_terminal": "2",
     "cached_at": "2026-02-18 15:40",
     "source": "AeroDataBox"
+  },
+  "MU2017": {
+    "departure": "WEH",
+    "arrival": "ICN",
+    "dep_time": "11:00",
+    "arr_time": "13:15",
+    "aircraft": "",
+    "cached_at": "2026-04-26 16:37",
+    "source": "user"
+  },
+  "MU9999": {
+    "departure": "PVG",
+    "arrival": "PEK",
+    "dep_time": "08:00",
+    "arr_time": "10:00",
+    "aircraft": "",
+    "cached_at": "2026-04-27 01:16",
+    "source": "user"
+  },
+  "OZ312": {
+    "departure": "ICN",
+    "arrival": "NRT",
+    "dep_time": "09:30",
+    "arr_time": "11:50",
+    "aircraft": "",
+    "cached_at": "2026-04-27 01:16",
+    "source": "user"
+  },
+  "KE081": {
+    "departure": "ICN",
+    "arrival": "JFK",
+    "dep_time": "13:00",
+    "arr_time": "14:00",
+    "aircraft": "",
+    "cached_at": "2026-04-27 01:36",
+    "source": "user"
   }
 }

@@ -4,7 +4,8 @@
 
 - Workspace: `D:\Files\Coding\FootPrint`
 - Active branch: `codex/multi-user-foundation`
-- This handover reflects the multi-user database build through the current backend-backed GitHub backup pass.
+- **Last updated: 2026-04-27 — Cloud-readiness pass**
+- All 16 regression tests pass.
 
 ## What Is Already Working
 
@@ -140,3 +141,34 @@ These were already dirty in the local workspace and were intentionally not clean
 - [static/js/app.js](D:/Files/Coding/FootPrint/static/js/app.js)
 - [tests/test_phase_two_regressions.py](D:/Files/Coding/FootPrint/tests/test_phase_two_regressions.py)
 - [HANDOVER.md](D:/Files/Coding/FootPrint/HANDOVER.md)
+
+---
+
+## 2026-04-27: Cloud-Readiness Pass
+
+### Fixes
+- **Timezone regression**: `tzdata` added to requirements.txt (Python 3.12+ on Windows needs it for `zoneinfo`). All 3 failing tests now pass.
+- **Version consistency**: `index.html` script/style references synced from v48 → v49 to match `APP_VERSION`.
+
+### Security Hardening
+- Added `SESSION_COOKIE_SECURE` flag (controlled by `SKYTRACE_SECURE_COOKIES` env var, defaults to on).
+- Added in-memory rate limiting on `POST /api/auth/login` (10 attempts per IP per 5 minutes).
+- Encrypted at rest: API keys, GitHub backup tokens (already done in previous pass via `security_utils.py`).
+
+### Deployment Readiness
+- Added `/api/health` endpoint (returns DB status, version, mode).
+- `PORT` env var respected at startup for cloud platforms.
+- Created `.env.example` with all configuration keys documented.
+- `SKYTRACE_DATABASE_URL` supports PostgreSQL for production scale-out.
+
+### Files Changed In This Pass
+- `app.py` — security config, rate limiting, health endpoint, PORT support
+- `index.html` — version number sync
+- `requirements.txt` — added `tzdata`
+- `.env.example` — new file
+- `HANDOVER.md` — this section
+
+### Test Results
+```
+Ran 16 tests in 3.174s — OK
+```

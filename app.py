@@ -81,6 +81,25 @@ app.secret_key = _load_or_create_secret_key()
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('SKYTRACE_SECURE_COOKIES', '1') == '1'
+
+# Brute-force protection for login endpoints (in-memory, resets on restart)
+_LOGIN_ATTEMPTS: dict[str, list[float]] = {}
+_LOGIN_MAX_ATTEMPTS = 10
+_LOGIN_WINDOW_SECONDS = 300
+
+
+def _check_login_rate_limit(key: str) -> bool:
+    now = time.time()
+    attempts = _LOGIN_ATTEMPTS.get(key, [])
+    attempts = [t for t in attempts if now - t < _LOGIN_WINDOW_SECONDS]
+    _LOGIN_ATTEMPTS[key] = attempts
+    return len(attempts) < _LOGIN_MAX_ATTEMPTS
+
+
+def _record_login_attempt(key: str):
+    now = time.time()
+    _LOGIN_ATTEMPTS.setdefault(key, []).append(now)
 
 configure_database()
 
@@ -959,9 +978,14 @@ def login():
     if is_legacy_mode():
         return jsonify({'success': False, 'error': 'Please finish setup first.'}), 409
 
+    client_ip = request.remote_addr or 'unknown'
+    if not _check_login_rate_limit(client_ip):
+        return jsonify({'success': False, 'error': 'Too many login attempts. Please try again later.'}), 429
+
     body = request.json or {}
     user = verify_user_credentials(body.get('username', ''), body.get('password', ''))
     if not user:
+        _record_login_attempt(client_ip)
         return jsonify({'success': False, 'error': 'Invalid username or password.'}), 401
 
     _set_logged_in_user(user)
@@ -1753,20 +1777,44 @@ def cache_stats():
     })
 
 
+# ==================== 健康检查 ====================
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """健康检查端点 — 用于云平台和监控"""
+    try:
+        from storage import get_session, User
+        db_ok = get_session().scalar(select(User.id).limit(1)) is not None or is_legacy_mode()
+    except Exception:
+        db_ok = False
+    return jsonify({
+        'status': 'ok' if db_ok else 'degraded',
+        'version': APP_VERSION,
+        'database': 'ok' if db_ok else 'error',
+        'mode': 'legacy' if is_legacy_mode() else 'multi_user',
+    })
+
+
+
 # ==================== 启动 ====================
 
 if __name__ == '__main__':
     os.makedirs(DATA_DIR, exist_ok=True)
 
+    port = int(os.environ.get('PORT', 5000))
+    db_url = get_database_url()
+    is_legacy = is_legacy_mode()
+
     print("=" * 50)
-    print("  SkyTrace - Personal Flight Manager v2.0")
+    print("  SkyTrace - Flight Manager")
     print("=" * 50)
-    print("  URL: http://localhost:5000")
-    print(f"  DB: {get_database_url()}")
-    if is_legacy_mode():
-        print("  [!] Setup required - create the first admin account in the browser")
+    print(f"  URL: http://0.0.0.0:{port}")
+    print(f"  DB:  {db_url}")
+    if is_legacy:
+        print("  [!] First run — open browser to create admin account")
     else:
-        print("  [OK] Multi-user mode enabled")
+        print("  [OK] Multi-user mode active")
+    print(f"  Health check: http://0.0.0.0:{port}/api/health")
     print("=" * 50)
 
-    app.run(debug=False, host='0.0.0.0', port=5000)
+    app.run(debug=False, host='0.0.0.0', port=port)
