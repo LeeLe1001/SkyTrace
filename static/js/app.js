@@ -859,6 +859,12 @@ async function changeOwnPassword() {
 // 此时 DOM 已完全可用，直接执行初始化
 async function _skytraceInit() {
     console.log('[SkyTrace] Starting init...');
+
+    // 安全网: 无论什么情况，8 秒后强制隐藏开屏（最早注册，最可靠）
+    const splashGuard = setTimeout(() => {
+        _dismissSplash(true);
+    }, 8000);
+
     // 第一步: 同步初始化 — UI 必须立即可交互
     try { initTheme(); console.log('[SkyTrace] initTheme OK'); } catch(e) { console.error('[SkyTrace] initTheme:', e); }
     try { _initOfflineDetection(); console.log('[SkyTrace] offline detect OK'); } catch(e) { console.error('[SkyTrace] offline:', e); }
@@ -867,8 +873,23 @@ async function _skytraceInit() {
 
     // 第二步: 初始化地图 (依赖 Leaflet)
     try { initHomeMap(); console.log('[SkyTrace] initHomeMap OK'); } catch(e) { console.error('[SkyTrace] initHomeMap:', e); }
-    const ready = await ensureAuthReady();
-    if (!ready) return;
+
+    // 带超时的 auth 检查：超过 6 秒就放弃等待，直接进入
+    let ready = false;
+    try {
+        ready = await Promise.race([
+            ensureAuthReady(),
+            new Promise(r => setTimeout(() => { console.warn('[SkyTrace] auth timed out, proceeding'); r(true); }, 6000))
+        ]);
+    } catch (e) {
+        console.warn('[SkyTrace] auth check failed, proceeding:', e);
+        ready = true;
+    }
+    if (!ready) {
+        _dismissSplash();
+        clearTimeout(splashGuard);
+        return;
+    }
 
     // 第三步: 异步加载数据 (并行, 不阻塞 UI)
     Promise.all([
@@ -882,20 +903,16 @@ async function _skytraceInit() {
     }).catch(e => {
         console.error('[SkyTrace] Init error:', e);
     }).finally(() => {
-        // 数据加载完成（无论成功/失败）→ 隐藏开屏动画
         _dismissSplash();
+        clearTimeout(splashGuard);
     });
 
     // 第四步: 设置航班号输入框事件
     try { _initFlightInput(); } catch(e) { console.error('[SkyTrace] _initFlightInput:', e); }
     // 检查 API 状态
     checkApiStatus().catch(() => {});
-    // 版本检查 - 自动刷新
+    // 版本检查
     _checkVersionAndRefresh();
-    // 安全网: 如果5秒后开屏动画还在，强制隐藏
-    setTimeout(() => {
-        _dismissSplash(true);
-    }, 5000);
 }
 
 /** 隐藏开屏动画 (带淡出过渡) */
