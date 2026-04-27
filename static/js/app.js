@@ -2495,23 +2495,33 @@ function animateCountUp(el, endValue, opts = {}) {
 }
 
 // ==================== 版本检查 - 自动刷新 ====================
+var _lastVersionCheck = 0;
+var _versionCheckInFlight = false;
 function _checkVersionAndRefresh() {
-    fetch('/api/version?_=' + Date.now())
-        .then(r => r.json())
-        .then(data => {
+    var now = Date.now();
+    // 防抖: 30 秒内不重复检查
+    if (now - _lastVersionCheck < 30000) return;
+    _lastVersionCheck = now;
+    // 防止并发检查
+    if (_versionCheckInFlight) return;
+    _versionCheckInFlight = true;
+    fetch('/api/version?_=' + now)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
             if (data.version && data.version !== SKYTRACE_VERSION) {
                 console.warn('[SkyTrace] Version mismatch: loaded=' + SKYTRACE_VERSION + ' server=' + data.version);
                 // 仅清除旧缓存，由 index.html 的版本自检脚本处理 SW 注销
                 if ('caches' in window) {
-                    caches.keys().then(ks => {
-                        ks.forEach(k => caches.delete(k).catch(() => {}));
+                    caches.keys().then(function(ks) {
+                        ks.forEach(function(k) { caches.delete(k).catch(function() {}); });
                     });
                 }
                 // 延迟刷新，避免和 SW 清理竞态
-                setTimeout(() => { location.reload(true); }, 2000);
+                setTimeout(function() { location.reload(true); }, 2000);
             }
         })
-        .catch(() => {});
+        .catch(function() {})
+        .finally(function() { _versionCheckInFlight = false; });
 }
 
 // ==================== 标签切换 ====================
@@ -3180,11 +3190,16 @@ async function forceRefreshApp() {
         // 清除所有 SW 缓存
         if ('caches' in window) {
             const keys = await caches.keys();
-            await Promise.all(keys.map(k => caches.delete(k)));
+            await Promise.all(keys.map(function(k) { return caches.delete(k); }));
         }
-        // 通知 SW 重新安装
+        // 通知 waiting SW 激活，然后重新安装
         if ('serviceWorker' in navigator) {
-            const reg = await navigator.serviceWorker.getRegistration();
+            var reg = await navigator.serviceWorker.getRegistration();
+            if (reg && reg.waiting) {
+                reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                // 等待 SW 激活
+                await new Promise(function(r) { setTimeout(r, 300); });
+            }
             if (reg) await reg.update();
         }
         // 延迟一下让用户看到动画

@@ -39,7 +39,8 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then(cache => cache.addAll(PRECACHE_URLS))
-      .then(() => self.skipWaiting())
+      // 不调用 skipWaiting() 以避免 SW 立即激活导致页面隐性重载
+      // 新 SW 会在用户下次导航/重新打开时自动激活
   );
 });
 
@@ -57,6 +58,14 @@ self.addEventListener('activate', event => {
       )
     ).then(() => self.clients.claim())
   );
+});
+
+// ==================== Message (允许页面主动触发 skipWaiting) ====================
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[SW] Page requested skipWaiting, activating now');
+    self.skipWaiting();
+  }
 });
 
 // ==================== Fetch ====================
