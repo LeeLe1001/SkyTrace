@@ -9,7 +9,7 @@
  */
 
 const SW_QUERY_VERSION = new URL(self.location.href).searchParams.get('v') || '49';
-const SW_TIMESTAMP = '20260427a';
+const SW_TIMESTAMP = '20260427b';
 const CACHE_VERSION = `skytrace-v${SW_QUERY_VERSION}-${SW_TIMESTAMP}`;
 const STATIC_CACHE = CACHE_VERSION + '-static';
 const API_CACHE    = CACHE_VERSION + '-api';

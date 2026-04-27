@@ -138,6 +138,11 @@ function _scheduleFmapHeatRefresh(delay = 180) {
 
 function _refreshFlightsMapLayout(refit = false) {
     if (!fmap) return;
+    // 立即执行一次 invalidateSize（不等 setTimeout）
+    fmap.invalidateSize();
+    if (refit && _fmapViewportBounds?.isValid()) {
+        _fitMapToBounds(fmap, _fmapViewportBounds);
+    }
     const refresh = () => {
         if (!fmap) return;
         fmap.invalidateSize();
@@ -1580,6 +1585,12 @@ function initFlightsMap() {
     _attachTileErrorRecovery(fmapTileLayer, tileUrl);
     L.control.zoom({ position: 'bottomright' }).addTo(fmap);
     fmapInited = true;
+
+    // 多次 invalidateSize 确保容器完成布局后再计算瓦片尺寸
+    // (解决初始渲染和切换标签页时瓦片大小/空白问题)
+    [60, 200, 500, 1000].forEach(ms => {
+        setTimeout(() => { if (fmap) fmap.invalidateSize(); }, ms);
+    });
 
     // 初始化筛选控件事件
     document.querySelectorAll('.fmap-pill[data-fmap-status]').forEach(pill => {
