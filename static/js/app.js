@@ -464,8 +464,8 @@ function _attachTileErrorRecovery(tileLayer, preferredUrl) {
         }
         tileLayer._tileErrorCount += 1;
 
-        // 10 秒内连续错误过多时，自动切到 OSM，避免整屏瓦片空白
-        if (!tileLayer._tileFallbackApplied && tileLayer._tileErrorCount >= 8) {
+        // 10 秒内连续错误 ≥3 次时，自动切到 OSM，避免整屏瓦片空白
+        if (!tileLayer._tileFallbackApplied && tileLayer._tileErrorCount >= 3) {
             tileLayer._tileFallbackApplied = true;
             tileLayer.setUrl(TILE_OSM);
             console.warn('[SkyTrace] tile fallback -> OpenStreetMap');

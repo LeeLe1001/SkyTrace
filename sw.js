@@ -70,10 +70,10 @@ self.addEventListener('fetch', event => {
   // 跳过非 GET 请求
   if (event.request.method !== 'GET') return;
 
-  // 1. 地图瓦片: network-first + cache fallback（减少空白瓦片长期驻留）
+  // 1. 地图瓦片: cache-first（先展示缓存避免空白, 后台静默更新）
   if (url.hostname.includes('basemaps.cartocdn.com') ||
       url.hostname.includes('tile.openstreetmap.org')) {
-    event.respondWith(networkFirst(event.request, TILE_CACHE, { stripQueryKey: false }));
+    event.respondWith(cacheThenNetwork(event.request, TILE_CACHE, { stripQueryKey: false }));
     return;
   }
 
@@ -129,6 +129,36 @@ async function networkFirst(request, cacheName, options = {}) {
     }
     return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
   }
+}
+
+/** Cache-then-Network: 立即返回缓存（避免瓦片空白），然后静默更新缓存 */
+async function cacheThenNetwork(request, cacheName, options = {}) {
+  const { stripQueryKey = true } = options;
+  const cache = await caches.open(cacheName);
+  const cacheKey = stripQueryKey ? stripQuery(request) : request;
+  const cached = await cache.match(cacheKey);
+
+  // 后台异步更新
+  const networkPromise = fetch(request, { cache: 'no-cache' })
+    .then(response => {
+      if (response.ok) cache.put(cacheKey, response.clone());
+      return response;
+    })
+    .catch(() => null);
+
+  // 有缓存立刻返回，不等网络
+  if (cached) {
+    networkPromise; // 不 await，静默更新
+    return cached;
+  }
+
+  // 无缓存时等网络
+  try {
+    const response = await networkPromise;
+    if (response) return response;
+  } catch (e) { /* fall through */ }
+
+  return new Response('Tile unavailable', { status: 404 });
 }
 
 /** 去掉 URL query string 用于缓存匹配 */
