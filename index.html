@@ -17,24 +17,22 @@
     <script>
 window.SKYTRACE_VERSION = 50;
     </script>
-    <!-- 强制版本更新: 版本不匹配时清除所有SW缓存并刷新 -->
+    <!-- 版本更新: 版本不匹配时静默清除旧 SW 缓存（不做 reload，避免开屏死循环） -->
     <script>
     (function(){
-  var V=String(window.SKYTRACE_VERSION || '49');
-        if(localStorage.getItem('_stv')===V)return;
-        localStorage.setItem('_stv',V);
-        document.documentElement.style.display='none';
-        var p=Promise.resolve();
-        if('serviceWorker' in navigator){
-            p=navigator.serviceWorker.getRegistrations().then(function(rs){
-                return Promise.all(rs.map(function(r){return r.unregister()}));
-            }).then(function(){
+        var V = String(window.SKYTRACE_VERSION || '50');
+        if (localStorage.getItem('_stv') === V) return;
+        localStorage.setItem('_stv', V);
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(rs) {
+                return Promise.all(rs.map(function(r) { return r.unregister(); }));
+            }).then(function() {
                 return caches.keys();
-            }).then(function(ns){
-                return Promise.all(ns.map(function(n){return caches.delete(n)}));
-            });
+            }).then(function(ns) {
+                return Promise.all(ns.map(function(n) { return caches.delete(n); }));
+            }).catch(function(){});
         }
-        p.then(function(){location.reload()});
+        // 不再 location.reload()，让页面正常加载，避免死锁
     })();
     </script>
     <!-- Leaflet CSS (本地) -->
