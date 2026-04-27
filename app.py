@@ -1783,8 +1783,9 @@ def cache_stats():
 def health_check():
     """健康检查端点 — 用于云平台和监控"""
     try:
+        from sqlalchemy import select as _health_select
         from storage import get_session, User
-        db_ok = get_session().scalar(select(User.id).limit(1)) is not None or is_legacy_mode()
+        db_ok = get_session().scalar(_health_select(User.id).limit(1)) is not None or is_legacy_mode()
     except Exception:
         db_ok = False
     return jsonify({
