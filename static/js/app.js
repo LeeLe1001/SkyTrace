@@ -41,7 +41,7 @@ let _isOffline = false;
 let _hoState = 'hidden'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
 let _authState = null;
-const SKYTRACE_VERSION = window.SKYTRACE_VERSION || 49;
+const SKYTRACE_VERSION = window.SKYTRACE_VERSION || 48;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -486,13 +486,11 @@ function switchLang(lang) {
     document.getElementById('lang-dropdown')?.classList.remove('active');
     updateSettingsLangButtons();
     _applyAuthState(_authState);
-    _updateSyncSectionCopy();
 }
 function switchLangFromSettings(lang) {
     setLanguage(lang);
     updateSettingsLangButtons();
     _applyAuthState(_authState);
-    _updateSyncSectionCopy();
 }
 function updateSettingsLangButtons() {
     document.querySelectorAll('.settings-lang-btn').forEach(btn => {
@@ -556,25 +554,12 @@ function _renderManagedUsers(users) {
                 <div class="managed-user-name">${user.display_name || user.username}</div>
                 <div class="managed-user-meta">@${user.username}${user.is_admin ? ` · ${t('adminBadge') || 'Admin'}` : ''}</div>
             </div>
+            <div class="managed-user-actions">
+                <button class="btn-sm btn-secondary" onclick="event.stopPropagation();resetUserPassword(${user.id}, '${(user.display_name || user.username).replace(/'/g, "\\'")}')" title="${t('resetPassword') || 'Reset Password'}">&#128274;</button>
+                ${!user.is_admin ? `<button class="btn-sm btn-danger" onclick="event.stopPropagation();deleteUserAccount(${user.id}, '${(user.display_name || user.username).replace(/'/g, "\\'")}')" title="${t('deleteUser') || 'Delete User'}">&#128465;</button>` : ''}
+            </div>
         </div>
     `).join('');
-}
-
-function _isServerBackupMode() {
-    return _authState?.storage_mode === 'multi_user';
-}
-
-function _updateSyncSectionCopy() {
-    const titleEl = document.querySelector('#settings-sync-section [data-i18n="settingsSync"]');
-    const introEl = document.querySelector('#settings-sync-section [data-i18n="syncIntro"]');
-    if (!titleEl || !introEl) return;
-    if (_isServerBackupMode()) {
-        titleEl.textContent = t('settingsBackup') || t('settingsSync');
-        introEl.textContent = t('backupIntro') || t('syncIntro');
-    } else {
-        titleEl.textContent = t('settingsSync');
-        introEl.textContent = t('syncIntro');
-    }
 }
 
 function _applyAuthState(state) {
@@ -604,12 +589,9 @@ function _applyAuthState(state) {
         storageModeEl.textContent = modeMap[_authState?.storage_mode] || (_authState?.storage_mode || '-');
     }
 
-    const versionEl = document.getElementById('settings-current-version');
-    if (versionEl) versionEl.textContent = `v${SKYTRACE_VERSION}`;
-
     const syncSection = document.getElementById('settings-sync-section');
     if (syncSection) {
-        syncSection.style.display = '';
+        syncSection.style.display = _authState?.storage_mode === 'multi_user' ? 'none' : '';
     }
 
     const adminSection = document.getElementById('settings-user-admin-section');
@@ -767,6 +749,54 @@ async function createManagedUser() {
         await loadManagedUsers();
     } catch (e) {
         _setManagedUserResult(e.message || (t('createUserFailed') || 'Failed to create user.'), 'error', 5000);
+    }
+}
+
+async function deleteUserAccount(userId, userName) {
+    if (!confirm((t('confirmDeleteUser') || 'Delete user "{0}" and all their flights? This cannot be undone.').replace('{0}', userName))) return;
+    _setManagedUserResult(t('authWorking') || 'Working...', 'info', 0);
+    try {
+        const resp = await fetch('/api/admin/users/' + userId, { method: 'DELETE' });
+        const data = await _readJsonResponse(resp);
+        _setManagedUserResult(t('deleteUserSuccess') || 'User deleted.', 'success');
+        await loadManagedUsers();
+    } catch (e) {
+        _setManagedUserResult(e.message || (t('deleteUserFailed') || 'Failed to delete user.'), 'error', 5000);
+    }
+}
+
+async function resetUserPassword(userId, userName) {
+    var newPw = prompt((t('resetPasswordPrompt') || 'Enter new password for {0} (min 6 chars):').replace('{0}', userName));
+    if (!newPw) return;
+    if (newPw.length < 6) { _setManagedUserResult(t('passwordTooShort') || 'Password must be at least 6 characters.', 'error', 4000); return; }
+    _setManagedUserResult(t('authWorking') || 'Working...', 'info', 0);
+    try {
+        const resp = await fetch('/api/admin/users/' + userId + '/password', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: newPw }),
+        });
+        const data = await _readJsonResponse(resp);
+        _setManagedUserResult(t('resetPasswordSuccess') || 'Password updated.', 'success');
+    } catch (e) {
+        _setManagedUserResult(e.message || (t('resetPasswordFailed') || 'Failed to update password.'), 'error', 5000);
+    }
+}
+
+async function changeOwnPassword() {
+    var newPw = prompt(t('changePasswordPrompt') || 'Enter new password (min 6 chars):');
+    if (!newPw) return;
+    if (newPw.length < 6) { alert(t('passwordTooShort') || 'Password must be at least 6 characters.'); return; }
+    try {
+        const resp = await fetch('/api/auth/password', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: newPw }),
+        });
+        const data = await _readJsonResponse(resp);
+        alert(t('passwordChanged') || 'Password changed successfully.');
+    } catch (e) {
+        alert(e.message || (t('passwordChangeFailed') || 'Failed to change password.'));
     }
 }
 
@@ -2993,7 +3023,6 @@ async function openSettings() {
     updateSettingsLangButtons();
     updateSettingsThemeUI(document.documentElement.getAttribute('data-theme') || 'dark');
     _applyAuthState(_authState);
-    _updateSyncSectionCopy();
     try {
         const settings = await (await fetch('/api/settings')).json();
         document.getElementById('aviationstack-key').value = settings.aviationstack_key || '';
@@ -3002,15 +3031,10 @@ async function openSettings() {
         updateApiStatusBadge('avstack', settings.aviationstack_key_set);
         updateApiStatusBadge('airlabs', settings.airlabs_key_set);
         updateApiStatusBadge('aerodata', settings.aerodata_key_set);
-        if (_isServerBackupMode()) {
-            _loadSyncConfigToUI({
-                token: settings.github_backup_token || '',
-                repo: settings.github_backup_repo || 'LeeLe1001/SkyTrace',
-            });
-        }
     } catch (e) {}
     try { const stats = await (await fetch('/api/cache/stats')).json(); document.getElementById('cache-count').textContent = stats.total_cached || 0; } catch (e) {}
-    if (!_isServerBackupMode()) {
+    // 加载 GitHub 同步配置
+    if (_authState?.storage_mode !== 'multi_user') {
         _loadSyncConfigToUI();
     }
     if (_authState?.user?.is_admin) {
@@ -3023,29 +3047,8 @@ function updateApiStatusBadge(prefix, isSet) {
     if (el) { el.textContent = isSet ? t('apiConfigured') : t('apiNotConfigured'); el.className = 'api-status ' + (isSet ? 'configured' : ''); }
 }
 async function saveSettings() {
-    const settings = {
-        aviationstack_key: document.getElementById('aviationstack-key').value.trim(),
-        airlabs_key: document.getElementById('airlabs-key').value.trim(),
-        aerodata_key: document.getElementById('aerodata-key').value.trim(),
-    };
-    if (_isServerBackupMode()) {
-        settings.github_backup_token = document.getElementById('github-token').value.trim();
-        settings.github_backup_repo = document.getElementById('github-repo').value.trim() || 'LeeLe1001/SkyTrace';
-    }
-    try {
-        const resp = await fetch('/api/settings', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(settings),
-        });
-        if (!resp.ok) {
-            throw new Error(`HTTP ${resp.status}`);
-        }
-        closeSettings();
-        checkApiStatus();
-    } catch (e) {
-        alert(t('settingsSaveFailed'));
-    }
+    const settings = { aviationstack_key: document.getElementById('aviationstack-key').value.trim(), airlabs_key: document.getElementById('airlabs-key').value.trim(), aerodata_key: document.getElementById('aerodata-key').value.trim() };
+    try { await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) }); closeSettings(); checkApiStatus(); } catch (e) { alert(t('settingsSaveFailed')); }
 }
 async function testApi(apiName) {
     const keyMap = { 'aviationstack': 'aviationstack-key', 'airlabs': 'airlabs-key', 'aerodata': 'aerodata-key' };
@@ -3105,22 +3108,11 @@ function _saveSyncConfig(token, repo) {
     if (repo) localStorage.setItem(_SYNC_REPO_KEY, repo);
 }
 
-function _getSyncFormConfig() {
-    return {
-        token: document.getElementById('github-token')?.value.trim() || '',
-        repo: document.getElementById('github-repo')?.value.trim() || 'LeeLe1001/SkyTrace',
-    };
-}
-
-function _loadSyncConfigToUI(cfgOverride) {
-    const cfg = cfgOverride || _getSyncConfig();
+function _loadSyncConfigToUI() {
+    const cfg = _getSyncConfig();
     const tokenEl = document.getElementById('github-token');
     const repoEl = document.getElementById('github-repo');
-    if (tokenEl) {
-        tokenEl.value = cfg.token
-            ? (cfg.token.includes('****') ? cfg.token : cfg.token.slice(0, 4) + '****' + cfg.token.slice(-4))
-            : '';
-    }
+    if (tokenEl && cfg.token) tokenEl.value = cfg.token.slice(0, 4) + '****' + cfg.token.slice(-4);
     if (repoEl && cfg.repo) repoEl.value = cfg.repo;
 }
 
@@ -3141,7 +3133,10 @@ async function _githubApi(path, method, body, token) {
 
 async function testGithubSync() {
     const resultEl = document.getElementById('sync-result');
-    const { token, repo } = _getSyncFormConfig();
+    const tokenEl = document.getElementById('github-token');
+    const repoEl = document.getElementById('github-repo');
+    const token = tokenEl.value.trim();
+    const repo = repoEl.value.trim();
 
     if (!token || !repo) {
         resultEl.textContent = t('syncNeedConfig');
@@ -3150,34 +3145,15 @@ async function testGithubSync() {
     }
 
     // 如果是打码的旧 token，用存储的真实值
-    resultEl.textContent = t('testing');
-    resultEl.className = 'api-test-result info';
-
-    if (_isServerBackupMode()) {
-        try {
-            const resp = await fetch('/api/backup/github/test', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token, repo }),
-            });
-            const data = await resp.json();
-            if (!resp.ok || !data.success) throw new Error(data.error || `HTTP ${resp.status}`);
-            _loadSyncConfigToUI({ token, repo: data.repo || repo });
-            resultEl.textContent = `✅ ${t('syncConnected')} — ${data.full_name || data.repo || repo} (${data.visibility || 'repo'})`;
-            resultEl.className = 'api-test-result success';
-        } catch (e) {
-            resultEl.textContent = `❌ ${e.message}`;
-            resultEl.className = 'api-test-result error';
-        }
-        return;
-    }
-
     const realToken = token.includes('****') ? _getSyncConfig().token : token;
     if (!realToken) {
         resultEl.textContent = t('syncNeedConfig');
         resultEl.className = 'api-test-result error';
         return;
     }
+
+    resultEl.textContent = t('testing');
+    resultEl.className = 'api-test-result info';
 
     try {
         const data = await _githubApi(`/repos/${repo}`, 'GET', null, realToken);
@@ -3192,9 +3168,13 @@ async function testGithubSync() {
 
 async function syncToGithub() {
     const resultEl = document.getElementById('sync-result');
-    const { token, repo } = _getSyncFormConfig();
+    const tokenEl = document.getElementById('github-token');
+    const repoEl = document.getElementById('github-repo');
+    const token = tokenEl.value.trim();
+    const repo = repoEl.value.trim();
+    const realToken = token.includes('****') ? _getSyncConfig().token : token;
 
-    if (!token || !repo) {
+    if (!realToken || !repo) {
         resultEl.textContent = t('syncNeedConfig');
         resultEl.className = 'api-test-result error';
         return;
@@ -3204,35 +3184,6 @@ async function syncToGithub() {
     if (btn) btn.disabled = true;
     resultEl.textContent = t('syncPushing');
     resultEl.className = 'api-test-result info';
-
-    if (_isServerBackupMode()) {
-        try {
-            const resp = await fetch('/api/backup/github/push', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token, repo }),
-            });
-            const data = await resp.json();
-            if (!resp.ok || !data.success) throw new Error(data.error || `HTTP ${resp.status}`);
-            _loadSyncConfigToUI({ token, repo: data.repo || repo });
-            resultEl.textContent = `✅ ${t('syncPushSuccess')} (${data.flight_count || 0} ${t('syncFlightsUnit')})`;
-            resultEl.className = 'api-test-result success';
-        } catch (e) {
-            resultEl.textContent = `❌ ${t('syncPushFailed')}: ${e.message}`;
-            resultEl.className = 'api-test-result error';
-        } finally {
-            if (btn) btn.disabled = false;
-        }
-        return;
-    }
-
-    const realToken = token.includes('****') ? _getSyncConfig().token : token;
-    if (!realToken) {
-        resultEl.textContent = t('syncNeedConfig');
-        resultEl.className = 'api-test-result error';
-        if (btn) btn.disabled = false;
-        return;
-    }
 
     try {
         // 获取当前航班数据
@@ -3280,9 +3231,13 @@ async function syncToGithub() {
 
 async function syncFromGithub() {
     const resultEl = document.getElementById('sync-result');
-    const { token, repo } = _getSyncFormConfig();
+    const tokenEl = document.getElementById('github-token');
+    const repoEl = document.getElementById('github-repo');
+    const token = tokenEl.value.trim();
+    const repo = repoEl.value.trim();
+    const realToken = token.includes('****') ? _getSyncConfig().token : token;
 
-    if (!token || !repo) {
+    if (!realToken || !repo) {
         resultEl.textContent = t('syncNeedConfig');
         resultEl.className = 'api-test-result error';
         return;
@@ -3294,36 +3249,6 @@ async function syncFromGithub() {
     if (btn) btn.disabled = true;
     resultEl.textContent = t('syncPulling');
     resultEl.className = 'api-test-result info';
-
-    if (_isServerBackupMode()) {
-        try {
-            const resp = await fetch('/api/backup/github/pull', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token, repo }),
-            });
-            const data = await resp.json();
-            if (!resp.ok || !data.success) throw new Error(data.error || `HTTP ${resp.status}`);
-            _loadSyncConfigToUI({ token, repo: data.repo || repo });
-            resultEl.textContent = `✅ ${t('syncPullSuccess')} (${data.flight_count || 0} ${t('syncFlightsUnit')})`;
-            resultEl.className = 'api-test-result success';
-            setTimeout(() => location.reload(), 1500);
-        } catch (e) {
-            resultEl.textContent = `❌ ${t('syncPullFailed')}: ${e.message}`;
-            resultEl.className = 'api-test-result error';
-        } finally {
-            if (btn) btn.disabled = false;
-        }
-        return;
-    }
-
-    const realToken = token.includes('****') ? _getSyncConfig().token : token;
-    if (!realToken) {
-        resultEl.textContent = t('syncNeedConfig');
-        resultEl.className = 'api-test-result error';
-        if (btn) btn.disabled = false;
-        return;
-    }
 
     try {
         const file = await _githubApi(`/repos/${repo}/contents/data/flights.json`, 'GET', null, realToken);
@@ -3487,8 +3412,6 @@ function toggleConnectMode() {
         // 自动切换到行程列表页
         const flightsTab = document.querySelector('.mobile-nav-tab[data-tab="flights"]') || document.querySelector('.nav-tab[data-tab="flights"]');
         if (flightsTab) flightsTab.click();
-        const listSubtab = document.querySelector('.flights-sub-tab[data-subtab="list"]');
-        if (listSubtab && !listSubtab.classList.contains('active')) listSubtab.click();
         let bar = document.getElementById('connect-action-bar');
         if (!bar) { bar = document.createElement('div'); bar.id = 'connect-action-bar'; bar.className = 'connect-action-bar'; const subview = document.getElementById('flights-list-subview'); if (subview) subview.appendChild(bar); }
         _updateConnectBar();
@@ -3516,12 +3439,7 @@ function _updateConnectBar() {
 function toggleConnectSelect(id) { if (selectedConnectIds.has(id)) selectedConnectIds.delete(id); else selectedConnectIds.add(id); _updateConnectBar(); renderFlightsList(); }
 async function confirmConnect() {
     if (selectedConnectIds.size < 2) return;
-    try {
-        const resp = await fetch('/api/flights/connect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ flight_ids: Array.from(selectedConnectIds) }) });
-        const data = await resp.json().catch(() => ({}));
-        if (!resp.ok || !data.success) throw new Error(data.error || `HTTP ${resp.status}`);
-        connectMode = false; selectedConnectIds.clear(); const bar = document.getElementById('connect-action-bar'); if (bar) bar.style.display = 'none'; loadFlights();
-    } catch (e) { alert(e.message || t('saveFailed')); }
+    try { await fetch('/api/flights/connect', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ flight_ids: Array.from(selectedConnectIds) }) }); connectMode = false; selectedConnectIds.clear(); const bar = document.getElementById('connect-action-bar'); if (bar) bar.style.display = 'none'; loadFlights(); } catch (e) {}
 }
 async function batchDeleteFlights() {
     if (selectedConnectIds.size < 1) return;

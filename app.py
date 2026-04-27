@@ -43,6 +43,8 @@ from storage import (
     save_user_settings,
     update_user_flight,
     verify_user_credentials,
+    change_user_password,
+    delete_user,
 )
 from time_utils import UTC, attach_airport_timezones, calculate_duration_minutes, resolve_flight_timeline
 
@@ -1018,6 +1020,41 @@ def create_admin_user():
         return jsonify({'success': True, 'user': user})
     except ValueError as exc:
         return jsonify({'success': False, 'error': str(exc)}), 400
+
+
+@app.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
+@admin_required
+def delete_admin_user(user_id):
+    current = get_current_user()
+    if current and current.get('id') == user_id:
+        return jsonify({'success': False, 'error': 'Cannot delete yourself.'}), 400
+    if not delete_user(user_id):
+        return jsonify({'success': False, 'error': 'User not found.'}), 404
+    return jsonify({'success': True})
+
+
+@app.route('/api/admin/users/<int:user_id>/password', methods=['PUT'])
+@admin_required
+def reset_user_password(user_id):
+    body = request.json or {}
+    new_password = body.get('password', '')
+    try:
+        if not change_user_password(user_id, new_password):
+            return jsonify({'success': False, 'error': 'User not found.'}), 404
+        return jsonify({'success': True})
+    except ValueError as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 400
+
+
+@app.route('/api/auth/password', methods=['PUT'])
+@login_required
+def change_own_password():
+    body = request.json or {}
+    new_password = body.get('password', '')
+    if not new_password or len(new_password) < 6:
+        return jsonify({'success': False, 'error': 'Password must be at least 6 characters.'}), 400
+    change_user_password(get_current_user_id(), new_password)
+    return jsonify({'success': True})
 
 
 # ==================== API 路由: 机场 & 航空公司 ====================

@@ -285,6 +285,30 @@ def verify_user_credentials(username: str, password: str) -> dict[str, Any] | No
         return _serialize_user(user)
 
 
+def delete_user(user_id: int) -> bool:
+    """Delete a user and all their related data."""
+    with get_session() as db:
+        user = db.get(User, int(user_id))
+        if user is None:
+            return False
+        db.delete(user)
+        db.commit()
+        return True
+
+
+def change_user_password(user_id: int, new_password: str) -> bool:
+    """Change a user's password. Returns True on success."""
+    if not new_password or len(new_password) < 6:
+        raise ValueError("Password must be at least 6 characters.")
+    with get_session() as db:
+        user = db.get(User, int(user_id))
+        if user is None:
+            return False
+        user.password_hash = generate_password_hash(new_password)
+        db.commit()
+        return True
+
+
 def get_user_settings(user_id: int, defaults: dict[str, Any] | None = None) -> dict[str, Any]:
     with get_session() as db:
         settings = db.scalar(select(UserSetting).where(UserSetting.user_id == user_id))
