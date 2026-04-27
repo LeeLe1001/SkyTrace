@@ -15,9 +15,8 @@ const STATIC_CACHE = CACHE_VERSION + '-static';
 const API_CACHE    = CACHE_VERSION + '-api';
 const TILE_CACHE   = CACHE_VERSION + '-tiles';
 
-// 预缓存核心资源
+// 预缓存核心资源（不含 HTML 页面和大型 data JSON，避免重复请求）
 const PRECACHE_URLS = [
-  './',
   './static/css/style.css',
   './static/js/time-utils.js',
   './static/js/static-mode.js',
@@ -33,9 +32,6 @@ const PRECACHE_URLS = [
   './static/icons/apple-touch-icon.png',
   './favicon.ico',
   './static/manifest.json',
-  './data/airports.json',
-  './data/airport_timezones.json',
-  './data/airlines.json',
 ];
 
 // ==================== Install ====================
@@ -89,9 +85,9 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 4. HTML 页面: network-first
+  // 4. HTML 页面: network-only（不缓存，避免重复请求循环）
   if (event.request.headers.get('accept')?.includes('text/html')) {
-    event.respondWith(networkFirst(event.request, STATIC_CACHE));
+    // 不拦截 HTML 请求，直接走网络
     return;
   }
 

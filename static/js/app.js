@@ -2500,9 +2500,15 @@ function _checkVersionAndRefresh() {
         .then(r => r.json())
         .then(data => {
             if (data.version && data.version !== SKYTRACE_VERSION) {
-                console.log('[SkyTrace] Version mismatch: loaded=' + SKYTRACE_VERSION + ' server=' + data.version + ', reloading...');
-                if ('caches' in window) caches.keys().then(ks => ks.forEach(k => caches.delete(k)));
-                location.reload(true);
+                console.warn('[SkyTrace] Version mismatch: loaded=' + SKYTRACE_VERSION + ' server=' + data.version);
+                // 仅清除旧缓存，由 index.html 的版本自检脚本处理 SW 注销
+                if ('caches' in window) {
+                    caches.keys().then(ks => {
+                        ks.forEach(k => caches.delete(k).catch(() => {}));
+                    });
+                }
+                // 延迟刷新，避免和 SW 清理竞态
+                setTimeout(() => { location.reload(true); }, 2000);
             }
         })
         .catch(() => {});
