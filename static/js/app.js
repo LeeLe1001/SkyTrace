@@ -185,15 +185,53 @@ function _getDayOffset(flight) {
     return 0;
 }
 
-/** 根据经度估算 UTC 偏移(小时), 简单近似 lon/15 */
+/** 根据经度估算 UTC 偏移(小时), 简单近似 lon/15, 仅在无时区数据时兜底 */
 function _estimateUtcOffset(lon) {
     if (lon === undefined || lon === null) return 0;
     return Math.round(lon / 15);
 }
 
+/** 从机场时区字符串获取 UTC 偏移(小时), 使用 Intl API (精确, 支持 DST) */
+function _getUtcOffsetFromTimezone(tz, dateStr) {
+    if (!tz) return null;
+    try {
+        // 用中午 12:00 避免夏令时边界问题
+        const refDate = new Date(dateStr + 'T12:00:00');
+        const utcParts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'UTC', year: 'numeric', month: '2-digit',
+            day: '2-digit', hour: '2-digit', minute: '2-digit',
+            second: '2-digit', hourCycle: 'h23'
+        }).formatToParts(refDate);
+        const localParts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: tz, year: 'numeric', month: '2-digit',
+            day: '2-digit', hour: '2-digit', minute: '2-digit',
+            second: '2-digit', hourCycle: 'h23'
+        }).formatToParts(refDate);
+        const getNum = (parts, type) => Number(parts.find(p => p.type === type)?.value || 0);
+        const utcMs = Date.UTC(getNum(utcParts, 'year'), getNum(utcParts, 'month') - 1,
+            getNum(utcParts, 'day'), getNum(utcParts, 'hour'),
+            getNum(utcParts, 'minute'), getNum(utcParts, 'second'));
+        const localMs = Date.UTC(getNum(localParts, 'year'), getNum(localParts, 'month') - 1,
+            getNum(localParts, 'day'), getNum(localParts, 'hour'),
+            getNum(localParts, 'minute'), getNum(localParts, 'second'));
+        return (localMs - utcMs) / 3600000;
+    } catch (e) { return null; }
+}
+
+/** 获取机场的 UTC 偏移(小时): 优先用时区字段, 其次用经度估算 */
+function _getAirportUtcOffset(airport, dateStr) {
+    if (!airport) return 0;
+    // 优先使用 airports 对象中的时区 (由 timezonefinder 或 airport_timezones.json 提供)
+    const tzOffset = _getUtcOffsetFromTimezone(airport.timezone, dateStr);
+    if (tzOffset !== null) return tzOffset;
+    // 降级: 经度近似
+    return _estimateUtcOffset(airport.lon);
+}
+
 /** 计算飞行时长, 先转 UTC 再比较, 避免跨时区 +1 天误判 */
 function calcDuration(flight) {
     if (!flight.dep_time || !flight.arr_time) return '';
+    // 优先使用 time-utils 的精确算法（基于 IANA 时区 + Intl）
     const duration = window.SkyTraceTime?.formatDuration(flight, airports) || '';
     if (duration) return duration;
     const d1 = new Date(`2000-01-01T${flight.dep_time}`);
@@ -205,8 +243,8 @@ function calcDuration(flight) {
     // 时区: 当地时间 → UTC (dep_utc = dep_local - depTz, arr_utc = arr_local - arrTz)
     const depAirport = flight.dep_airport || airports[flight.departure] || {};
     const arrAirport = flight.arr_airport || airports[flight.arrival] || {};
-    const depTz = _estimateUtcOffset(depAirport.lon);
-    const arrTz = _estimateUtcOffset(arrAirport.lon);
+    const depTz = _getAirportUtcOffset(depAirport, flight.date);
+    const arrTz = _getAirportUtcOffset(arrAirport, flight.date);
     const d1Utc = d1.getTime() - depTz * 3600000;
     let d2Utc = d2.getTime() - arrTz * 3600000;
     // 无显式偏移且 UTC 到达 ≤ UTC 出发 → 说明跨日, +1 天
@@ -361,6 +399,15 @@ function _logoFallback(img) {
     if (t <= chain.length) { img.src = chain[t - 1]; }
     else { img.style.display = 'none'; var fb = img.nextElementSibling; if (fb) fb.style.display = 'flex'; }
 }
+
+// 事件委托: 捕获所有 airline logo 图片加载失败，自动降级（替代 inline onerror）
+document.addEventListener('error', function(e) {
+    var img = e.target;
+    if (img && img.tagName === 'IMG' && img.classList.contains('airline-logo')) {
+        _logoFallback(img);
+    }
+}, true); // 使用捕获阶段，因为 error 事件不冒泡
+
 function getAirlineLogoHtml(flightNo) {
     const iata = (flightNo || '').match(/^([A-Z0-9]{2})/i)?.[1]?.toUpperCase();
     if (!iata) return '';
@@ -376,7 +423,7 @@ function getAirlineLogoHtml(flightNo) {
         const directRb = icao ? `${LOGO_JXCK_RB}${icao}.png` : '';
         const firstSrc = icaoPng || localSvg || directFa;
         const chain = [localSvg, localPng, directFa, directRb].filter(Boolean).join('|');
-        return `<img class="airline-logo" src="${firstSrc}" alt="${iata}" data-chain="${chain}" onerror="_logoFallback(this)"><span class="airline-logo-fallback" style="display:none">${iata}</span>`;
+        return `<img class="airline-logo" src="${firstSrc}" alt="${iata}" data-chain="${chain}"><span class="airline-logo-fallback" style="display:none">${iata}</span>`;
     }
     return `<span class="airline-logo-fallback">${iata}</span>`;
 }
@@ -2789,8 +2836,8 @@ async function _autoConnectFlight(savedResp, flightData) {
     // 获取机场时区偏移，用于将本地时间转为 UTC 再比较
     const newDepAirport = airports[newDep] || {};
     const newArrAirport = airports[newArr] || {};
-    const newDepTz = _estimateUtcOffset(newDepAirport.lon);
-    const newArrTz = _estimateUtcOffset(newArrAirport.lon);
+    const newDepTz = _getAirportUtcOffset(newDepAirport, newDate);
+    const newArrTz = _getAirportUtcOffset(newArrAirport, newDate);
 
     let matchId = null;
     let matchGroup = null;
@@ -2800,7 +2847,7 @@ async function _autoConnectFlight(savedResp, flightData) {
         // Case 1: existing flight arrives at new flight's departure
         if (f.arrival === newDep && f.arr_time && newDepTime) {
             const fArrAirport = airports[f.arrival] || {};
-            const fArrTz = _estimateUtcOffset(fArrAirport.lon);
+            const fArrTz = _getAirportUtcOffset(fArrAirport, f.date);
             const arrUtc = new Date(`${f.date}T${f.arr_time}`).getTime() - fArrTz * 3600000;
             const depUtc = new Date(`${newDate}T${newDepTime}`).getTime() - newDepTz * 3600000;
             const gap = depUtc - arrUtc;
@@ -2813,7 +2860,7 @@ async function _autoConnectFlight(savedResp, flightData) {
         // Case 2: existing flight departs from new flight's arrival
         if (f.departure === newArr && f.dep_time && newArrTime) {
             const fDepAirport = airports[f.departure] || {};
-            const fDepTz = _estimateUtcOffset(fDepAirport.lon);
+            const fDepTz = _getAirportUtcOffset(fDepAirport, f.date);
             const arrUtc = new Date(`${newDate}T${newArrTime}`).getTime() - newArrTz * 3600000;
             const depUtc = new Date(`${f.date}T${f.dep_time}`).getTime() - fDepTz * 3600000;
             const gap = depUtc - arrUtc;
@@ -3215,7 +3262,13 @@ async function syncToGithub() {
 
         const jsonStr = JSON.stringify(flightsData, null, 2);
         const bytes = new TextEncoder().encode(jsonStr);
-        const content = btoa(String.fromCharCode(...bytes));
+        // 分块编码避免大数据量时 String.fromCharCode(...bytes) 超栈
+        const CHUNK = 0x8000; // 32KB per chunk
+        const parts = [];
+        for (let i = 0; i < bytes.length; i += CHUNK) {
+            parts.push(String.fromCharCode(...bytes.subarray(i, i + CHUNK)));
+        }
+        const content = btoa(parts.join(''));
 
         // 获取文件当前 SHA (如果存在)
         let sha;
