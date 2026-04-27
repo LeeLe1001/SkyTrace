@@ -41,7 +41,7 @@ let _isOffline = false;
 let _hoState = 'hidden'; // 'hidden' | 'peek' | 'expanded'
 let _allSortOrder = 'newest'; // 'newest' | 'oldest'
 let _authState = null;
-const SKYTRACE_VERSION = window.SKYTRACE_VERSION || 48;
+const SKYTRACE_VERSION = window.SKYTRACE_VERSION || 49;
 
 // ==================== 通用格式化工具函数 ====================
 /** 格式化航站楼显示: MAIN 原样, 纯数字加 T 前缀, 字母开头原样显示 */
@@ -168,10 +168,12 @@ function formatArrTimeText(flight) {
     if (!flight.arr_time) return '';
     const offset = _getDayOffset(flight);
     if (offset && offset !== 0) {
-        const sign = offset > 0 ? '+' : '';
-        const sup = `${sign}${offset}`.split('').map(c => '\u207A\u00B9\u00B2\u207B'['+-12'.indexOf(c)] || c).join('');
-        // Simpler: just use unicode superscripts
-        return `${flight.arr_time}${sign === '+' ? '\u207A' : '\u207B'}${Math.abs(offset) === 1 ? '\u00B9' : '\u00B2'}`;
+        const sign = offset > 0 ? '\u207A' : '\u207B';  // ⁺ or ⁻
+        const absOffset = Math.abs(offset);
+        const superscripts = ['\u2070', '\u00B9', '\u00B2', '\u00B3', '\u2074', '\u2075', '\u2076', '\u2077', '\u2078', '\u2079'];
+        // Convert each digit of the offset to superscript unicode
+        const supNum = String(absOffset).split('').map(d => superscripts[parseInt(d)] || d).join('');
+        return `${flight.arr_time}${sign}${supNum}`;
     }
     return flight.arr_time;
 }
@@ -2773,7 +2775,7 @@ async function saveFlight(event) {
     } catch (e) { alert(t('saveFailed')); }
 }
 
-/** 自动关联: 新航班与已有航班间<5h转机自动关联为联程 */
+/** 自动关联: 新航班与已有航班间≤8h转机自动关联为联程 */
 async function _autoConnectFlight(savedResp, flightData) {
     const MAX_TRANSFER_MS = 8 * 60 * 60 * 1000; // 8 hours
     const newId = savedResp.id;
@@ -2784,6 +2786,12 @@ async function _autoConnectFlight(savedResp, flightData) {
     const newArrTime = flightData.arr_time;
     if (!newDate || (!newDepTime && !newArrTime)) return;
 
+    // 获取机场时区偏移，用于将本地时间转为 UTC 再比较
+    const newDepAirport = airports[newDep] || {};
+    const newArrAirport = airports[newArr] || {};
+    const newDepTz = _estimateUtcOffset(newDepAirport.lon);
+    const newArrTz = _estimateUtcOffset(newArrAirport.lon);
+
     let matchId = null;
     let matchGroup = null;
 
@@ -2791,9 +2799,11 @@ async function _autoConnectFlight(savedResp, flightData) {
         if (f.id === newId) continue;
         // Case 1: existing flight arrives at new flight's departure
         if (f.arrival === newDep && f.arr_time && newDepTime) {
-            const arrDT = new Date(`${f.date}T${f.arr_time}`);
-            const depDT = new Date(`${newDate}T${newDepTime}`);
-            const gap = depDT - arrDT;
+            const fArrAirport = airports[f.arrival] || {};
+            const fArrTz = _estimateUtcOffset(fArrAirport.lon);
+            const arrUtc = new Date(`${f.date}T${f.arr_time}`).getTime() - fArrTz * 3600000;
+            const depUtc = new Date(`${newDate}T${newDepTime}`).getTime() - newDepTz * 3600000;
+            const gap = depUtc - arrUtc;
             if (gap > 0 && gap <= MAX_TRANSFER_MS) {
                 matchId = f.id;
                 matchGroup = f.connected_group;
@@ -2802,9 +2812,11 @@ async function _autoConnectFlight(savedResp, flightData) {
         }
         // Case 2: existing flight departs from new flight's arrival
         if (f.departure === newArr && f.dep_time && newArrTime) {
-            const arrDT = new Date(`${newDate}T${newArrTime}`);
-            const depDT = new Date(`${f.date}T${f.dep_time}`);
-            const gap = depDT - arrDT;
+            const fDepAirport = airports[f.departure] || {};
+            const fDepTz = _estimateUtcOffset(fDepAirport.lon);
+            const arrUtc = new Date(`${newDate}T${newArrTime}`).getTime() - newArrTz * 3600000;
+            const depUtc = new Date(`${f.date}T${f.dep_time}`).getTime() - fDepTz * 3600000;
+            const gap = depUtc - arrUtc;
             if (gap > 0 && gap <= MAX_TRANSFER_MS) {
                 matchId = f.id;
                 matchGroup = f.connected_group;
@@ -3201,7 +3213,9 @@ async function syncToGithub() {
             return clean;
         });
 
-        const content = btoa(unescape(encodeURIComponent(JSON.stringify(flightsData, null, 2))));
+        const jsonStr = JSON.stringify(flightsData, null, 2);
+        const bytes = new TextEncoder().encode(jsonStr);
+        const content = btoa(String.fromCharCode(...bytes));
 
         // 获取文件当前 SHA (如果存在)
         let sha;
@@ -3252,7 +3266,10 @@ async function syncFromGithub() {
 
     try {
         const file = await _githubApi(`/repos/${repo}/contents/data/flights.json`, 'GET', null, realToken);
-        const decoded = decodeURIComponent(escape(atob(file.content.replace(/\n/g, ''))));
+        const binary = atob(file.content.replace(/\n/g, ''));
+        const rawBytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) rawBytes[i] = binary.charCodeAt(i);
+        const decoded = new TextDecoder().decode(rawBytes);
         const data = JSON.parse(decoded);
         const flights = data.flights || [];
 
@@ -3539,7 +3556,19 @@ function shareFlightCard() {
     document.getElementById('share-modal').classList.add('active');
 }
 function closeShareModal() { document.getElementById('share-modal').classList.remove('active'); }
-async function downloadShareCard() { try { const canvas = await html2canvas(document.getElementById('share-card'), { scale: 2, backgroundColor: null, useCORS: true }); const link = document.createElement('a'); link.download = `SkyTrace_${currentFlightId || 'flight'}.png`; link.href = canvas.toDataURL('image/png'); link.click(); } catch (e) { alert(t('exportFailed')); } }
+async function downloadShareCard() {
+    try {
+        const canvas = await html2canvas(document.getElementById('share-card'), {
+            scale: 2, backgroundColor: null, useCORS: true
+        });
+        const link = document.createElement('a');
+        link.download = `SkyTrace_${currentFlightId || 'flight'}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    } catch (e) {
+        alert(t('exportFailed'));
+    }
+}
 async function exportAnnualReport() {
     // Default to most recent year with completed flights
     const completedYears = flights
