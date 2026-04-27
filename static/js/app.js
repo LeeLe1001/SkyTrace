@@ -1600,7 +1600,8 @@ function initFlightsMap() {
 function renderFmapYearPills() {
     const container = document.getElementById('fmap-year-pills');
     if (!container) return;
-    const years = [...new Set(flights.map(f => f.date?.substring(0, 4)).filter(Boolean))].sort().reverse();
+    const flightsArr = Array.isArray(flights) ? flights : [];
+    const years = [...new Set(flightsArr.map(f => f.date?.substring(0, 4)).filter(Boolean))].sort().reverse();
     let html = `<button class="fmap-year-pill active" data-fmap-year="all">${t('filterAll')}</button>`;
     years.forEach(y => {
         html += `<button class="fmap-year-pill" data-fmap-year="${y}">${y}</button>`;
@@ -1622,8 +1623,9 @@ function applyFlightsMapFilter() {
     const activeYearPill = document.querySelector('.fmap-year-pill.active');
     const year = activeYearPill?.dataset.fmapYear || 'all';
     const todayStr = getLocalTodayStr();
+    const flightsArr = Array.isArray(flights) ? flights : [];
 
-    fmapFilteredFlights = filterFlightsByStatus(flights, fmapStatusFilter, todayStr).filter(f => {
+    fmapFilteredFlights = filterFlightsByStatus(flightsArr, fmapStatusFilter, todayStr).filter(f => {
         // Year filter
         if (year !== 'all' && !f.date?.startsWith(year)) return false;
         // Date range
@@ -1904,7 +1906,16 @@ async function loadAirlines() {
 }
 async function loadFlights() {
     try {
-        flights = await (await fetch('/api/flights')).json();
+        const resp = await fetch('/api/flights');
+        const payload = await resp.json();
+        if (Array.isArray(payload)) {
+            flights = payload;
+        } else if (Array.isArray(payload?.flights)) {
+            flights = payload.flights;
+        } else {
+            flights = [];
+            console.warn('[SkyTrace] /api/flights returned non-array payload:', payload);
+        }
         filteredFlights = [...flights];
         try { renderFlightsList(); } catch (e) { console.error('[SkyTrace] renderFlightsList failed:', e); }
         try { renderHomeRoutes(); } catch (e) { console.error('[SkyTrace] renderHomeRoutes failed:', e); }
@@ -1918,8 +1929,9 @@ async function loadFlights() {
 }
 
 function initTimeFilterDefaults() {
-    if (flights.length === 0) return;
-    const dates = flights.map(f => f.date).sort();
+    const flightsArr = Array.isArray(flights) ? flights : [];
+    if (flightsArr.length === 0) return;
+    const dates = flightsArr.map(f => f.date).sort();
     ['filter-start-date', 'filter-end-date'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.min = dates[0];

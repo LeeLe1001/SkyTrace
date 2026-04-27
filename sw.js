@@ -1,5 +1,5 @@
 /**
- * SkyTrace Service Worker v8
+ * SkyTrace Service Worker v8.1
  *
  * 策略:
  * - 静态资源 (JS/CSS/图标): network-first (确保最新, 失败用缓存)
@@ -9,7 +9,8 @@
  */
 
 const SW_QUERY_VERSION = new URL(self.location.href).searchParams.get('v') || '49';
-const CACHE_VERSION = `skytrace-v${SW_QUERY_VERSION}-r2`;
+const SW_TIMESTAMP = '20260427a';
+const CACHE_VERSION = `skytrace-v${SW_QUERY_VERSION}-${SW_TIMESTAMP}`;
 const STATIC_CACHE = CACHE_VERSION + '-static';
 const API_CACHE    = CACHE_VERSION + '-api';
 const TILE_CACHE   = CACHE_VERSION + '-tiles';
