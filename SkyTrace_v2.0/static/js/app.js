@@ -1179,16 +1179,19 @@ function expandHomeOverlay() {
     _hoExpanded = true;
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
-    el.style.transition = '';
-    // 先设为 auto 测得实际高度, 再用具体 px 值避免闪跳
-    el.style.maxHeight = 'none';
-    const targetH = Math.min(el.scrollHeight, window.innerHeight * 0.85);
-    el.style.maxHeight = targetH + 'px';
-    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
-    // 异步切回 CSS 值
-    setTimeout(() => { el.style.maxHeight = ''; el.style.transition = ''; }, 400);
+    // 先加 class, 再设 maxHeight, 避免 layout 闪烁
     el.classList.add('expanded');
     el.classList.remove('minimized');
+    el.style.transition = '';
+    // 用 requestAnimationFrame 等一帧让 class 生效后再读高度
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            const targetH = Math.min(el.scrollHeight, window.innerHeight * 0.85);
+            el.style.maxHeight = targetH + 'px';
+            el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1)';
+            setTimeout(() => { el.style.maxHeight = ''; el.style.transition = ''; }, 400);
+        });
+    });
     const titleEl = el.querySelector('.home-overlay-title');
     if (titleEl) titleEl.textContent = t('allUpcoming') || '全部待出行';
     const nearest = el.querySelector('.home-nearest-card');
@@ -1213,7 +1216,7 @@ function peekHomeOverlay() {
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
     el.style.transition = '';
-    el.style.maxHeight = '260px';
+    el.style.maxHeight = '320px';
     el.classList.remove('expanded', 'minimized');
     const titleEl = el.querySelector('.home-overlay-title');
     if (titleEl) titleEl.textContent = t('nearestTrip') || '最近出行';
