@@ -5782,42 +5782,31 @@ body.fmap-fullscreen-active .flights-sub-view {
 }
 
 
-/* ====== Desktop 宽屏: overlay 移到右侧 ====== */
+/* ====== Desktop 宽屏: 仅微调宽度，不改定位 ====== */
 @media (min-width: 768px) {
-    .home-flights-overlay {
-        position: absolute;
-        top: calc(var(--header-total-height) + 8px);
-        bottom: 8px;
-        left: auto;
-        right: 8px;
-        width: 380px;
-        max-width: 42vw;
-        max-height: none !important;
-        border-radius: 16px;
-        border: 1px solid var(--border-light);
-        box-shadow: 0 8px 40px var(--shadow-color);
-    }
-    .home-flights-overlay.minimized {
-        width: 200px;
-    }
-    .home-flights-overlay.expanded {
-        width: 420px;
-        max-width: 50vw;
-    }
-    .home-flights-overlay .home-overlay-header {
-        cursor: pointer;
-    }
-    /* 行程/日历页面桌面版也可侧边 */
+    /* 行程/日历页面居中 */
     .flights-container {
-        max-width: 900px;
+        max-width: 960px;
         margin: 0 auto;
     }
     .calendar-container {
-        max-width: 700px;
+        max-width: 720px;
         margin: 0 auto;
     }
-    /* 地图占满左侧 */
-    #home-map {
-        margin-right: 0;
+    /* overlay 在桌面也保持在底部，宽度适当 */
+    .home-flights-overlay {
+        width: 480px;
+        max-width: 90vw;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        border-radius: 20px 20px 0 0;
+    }
+    .home-flights-overlay.expanded {
+        width: 560px;
+        max-width: 92vw;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
     }
 }
