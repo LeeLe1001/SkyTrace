@@ -1182,7 +1182,7 @@ function expandHomeOverlay() {
     el.style.transition = '';
     // 先设为 auto 测得实际高度, 再用具体 px 值避免闪跳
     el.style.maxHeight = 'none';
-    const targetH = Math.min(el.scrollHeight, window.innerHeight * 0.75);
+    const targetH = Math.min(el.scrollHeight, window.innerHeight * 0.85);
     el.style.maxHeight = targetH + 'px';
     el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
     // 异步切回 CSS 值
@@ -1213,7 +1213,7 @@ function peekHomeOverlay() {
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
     el.style.transition = '';
-    el.style.maxHeight = '280px';
+    el.style.maxHeight = '260px';
     el.classList.remove('expanded', 'minimized');
     const titleEl = el.querySelector('.home-overlay-title');
     if (titleEl) titleEl.textContent = t('nearestTrip') || '最近出行';
@@ -1230,7 +1230,7 @@ function minimizeHomeOverlay() {
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
     el.style.transition = '';
-    el.style.maxHeight = '56px';
+    el.style.maxHeight = '52px';
     el.classList.remove('expanded');
     el.classList.add('minimized');
     const titleEl = el.querySelector('.home-overlay-title');
