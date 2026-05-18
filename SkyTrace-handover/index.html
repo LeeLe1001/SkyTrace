@@ -65,6 +65,13 @@ window.SKYTRACE_VERSION = 50;
     })();
     </script>
     <!-- Leaflet CSS (本地) -->
+    
+    <!-- Sprint 4: Preconnect + preload key resources -->
+    <link rel="preconnect" href="https://a.basemaps.cartocdn.com" crossorigin>
+    <link rel="preconnect" href="https://b.basemaps.cartocdn.com" crossorigin>
+    <link rel="preconnect" href="https://c.basemaps.cartocdn.com" crossorigin>
+    <link rel="preload" href="static/css/style.css" as="style">
+    <link rel="preload" href="static/js/i18n.js" as="script">
     <link rel="stylesheet" href="static/lib/leaflet.css" />
 <link rel="stylesheet" href="static/css/style.css?v=50">
     <!-- 全局错误捕获 + 开屏动画 -->
