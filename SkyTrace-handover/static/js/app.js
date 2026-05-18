@@ -1179,32 +1179,22 @@ function expandHomeOverlay() {
     _hoExpanded = true;
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
-    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
-    const navH = _getMobileNavH();
-    el.style.maxHeight = navH > 0 ? `calc(75vh)` : `calc(75vh)`;
+    el.style.transition = '';
+    el.style.maxHeight = '75vh';
     el.classList.add('expanded');
     el.classList.remove('minimized');
-    // 标题切换为"全部待出行"
     const titleEl = el.querySelector('.home-overlay-title');
-    if (titleEl) titleEl.textContent = t('allUpcoming') || t('filterUpcoming') || '全部待出行';
-    // 隐藏最近出行大卡片，显示完整列表（最近航班平滑过渡到列表中）
+    if (titleEl) titleEl.textContent = t('allUpcoming') || '全部待出行';
     const nearest = el.querySelector('.home-nearest-card');
-    const list = el.querySelector('.home-overlay-list');
-    if (nearest) { nearest.style.maxHeight = '0'; nearest.style.opacity = '0'; nearest.style.overflow = 'hidden'; nearest.style.padding = '0'; nearest.style.margin = '0'; }
-    if (list) {
-        list.style.opacity = '1'; list.style.pointerEvents = 'auto'; list.style.height = 'auto';
-        // 滚动到用户正在查看的联程航班
-        const pinnedCards = list.querySelectorAll('.home-list-pinned');
-        if (_hoCarouselIdx > 0 && pinnedCards[_hoCarouselIdx]) {
-            setTimeout(() => { pinnedCards[_hoCarouselIdx].scrollIntoView({ block: 'start' }); }, 50);
-        } else {
-            list.scrollTop = 0;
-        }
-    }
-    // 展开箭头向下
+    if (nearest) nearest.classList.add('collapsed');
     const hint = el.querySelector('.home-overlay-expand-hint');
     if (hint) hint.textContent = '▼';
     _updateHomeZoomPosition();
+    const list = el.querySelector('.home-overlay-list');
+    if (_hoCarouselIdx > 0 && list) {
+        const pinned = list.querySelectorAll('.home-list-pinned');
+        if (pinned[_hoCarouselIdx]) setTimeout(() => pinned[_hoCarouselIdx].scrollIntoView({block:'start'}), 400);
+    }
 }
 
 function collapseHomeOverlay() {
@@ -1216,19 +1206,13 @@ function peekHomeOverlay() {
     _hoExpanded = false;
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
-    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
-    const navH = _getMobileNavH();
+    el.style.transition = '';
     el.style.maxHeight = '280px';
-    el.classList.remove('expanded');
-    el.classList.remove('minimized');
-    // 标题切换为"最近出行"
+    el.classList.remove('expanded', 'minimized');
     const titleEl = el.querySelector('.home-overlay-title');
     if (titleEl) titleEl.textContent = t('nearestTrip') || '最近出行';
     const nearest = el.querySelector('.home-nearest-card');
-    const list = el.querySelector('.home-overlay-list');
-    if (nearest) { nearest.style.maxHeight = ''; nearest.style.opacity = '1'; nearest.style.overflow = ''; nearest.style.padding = ''; nearest.style.margin = ''; }
-    if (list) { list.style.opacity = '0'; list.style.pointerEvents = 'none'; list.style.height = '0'; }
-    // 箭头向上
+    if (nearest) nearest.classList.remove('collapsed');
     const hint = el.querySelector('.home-overlay-expand-hint');
     if (hint) hint.textContent = '▲';
     _updateHomeZoomPosition();
@@ -1239,21 +1223,16 @@ function minimizeHomeOverlay() {
     _hoExpanded = false;
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
-    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
-    const navH = _getMobileNavH();
+    el.style.transition = '';
     el.style.maxHeight = '56px';
     el.classList.remove('expanded');
     el.classList.add('minimized');
     const titleEl = el.querySelector('.home-overlay-title');
     if (titleEl) titleEl.textContent = t('filterUpcoming') || '待出行';
     const nearest = el.querySelector('.home-nearest-card');
-    const list = el.querySelector('.home-overlay-list');
-    if (nearest) { nearest.style.maxHeight = '0'; nearest.style.opacity = '0'; nearest.style.overflow = 'hidden'; nearest.style.padding = '0'; nearest.style.margin = '0'; }
-    if (list) { list.style.opacity = '0'; list.style.pointerEvents = 'none'; list.style.height = '0'; }
-    // 箭头向上（提示可以展开）
+    if (nearest) nearest.classList.add('collapsed');
     const hint = el.querySelector('.home-overlay-expand-hint');
     if (hint) hint.textContent = '▲';
-    // 高亮所有航线让用户看到完整地图
     _highlightAllRoutes();
     _updateHomeZoomPosition();
 }

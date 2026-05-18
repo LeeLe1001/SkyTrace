@@ -25,11 +25,24 @@
     --shadow-color: rgba(0, 0, 0, 0.5);
     --popup-bg: #1a1a24;
     --popup-text: #ffffff;
-    --mobile-nav-height: 56px;
-    --mobile-nav-safe-bottom: var(--safe-bottom);
-    --mobile-nav-total-height: calc(var(--mobile-nav-height) + var(--mobile-nav-safe-bottom));
-    --mobile-content-offset: calc(var(--mobile-nav-total-height) + 12px);
+    --radius-sm: 8px;
+    --radius: 12px;
+    --radius-lg: 16px;
+
+    /* Sprint 4 */
+    --transition-speed: 0.3s;
 }
+
+/* ====== View Transition API ====== */
+@view-transition { navigation: auto; }
+
+/* ====== CSS Page Transitions ====== */
+.view {
+    opacity: 0; transform: translateY(12px);
+    transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease;
+    pointer-events: none;
+}
+.view.active { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
 /* ========== 浅色主题 ========== */
 [data-theme="light"] {
@@ -4165,7 +4178,16 @@ html.standalone-mode body.is-standalone {
 .home-nearest-card {
     padding: 0 16px 8px;
     flex-shrink: 0;
-    transition: opacity 0.3s ease;
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.25s ease, padding 0.35s ease, margin 0.35s ease;
+}
+.home-nearest-card.collapsed {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin: 0;
 }
 .home-nearest-card .flight-card {
     margin-bottom: 0;
@@ -4240,20 +4262,22 @@ html.standalone-mode body.is-standalone {
     flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 4px 16px 16px;
+    padding: 0 16px 16px;
     gap: 0;
     scrollbar-width: none;
-    flex: 1;
+    flex: 0 0 auto;
     min-height: 0;
+    max-height: 0;
     opacity: 0;
-    height: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease, height 0.3s ease;
+    transition: max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.25s ease, padding 0.35s ease;
 }
 .home-flights-overlay.expanded .home-overlay-list {
+    max-height: 60vh;
     opacity: 1;
-    height: auto;
+    padding-top: 4px;
     pointer-events: auto;
+    flex: 1 1 auto;
 }
 .home-overlay-list::-webkit-scrollbar {
     display: none;
@@ -5672,3 +5696,68 @@ body.fmap-fullscreen-active .flights-sub-view {
     pointer-events: auto;
 }
 
+
+
+/* ====== Sprint 4: View Transitions + Skeleton + Toast ====== */
+@view-transition { navigation: auto; }
+
+.view {
+    opacity: 0; transform: translateY(12px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+}
+.view.active { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+.skeleton {
+    background: linear-gradient(90deg, var(--bg-card, #1a1a24) 25%, var(--bg-card-hover, #22222e) 50%, var(--bg-card, #1a1a24) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: 8px;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton-text { height: 14px; margin-bottom: 8px; }
+.skeleton-title { height: 20px; width: 60%; margin-bottom: 12px; }
+.skeleton-card { height: 80px; margin-bottom: 10px; }
+
+/* fmap-stats-card 修复 — 确保浅色模式有背景 */
+.fmap-stats-card {
+    background: var(--map-stats-bg, rgba(20,20,30,0.9)) !important;
+    backdrop-filter: blur(20px);
+}
+[data-theme="light"] .fmap-stats-card {
+    background: rgba(255,255,255,0.92) !important;
+}
+
+/* 浅色模式 Leaflet popup 修复 */
+[data-theme="light"] .leaflet-popup-content-wrapper {
+    background: #fff !important;
+    color: #1a1a2e !important;
+}
+
+
+/* ====== Sprint 4: View Transitions + Skeleton + Toast ====== */
+/* View Transition API */
+@view-transition { navigation: auto; }
+
+/* Skeleton loading */
+.skeleton {
+    background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-hover) 50%, var(--bg-card) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    border-radius: var(--radius-sm);
+}
+@keyframes skeleton-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton-text { height: 14px; margin-bottom: 8px; }
+.skeleton-title { height: 20px; width: 60%; margin-bottom: 12px; }
+.skeleton-card { height: 80px; margin-bottom: 10px; }
+
+/* fmap-stats-card 浅色模式 */
+[data-theme="light"] .fmap-stats-card {
+    background: rgba(255, 255, 255, 0.92) !important;
+}
+
+/* Leaflet popup 浅色适配 */
+[data-theme="light"] .leaflet-popup-content-wrapper {
+    background: #fff !important;
+    color: #1a1a2e !important;
+}
