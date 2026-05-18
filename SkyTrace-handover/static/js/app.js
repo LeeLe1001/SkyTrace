@@ -1180,7 +1180,13 @@ function expandHomeOverlay() {
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
     el.style.transition = '';
-    el.style.maxHeight = '75vh';
+    // 先设为 auto 测得实际高度, 再用具体 px 值避免闪跳
+    el.style.maxHeight = 'none';
+    const targetH = Math.min(el.scrollHeight, window.innerHeight * 0.75);
+    el.style.maxHeight = targetH + 'px';
+    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.3s';
+    // 异步切回 CSS 值
+    setTimeout(() => { el.style.maxHeight = ''; el.style.transition = ''; }, 400);
     el.classList.add('expanded');
     el.classList.remove('minimized');
     const titleEl = el.querySelector('.home-overlay-title');
@@ -1239,26 +1245,44 @@ function minimizeHomeOverlay() {
 
 function _updateHomeZoomPosition() {
     const zoomContainer = document.querySelector('#home-map .leaflet-bottom.leaflet-right');
-    if (!zoomContainer) return;
-    zoomContainer.style.transition = 'bottom 0.35s cubic-bezier(.4,0,.2,1), opacity 0.5s ease';
+    const attrContainer = document.querySelector('#home-map .leaflet-bottom.leaflet-left');
+
     if (_hoState === 'expanded') {
-        // 全展开: 隐藏缩放按钮
-        zoomContainer.style.bottom = '76vh';
-        zoomContainer.style.opacity = '0';
-        zoomContainer.style.pointerEvents = 'none';
+        if (zoomContainer) {
+            zoomContainer.style.transition = 'bottom 0.35s cubic-bezier(.4,0,.2,1), opacity 0.5s ease';
+            zoomContainer.style.bottom = '76vh';
+            zoomContainer.style.opacity = '0';
+            zoomContainer.style.pointerEvents = 'none';
+        }
+        if (attrContainer) {
+            attrContainer.style.transition = 'bottom 0.35s cubic-bezier(.4,0,.2,1)';
+            attrContainer.style.bottom = '76vh';
+        }
     } else if (_hoState === 'peek') {
-        // peek: 跟随 overlay 顶部
         const overlay = document.getElementById('home-flights-overlay');
         const overlayH = overlay ? overlay.offsetHeight : 280;
-        zoomContainer.style.bottom = (overlayH + 12) + 'px';
-        zoomContainer.style.opacity = '1';
-        zoomContainer.style.pointerEvents = 'auto';
+        if (zoomContainer) {
+            zoomContainer.style.transition = 'bottom 0.35s cubic-bezier(.4,0,.2,1), opacity 0.5s ease';
+            zoomContainer.style.bottom = (overlayH + 12) + 'px';
+            zoomContainer.style.opacity = '1';
+            zoomContainer.style.pointerEvents = 'auto';
+        }
+        if (attrContainer) {
+            attrContainer.style.transition = 'bottom 0.35s cubic-bezier(.4,0,.2,1)';
+            attrContainer.style.bottom = (overlayH + 12) + 'px';
+        }
         _scheduleZoomFade();
     } else {
-        // hidden/minimized: 在 overlay 上方
-        zoomContainer.style.bottom = '76px';
-        zoomContainer.style.opacity = '1';
-        zoomContainer.style.pointerEvents = 'auto';
+        if (zoomContainer) {
+            zoomContainer.style.transition = 'bottom 0.35s cubic-bezier(.4,0,.2,1), opacity 0.5s ease';
+            zoomContainer.style.bottom = '76px';
+            zoomContainer.style.opacity = '1';
+            zoomContainer.style.pointerEvents = 'auto';
+        }
+        if (attrContainer) {
+            attrContainer.style.transition = 'bottom 0.35s cubic-bezier(.4,0,.2,1)';
+            attrContainer.style.bottom = '76px';
+        }
         _scheduleZoomFade();
     }
 }

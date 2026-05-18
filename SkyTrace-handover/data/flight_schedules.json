@@ -2686,5 +2686,16 @@
     "aircraft": "",
     "cached_at": "2026-04-27 01:36",
     "source": "user"
+  },
+  "CA123": {
+    "departure": "PEK",
+    "arrival": "ICN",
+    "dep_time": "08:40",
+    "arr_time": "11:35",
+    "aircraft": "Airbus A330-300",
+    "dep_terminal": "3",
+    "arr_terminal": "1",
+    "cached_at": "2026-05-18 19:02",
+    "source": "AeroDataBox"
   }
 }
