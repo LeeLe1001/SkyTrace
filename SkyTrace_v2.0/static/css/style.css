@@ -4115,12 +4115,6 @@ html.standalone-mode body.is-standalone {
 }
 .home-flights-overlay.minimized {
     box-shadow: 0 -4px 16px var(--shadow-color);
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 30%, black 60%);
-    mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 30%, black 60%);
-}
-.home-flights-overlay:not(.minimized) {
-    -webkit-mask-image: none;
-    mask-image: none;
 }
 .home-flights-overlay.minimized .home-overlay-header {
     padding: 6px 20px 4px;
@@ -5793,8 +5787,7 @@ body.fmap-fullscreen-active .flights-sub-view {
         box-shadow: 4px 0 30px var(--shadow-color);
     }
     .home-flights-overlay.expanded {
-        width: 440px;
-        max-width: 46vw;
+        /* width stays same as peek, only height expands */
     }
     .home-flights-overlay.minimized {
         width: 200px;
