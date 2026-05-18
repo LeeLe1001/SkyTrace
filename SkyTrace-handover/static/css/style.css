@@ -44,20 +44,6 @@
 }
 .view.active { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
-/* ====== Skeleton Screens ====== */
-    --border: rgba(255, 255, 255, 0.08);
-    --border-light: rgba(255, 255, 255, 0.15);
-    --header-bg: rgba(10, 10, 15, 0.9);
-    --map-stats-bg: rgba(20, 20, 30, 0.9);
-    --shadow-color: rgba(0, 0, 0, 0.5);
-    --popup-bg: #1a1a24;
-    --popup-text: #ffffff;
-    --mobile-nav-height: 56px;
-    --mobile-nav-safe-bottom: var(--safe-bottom);
-    --mobile-nav-total-height: calc(var(--mobile-nav-height) + var(--mobile-nav-safe-bottom));
-    --mobile-content-offset: calc(var(--mobile-nav-total-height) + 12px);
-}
-
 /* ========== 浅色主题 ========== */
 [data-theme="light"] {
     --bg-primary: #f0f2f5;
@@ -5732,6 +5718,34 @@ body.fmap-fullscreen-active .flights-sub-view {
 }
 
 /* 浅色模式 Leaflet popup 修复 */
+[data-theme="light"] .leaflet-popup-content-wrapper {
+    background: #fff !important;
+    color: #1a1a2e !important;
+}
+
+
+/* ====== Sprint 4: View Transitions + Skeleton + Toast ====== */
+/* View Transition API */
+@view-transition { navigation: auto; }
+
+/* Skeleton loading */
+.skeleton {
+    background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-hover) 50%, var(--bg-card) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    border-radius: var(--radius-sm);
+}
+@keyframes skeleton-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton-text { height: 14px; margin-bottom: 8px; }
+.skeleton-title { height: 20px; width: 60%; margin-bottom: 12px; }
+.skeleton-card { height: 80px; margin-bottom: 10px; }
+
+/* fmap-stats-card 浅色模式 */
+[data-theme="light"] .fmap-stats-card {
+    background: rgba(255, 255, 255, 0.92) !important;
+}
+
+/* Leaflet popup 浅色适配 */
 [data-theme="light"] .leaflet-popup-content-wrapper {
     background: #fff !important;
     color: #1a1a2e !important;
