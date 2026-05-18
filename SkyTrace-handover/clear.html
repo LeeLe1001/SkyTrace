@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyTrace - 清除缓存</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{background:#0a0a0f;color:#e2e8f0;font-family:-apple-system,system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+        .card{background:#1e293b;border-radius:16px;padding:32px;max-width:400px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.4)}
+        h1{font-size:24px;margin-bottom:8px}
+        .subtitle{color:#94a3b8;font-size:14px;margin-bottom:24px}
+        .status{background:#0f172a;border-radius:12px;padding:16px;margin:16px 0;font-size:13px;line-height:1.8;text-align:left;font-family:monospace;min-height:120px;max-height:300px;overflow-y:auto}
+        .status .ok{color:#4ade80}
+        .status .err{color:#f87171}
+        .status .info{color:#60a5fa}
+        .status .warn{color:#fbbf24}
+        .btn{display:inline-block;background:#3b82f6;color:#fff;border:none;padding:14px 28px;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;width:100%;margin-top:16px;transition:all 0.2s}
+        .btn:active{transform:scale(0.97);background:#2563eb}
+        .btn:disabled{background:#334155;color:#64748b;cursor:not-allowed;transform:none}
+        .btn-green{background:#22c55e}
+        .btn-green:active{background:#16a34a}
+        .step{color:#94a3b8;font-size:13px;margin-top:20px;line-height:1.8;text-align:left}
+        .step b{color:#e2e8f0}
+        .done-box{display:none;margin-top:16px;padding:16px;background:#052e16;border:1px solid #22c55e;border-radius:12px}
+        .done-box h3{color:#4ade80;margin-bottom:8px}
+        .version{color:#64748b;font-size:11px;margin-top:16px}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🧹 SkyTrace 缓存清理</h1>
+        <p class="subtitle">清除所有缓存数据，解决 PWA 更新问题</p>
+        
+        <div class="status" id="log"></div>
+        
+        <button class="btn" id="clearBtn" onclick="clearAll()">🗑️ 一键清除所有缓存</button>
+        
+        <div class="done-box" id="doneBox">
+            <h3>✅ 清理完成！</h3>
+            <div class="step">
+                <b>接下来请：</b><br>
+                1. 回到主屏幕<br>
+                2. <b>长按</b> SkyTrace 图标 → <b>删除 App</b><br>
+                3. 打开 <b>Safari</b> 访问 <a href="https://leele.top" style="color:#60a5fa">leele.top</a><br>
+                4. 点击 <b>分享按钮</b> → <b>添加到主屏幕</b><br>
+                5. 打开新添加的 SkyTrace ✈️
+            </div>
+            <button class="btn btn-green" onclick="location.href='index.html'" style="margin-top:12px">🚀 直接打开 SkyTrace</button>
+        </div>
+        
+        <div class="version" id="versionInfo"></div>
+    </div>
+
+    <script>
+    var logEl = document.getElementById('log');
+    function log(msg, cls) {
+        var line = document.createElement('div');
+        line.className = cls || '';
+        line.textContent = msg;
+        logEl.appendChild(line);
+        logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // 页面加载时检测状态
+    (async function detect() {
+        log('🔍 检测当前状态...', 'info');
+        
+        // 检测 SW
+        if ('serviceWorker' in navigator) {
+            var regs = await navigator.serviceWorker.getRegistrations();
+            log('Service Workers: ' + regs.length + ' 个', regs.length > 0 ? 'warn' : 'ok');
+            for (var i = 0; i < regs.length; i++) {
+                log('  SW: ' + regs[i].scope, 'warn');
+            }
+        } else {
+            log('Service Worker: 不支持', 'info');
+        }
+        
+        // 检测 Cache
+        if ('caches' in window) {
+            var names = await caches.keys();
+            log('缓存存储: ' + names.length + ' 个', names.length > 0 ? 'warn' : 'ok');
+            for (var j = 0; j < names.length; j++) {
+                var cache = await caches.open(names[j]);
+                var keys = await cache.keys();
+                log('  ' + names[j] + ' (' + keys.length + ' 项)', 'warn');
+            }
+        }
+        
+        // 检测 localStorage
+        var stv = localStorage.getItem('_stv');
+        log('本地版本标记: ' + (stv || '无'), 'info');
+        
+        // 显示版本
+        document.getElementById('versionInfo').textContent = 
+            '检测时间: ' + new Date().toLocaleString() + ' | 清理工具 v1';
+        
+        log('');
+        log('👆 点击按钮清除所有缓存', 'info');
+    })();
+
+    async function clearAll() {
+        var btn = document.getElementById('clearBtn');
+        btn.disabled = true;
+        btn.textContent = '⏳ 清理中...';
+        logEl.innerHTML = '';
+        
+        var errors = 0;
+        
+        // 1. 注销所有 Service Workers
+        log('🔧 步骤 1/4: 注销 Service Workers...', 'info');
+        try {
+            if ('serviceWorker' in navigator) {
+                var regs = await navigator.serviceWorker.getRegistrations();
+                for (var i = 0; i < regs.length; i++) {
+                    var ok = await regs[i].unregister();
+                    log('  注销 ' + regs[i].scope + ': ' + (ok ? '成功' : '失败'), ok ? 'ok' : 'err');
+                    if (!ok) errors++;
+                }
+                if (regs.length === 0) log('  无需注销 (没有 SW)', 'ok');
+            }
+        } catch (e) {
+            log('  错误: ' + e.message, 'err');
+            errors++;
+        }
+        
+        // 2. 清除所有 Cache Storage
+        log('🔧 步骤 2/4: 清除 Cache Storage...', 'info');
+        try {
+            if ('caches' in window) {
+                var names = await caches.keys();
+                for (var j = 0; j < names.length; j++) {
+                    var del = await caches.delete(names[j]);
+                    log('  删除 ' + names[j] + ': ' + (del ? '成功' : '失败'), del ? 'ok' : 'err');
+                    if (!del) errors++;
+                }
+                if (names.length === 0) log('  无需清除 (没有缓存)', 'ok');
+            }
+        } catch (e) {
+            log('  错误: ' + e.message, 'err');
+            errors++;
+        }
+        
+        // 3. 清除 localStorage
+        log('🔧 步骤 3/4: 清除本地存储...', 'info');
+        try {
+            // 保留航班数据相关的 key，只清除缓存版本标记
+            var keysToRemove = [];
+            for (var k = 0; k < localStorage.length; k++) {
+                var key = localStorage.key(k);
+                if (key === '_stv' || key.startsWith('sw-') || key.startsWith('cache-')) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(function(key) {
+                localStorage.removeItem(key);
+                log('  删除 ' + key, 'ok');
+            });
+            if (keysToRemove.length === 0) log('  无缓存标记需要清除', 'ok');
+        } catch (e) {
+            log('  错误: ' + e.message, 'err');
+            errors++;
+        }
+        
+        // 4. 清除 sessionStorage
+        log('🔧 步骤 4/4: 清除会话存储...', 'info');
+        try {
+            sessionStorage.clear();
+            log('  已清除', 'ok');
+        } catch (e) {
+            log('  错误: ' + e.message, 'err');
+            errors++;
+        }
+        
+        log('');
+        if (errors === 0) {
+            log('🎉 全部清理完成！无错误', 'ok');
+        } else {
+            log('⚠️ 清理完成，但有 ' + errors + ' 个错误', 'warn');
+        }
+        
+        btn.textContent = '✅ 清理完成';
+        document.getElementById('doneBox').style.display = 'block';
+    }
+    </script>
+</body>
+</html>

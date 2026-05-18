@@ -1,0 +1,6120 @@
+{
+	"data": [
+		{
+			"airline": {
+				"active": true,
+				"alliance": "Star Alliance",
+				"callsign": "AIR CANADA",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "134146296633274",
+				"iata": "AC",
+				"icao": "ACA",
+				"id": "e01c58da-cfd8-4db7-9078-f950d668ba1a",
+				"last_updated": 1569952763,
+				"name": "Air Canada",
+				"phone": "18882472262",
+				"relevance": 2618,
+				"twitter": "AirCanada",
+				"website": "aircanada.com"
+			},
+			"archived": false,
+			"arrival": {
+				"actual_airport": {
+					"city": "Austin",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Austin Bergstrom International Airport",
+					"iata": "AUS",
+					"icao": "KAUS",
+					"id": "d63b6bd2-9ed4-447e-914f-ca4d96f28653",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 30.202545,
+						"longitude": -97.667064
+					},
+					"name": "Austin Bergstrom Intl",
+					"region": "North America",
+					"relevance": 9895,
+					"timezone": "America/Chicago"
+				},
+				"schedule": {
+					"gate": {
+						"original": 1572018060
+					},
+					"runway": {}
+				},
+				"scheduled_airport": {
+					"city": "Austin",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Austin Bergstrom International Airport",
+					"iata": "AUS",
+					"icao": "KAUS",
+					"id": "d63b6bd2-9ed4-447e-914f-ca4d96f28653",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 30.202545,
+						"longitude": -97.667064
+					},
+					"name": "Austin Bergstrom Intl",
+					"region": "North America",
+					"relevance": 9895,
+					"timezone": "America/Chicago"
+				}
+			},
+			"changes": [],
+			"codeshares": [
+				{
+					"airline": {
+						"active": true,
+						"alliance": "Star Alliance",
+						"callsign": "AIR CANADA",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "134146296633274",
+						"iata": "AC",
+						"icao": "ACA",
+						"id": "e01c58da-cfd8-4db7-9078-f950d668ba1a",
+						"last_updated": 1569952763,
+						"name": "Air Canada",
+						"phone": "18882472262",
+						"relevance": 2618,
+						"twitter": "AirCanada",
+						"website": "aircanada.com"
+					},
+					"flight_number": "7747",
+					"operates_aircraft": true
+				}
+			],
+			"content_type": "FLIGHT",
+			"created": 1570102988,
+			"departure": {
+				"airport": {
+					"city": "Toronto",
+					"content_type": "AIRPORT",
+					"country": "Canada",
+					"countryCode": "CA",
+					"created": 1564393837,
+					"full_name": "Lester B. Pearson International Airport",
+					"iata": "YYZ",
+					"icao": "CYYZ",
+					"id": "54b344b9-4034-43bf-9f74-6934fe37e671",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 43.681585,
+						"longitude": -79.61146
+					},
+					"name": "Lester B. Pearson Intl",
+					"region": "North America",
+					"relevance": 9990,
+					"timezone": "America/Toronto"
+				},
+				"schedule": {
+					"gate": {
+						"original": 1572005700
+					},
+					"runway": {}
+				},
+				"terminal": "1"
+			},
+			"distance": 2187,
+			"equipment": {
+				"features": ["WIDEBODY"],
+				"model_iata": "E75",
+				"model_icao": "E75S",
+				"model_name": "Embraer 175"
+			},
+			"flight_number": "7747",
+			"id": "f956328e-fcf7-41e3-a5d1-08f4e59cf5cc",
+			"last_updated": 1570102988,
+			"operating_airline": {
+				"active": true,
+				"alliance": "Star Alliance",
+				"callsign": "AIR CANADA",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "134146296633274",
+				"iata": "AC",
+				"icao": "ACA",
+				"id": "e01c58da-cfd8-4db7-9078-f950d668ba1a",
+				"last_updated": 1569952763,
+				"name": "Air Canada",
+				"phone": "18882472262",
+				"relevance": 2618,
+				"twitter": "AirCanada",
+				"website": "aircanada.com"
+			},
+			"status": "SCHEDULED"
+		},
+		{
+			"airline": {
+				"active": true,
+				"alliance": "Star Alliance",
+				"callsign": "AIR CANADA",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "134146296633274",
+				"iata": "AC",
+				"icao": "ACA",
+				"id": "e01c58da-cfd8-4db7-9078-f950d668ba1a",
+				"last_updated": 1569952763,
+				"name": "Air Canada",
+				"phone": "18882472262",
+				"relevance": 2618,
+				"twitter": "AirCanada",
+				"website": "aircanada.com"
+			},
+			"archived": false,
+			"arrival": {
+				"actual_airport": {
+					"city": "Toronto",
+					"content_type": "AIRPORT",
+					"country": "Canada",
+					"countryCode": "CA",
+					"created": 1564393837,
+					"full_name": "Lester B. Pearson International Airport",
+					"iata": "YYZ",
+					"icao": "CYYZ",
+					"id": "54b344b9-4034-43bf-9f74-6934fe37e671",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 43.681585,
+						"longitude": -79.61146
+					},
+					"name": "Lester B. Pearson Intl",
+					"region": "North America",
+					"relevance": 9990,
+					"timezone": "America/Toronto"
+				},
+				"schedule": {
+					"gate": {
+						"original": 1571961840
+					},
+					"runway": {}
+				},
+				"scheduled_airport": {
+					"city": "Toronto",
+					"content_type": "AIRPORT",
+					"country": "Canada",
+					"countryCode": "CA",
+					"created": 1564393837,
+					"full_name": "Lester B. Pearson International Airport",
+					"iata": "YYZ",
+					"icao": "CYYZ",
+					"id": "54b344b9-4034-43bf-9f74-6934fe37e671",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 43.681585,
+						"longitude": -79.61146
+					},
+					"name": "Lester B. Pearson Intl",
+					"region": "North America",
+					"relevance": 9990,
+					"timezone": "America/Toronto"
+				},
+				"terminal": "1"
+			},
+			"changes": [],
+			"codeshares": [
+				{
+					"airline": {
+						"active": true,
+						"alliance": "Star Alliance",
+						"callsign": "AIR CANADA",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "134146296633274",
+						"iata": "AC",
+						"icao": "ACA",
+						"id": "e01c58da-cfd8-4db7-9078-f950d668ba1a",
+						"last_updated": 1569952763,
+						"name": "Air Canada",
+						"phone": "18882472262",
+						"relevance": 2618,
+						"twitter": "AirCanada",
+						"website": "aircanada.com"
+					},
+					"flight_number": "7748",
+					"operates_aircraft": true
+				}
+			],
+			"content_type": "FLIGHT",
+			"created": 1570102977,
+			"departure": {
+				"airport": {
+					"city": "Austin",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Austin Bergstrom International Airport",
+					"iata": "AUS",
+					"icao": "KAUS",
+					"id": "d63b6bd2-9ed4-447e-914f-ca4d96f28653",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 30.202545,
+						"longitude": -97.667064
+					},
+					"name": "Austin Bergstrom Intl",
+					"region": "North America",
+					"relevance": 9895,
+					"timezone": "America/Chicago"
+				},
+				"schedule": {
+					"gate": {
+						"original": 1571949900
+					},
+					"runway": {}
+				}
+			},
+			"distance": 2187,
+			"equipment": {
+				"features": ["WIDEBODY"],
+				"model_iata": "E75",
+				"model_icao": "E75S",
+				"model_name": "Embraer 175"
+			},
+			"flight_number": "7748",
+			"id": "df5f8459-8ad2-42f3-8285-b7cdcf9d4302",
+			"last_updated": 1570102977,
+			"operating_airline": {
+				"active": true,
+				"alliance": "Star Alliance",
+				"callsign": "AIR CANADA",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "134146296633274",
+				"iata": "AC",
+				"icao": "ACA",
+				"id": "e01c58da-cfd8-4db7-9078-f950d668ba1a",
+				"last_updated": 1569952763,
+				"name": "Air Canada",
+				"phone": "18882472262",
+				"relevance": 2618,
+				"twitter": "AirCanada",
+				"website": "aircanada.com"
+			},
+			"status": "SCHEDULED"
+		},
+		{
+			"airline": {
+				"active": true,
+				"callsign": "SOUTHWEST",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "6806028948",
+				"iata": "WN",
+				"icao": "SWA",
+				"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+				"last_updated": 1569952763,
+				"name": "Southwest",
+				"phone": "18004359792",
+				"relevance": 5915,
+				"twitter": "SouthwestAir",
+				"website": "southwest.com"
+			},
+			"archived": false,
+			"arrival": {
+				"actual_airport": {
+					"city": "Austin",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Austin Bergstrom International Airport",
+					"iata": "AUS",
+					"icao": "KAUS",
+					"id": "d63b6bd2-9ed4-447e-914f-ca4d96f28653",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 30.202545,
+						"longitude": -97.667064
+					},
+					"name": "Austin Bergstrom Intl",
+					"region": "North America",
+					"relevance": 9895,
+					"timezone": "America/Chicago"
+				},
+				"schedule": {
+					"gate": {
+						"original": 1570643100
+					},
+					"runway": {}
+				},
+				"scheduled_airport": {
+					"city": "Austin",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Austin Bergstrom International Airport",
+					"iata": "AUS",
+					"icao": "KAUS",
+					"id": "d63b6bd2-9ed4-447e-914f-ca4d96f28653",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 30.202545,
+						"longitude": -97.667064
+					},
+					"name": "Austin Bergstrom Intl",
+					"region": "North America",
+					"relevance": 9895,
+					"timezone": "America/Chicago"
+				}
+			},
+			"changes": [],
+			"codeshares": [
+				{
+					"airline": {
+						"active": true,
+						"callsign": "SOUTHWEST",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "6806028948",
+						"iata": "WN",
+						"icao": "SWA",
+						"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+						"last_updated": 1569952763,
+						"name": "Southwest",
+						"phone": "18004359792",
+						"relevance": 5915,
+						"twitter": "SouthwestAir",
+						"website": "southwest.com"
+					},
+					"flight_number": "998",
+					"operates_aircraft": true
+				}
+			],
+			"content_type": "FLIGHT",
+			"created": 1570102963,
+			"departure": {
+				"airport": {
+					"city": "Orlando",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Orlando International Airport",
+					"iata": "MCO",
+					"icao": "KMCO",
+					"id": "85570a14-2373-4bad-a7b5-b3a9a7fdce90",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 28.432177,
+						"longitude": -81.308301
+					},
+					"name": "Orlando Intl",
+					"region": "North America",
+					"relevance": 9970,
+					"timezone": "America/New_York"
+				},
+				"schedule": {
+					"gate": {
+						"original": 1570632900
+					},
+					"runway": {}
+				}
+			},
+			"distance": 1597,
+			"equipment": {
+				"cruising_speed": 851,
+				"features": ["WIDEBODY"],
+				"model_iata": "73H",
+				"model_icao": "B738",
+				"model_name": "Boeing 737-800",
+				"range": 3704
+			},
+			"flight_number": "998",
+			"id": "e92481f7-bd60-4f56-bc64-211eb7118425",
+			"last_updated": 1570102963,
+			"operating_airline": {
+				"active": true,
+				"callsign": "SOUTHWEST",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "6806028948",
+				"iata": "WN",
+				"icao": "SWA",
+				"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+				"last_updated": 1569952763,
+				"name": "Southwest",
+				"phone": "18004359792",
+				"relevance": 5915,
+				"twitter": "SouthwestAir",
+				"website": "southwest.com"
+			},
+			"status": "SCHEDULED"
+		},
+		{
+			"airline": {
+				"active": true,
+				"callsign": "SOUTHWEST",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "6806028948",
+				"iata": "WN",
+				"icao": "SWA",
+				"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+				"last_updated": 1569952763,
+				"name": "Southwest",
+				"phone": "18004359792",
+				"relevance": 5915,
+				"twitter": "SouthwestAir",
+				"website": "southwest.com"
+			},
+			"archived": false,
+			"arrival": {
+				"actual_airport": {
+					"city": "Orlando",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Orlando International Airport",
+					"iata": "MCO",
+					"icao": "KMCO",
+					"id": "85570a14-2373-4bad-a7b5-b3a9a7fdce90",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 28.432177,
+						"longitude": -81.308301
+					},
+					"name": "Orlando Intl",
+					"region": "North America",
+					"relevance": 9970,
+					"timezone": "America/New_York"
+				},
+				"schedule": {
+					"gate": {
+						"original": 1570655700
+					},
+					"runway": {}
+				},
+				"scheduled_airport": {
+					"city": "Orlando",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Orlando International Airport",
+					"iata": "MCO",
+					"icao": "KMCO",
+					"id": "85570a14-2373-4bad-a7b5-b3a9a7fdce90",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 28.432177,
+						"longitude": -81.308301
+					},
+					"name": "Orlando Intl",
+					"region": "North America",
+					"relevance": 9970,
+					"timezone": "America/New_York"
+				}
+			},
+			"changes": [],
+			"codeshares": [
+				{
+					"airline": {
+						"active": true,
+						"callsign": "SOUTHWEST",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "6806028948",
+						"iata": "WN",
+						"icao": "SWA",
+						"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+						"last_updated": 1569952763,
+						"name": "Southwest",
+						"phone": "18004359792",
+						"relevance": 5915,
+						"twitter": "SouthwestAir",
+						"website": "southwest.com"
+					},
+					"flight_number": "1577",
+					"operates_aircraft": true
+				}
+			],
+			"content_type": "FLIGHT",
+			"created": 1570102935,
+			"departure": {
+				"airport": {
+					"city": "Austin",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Austin Bergstrom International Airport",
+					"iata": "AUS",
+					"icao": "KAUS",
+					"id": "d63b6bd2-9ed4-447e-914f-ca4d96f28653",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 30.202545,
+						"longitude": -97.667064
+					},
+					"name": "Austin Bergstrom Intl",
+					"region": "North America",
+					"relevance": 9895,
+					"timezone": "America/Chicago"
+				},
+				"schedule": {
+					"gate": {
+						"original": 1570646400
+					},
+					"runway": {}
+				}
+			},
+			"distance": 1597,
+			"equipment": {
+				"cruising_speed": 851,
+				"features": ["WIDEBODY"],
+				"model_iata": "73H",
+				"model_icao": "B738",
+				"model_name": "Boeing 737-800",
+				"range": 3704
+			},
+			"flight_number": "1577",
+			"id": "b1eb1037-c605-4cbd-abec-a2fa72ba05d3",
+			"last_updated": 1570102935,
+			"operating_airline": {
+				"active": true,
+				"callsign": "SOUTHWEST",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "6806028948",
+				"iata": "WN",
+				"icao": "SWA",
+				"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+				"last_updated": 1569952763,
+				"name": "Southwest",
+				"phone": "18004359792",
+				"relevance": 5915,
+				"twitter": "SouthwestAir",
+				"website": "southwest.com"
+			},
+			"status": "SCHEDULED"
+		},
+		{
+			"airline": {
+				"active": true,
+				"callsign": "VIRGIN",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "6757437678",
+				"iata": "VS",
+				"icao": "VIR",
+				"id": "ae01a1b0-39d9-4221-a1c6-622d89154851",
+				"last_updated": 1569952763,
+				"name": "Virgin Atlantic",
+				"phone": "18008628621",
+				"relevance": 84,
+				"twitter": "VirginAtlantic",
+				"website": "virgin-atlantic.com"
+			},
+			"archived": false,
+			"arrival": {
+				"actual_airport": {
+					"city": "Minneapolis",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Minneapolis-St Paul International/Wold-Chamberlain Airport",
+					"iata": "MSP",
+					"icao": "KMSP",
+					"id": "e6471588-a4ac-43ed-85de-adb08f1c3410",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 44.883016,
+						"longitude": -93.210922
+					},
+					"name": "Minneapolis-St Paul Intl/Wold-Chamberlain",
+					"region": "North America",
+					"relevance": 9973,
+					"timezone": "America/Chicago"
+				},
+				"schedule": {
+					"gate": {
+						"original": 1570630020
+					},
+					"runway": {}
+				},
+				"scheduled_airport": {
+					"city": "Minneapolis",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Minneapolis-St Paul International/Wold-Chamberlain Airport",
+					"iata": "MSP",
+					"icao": "KMSP",
+					"id": "e6471588-a4ac-43ed-85de-adb08f1c3410",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 44.883016,
+						"longitude": -93.210922
+					},
+					"name": "Minneapolis-St Paul Intl/Wold-Chamberlain",
+					"region": "North America",
+					"relevance": 9973,
+					"timezone": "America/Chicago"
+				},
+				"terminal": "1"
+			},
+			"changes": [],
+			"codeshares": [
+				{
+					"airline": {
+						"active": true,
+						"alliance": "SkyTeam",
+						"callsign": "DELTA",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "125472670805257",
+						"iata": "DL",
+						"icao": "DAL",
+						"id": "a8765091-d043-44b1-936c-d217bb519e56",
+						"last_updated": 1569952763,
+						"name": "Delta",
+						"phone": "18002211212",
+						"relevance": 8107,
+						"twitter": "Delta",
+						"website": "delta.com"
+					},
+					"flight_number": "2968",
+					"operates_aircraft": true
+				},
+				{
+					"airline": {
+						"active": true,
+						"callsign": "VIRGIN",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "6757437678",
+						"iata": "VS",
+						"icao": "VIR",
+						"id": "ae01a1b0-39d9-4221-a1c6-622d89154851",
+						"last_updated": 1569952763,
+						"name": "Virgin Atlantic",
+						"phone": "18008628621",
+						"relevance": 84,
+						"twitter": "VirginAtlantic",
+						"website": "virgin-atlantic.com"
+					},
+					"flight_number": "1502",
+					"operates_aircraft": false
+				}
+			],
+			"content_type": "FLIGHT",
+			"created": 1570102903,
+			"departure": {
+				"airport": {
+					"city": "Austin",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Austin Bergstrom International Airport",
+					"iata": "AUS",
+					"icao": "KAUS",
+					"id": "d63b6bd2-9ed4-447e-914f-ca4d96f28653",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 30.202545,
+						"longitude": -97.667064
+					},
+					"name": "Austin Bergstrom Intl",
+					"region": "North America",
+					"relevance": 9895,
+					"timezone": "America/Chicago"
+				},
+				"schedule": {
+					"gate": {
+						"original": 1570620600
+					},
+					"runway": {}
+				}
+			},
+			"distance": 1678,
+			"equipment": {
+				"cruising_speed": 833,
+				"features": ["WIDEBODY"],
+				"model_iata": "320",
+				"model_icao": "A320",
+				"model_name": "Airbus A320",
+				"range": 5000
+			},
+			"flight_number": "1502",
+			"id": "73c00e2b-b756-499c-b4f9-a96a0b4f6995",
+			"last_updated": 1570102903,
+			"operating_airline": {
+				"active": true,
+				"alliance": "SkyTeam",
+				"callsign": "DELTA",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "125472670805257",
+				"iata": "DL",
+				"icao": "DAL",
+				"id": "a8765091-d043-44b1-936c-d217bb519e56",
+				"last_updated": 1569952763,
+				"name": "Delta",
+				"phone": "18002211212",
+				"relevance": 8107,
+				"twitter": "Delta",
+				"website": "delta.com"
+			},
+			"status": "SCHEDULED"
+		},
+		{
+			"airline": {
+				"active": true,
+				"alliance": "Star Alliance",
+				"callsign": "UNITED",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "199504650087085",
+				"iata": "UA",
+				"icao": "UAL",
+				"id": "b57b4c86-4724-48f1-80be-d7de4036004a",
+				"last_updated": 1569952763,
+				"name": "United",
+				"phone": "18002416522",
+				"relevance": 7346,
+				"twitter": "united",
+				"website": "united.com"
+			},
+			"archived": false,
+			"arrival": {
+				"actual_airport": {
+					"city": "Austin",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Austin Bergstrom International Airport",
+					"iata": "AUS",
+					"icao": "KAUS",
+					"id": "d63b6bd2-9ed4-447e-914f-ca4d96f28653",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 30.202545,
+						"longitude": -97.667064
+					},
+					"name": "Austin Bergstrom Intl",
+					"region": "North America",
+					"relevance": 9895,
+					"timezone": "America/Chicago"
+				},
+				"gate": "25",
+				"schedule": {
+					"gate": {
+						"estimated": 1570212900,
+						"original": 1570212900
+					},
+					"runway": {}
+				},
+				"scheduled_airport": {
+					"city": "Austin",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Austin Bergstrom International Airport",
+					"iata": "AUS",
+					"icao": "KAUS",
+					"id": "d63b6bd2-9ed4-447e-914f-ca4d96f28653",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 30.202545,
+						"longitude": -97.667064
+					},
+					"name": "Austin Bergstrom Intl",
+					"region": "North America",
+					"relevance": 9895,
+					"timezone": "America/Chicago"
+				},
+				"terminal": "Main",
+				"weather": {
+					"condition": 801,
+					"night": false,
+					"temperature": 31
+				}
+			},
+			"changes": [
+				{
+					"phase": "DEPARTURE",
+					"terminal": "3",
+					"timestamp": 1569963905,
+					"type": "GATE"
+				},
+				{
+					"model_name": "Boeing 737-800",
+					"timestamp": 1569963905,
+					"type": "EQUIPMENT"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1570200000,
+					"timestamp": 1569963905,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1570212900,
+					"timestamp": 1569963905,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "67",
+					"phase": "DEPARTURE",
+					"terminal": "3",
+					"timestamp": 1570086695,
+					"type": "GATE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1570200000,
+					"timestamp": 1570086695,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1570212900,
+					"timestamp": 1570086695,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "27",
+					"phase": "ARRIVAL",
+					"timestamp": 1570086695,
+					"type": "GATE"
+				},
+				{
+					"gate": "29",
+					"phase": "ARRIVAL",
+					"timestamp": 1570094845,
+					"type": "GATE"
+				},
+				{
+					"gate": "25",
+					"phase": "ARRIVAL",
+					"timestamp": 1570095980,
+					"type": "GATE"
+				}
+			],
+			"codeshares": [
+				{
+					"airline": {
+						"active": true,
+						"alliance": "Star Alliance",
+						"callsign": "AIR CANADA",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "134146296633274",
+						"iata": "AC",
+						"icao": "ACA",
+						"id": "e01c58da-cfd8-4db7-9078-f950d668ba1a",
+						"last_updated": 1569952763,
+						"name": "Air Canada",
+						"phone": "18882472262",
+						"relevance": 2618,
+						"twitter": "AirCanada",
+						"website": "aircanada.com"
+					},
+					"flight_number": "5289",
+					"operates_aircraft": false
+				},
+				{
+					"airline": {
+						"active": true,
+						"alliance": "Star Alliance",
+						"callsign": "UNITED",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "199504650087085",
+						"iata": "UA",
+						"icao": "UAL",
+						"id": "b57b4c86-4724-48f1-80be-d7de4036004a",
+						"last_updated": 1569952763,
+						"name": "United",
+						"phone": "18002416522",
+						"relevance": 7346,
+						"twitter": "united",
+						"website": "united.com"
+					},
+					"flight_number": "258",
+					"operates_aircraft": true
+				}
+			],
+			"content_type": "FLIGHT",
+			"created": 1570102882,
+			"departure": {
+				"airport": {
+					"city": "San Francisco",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "San Francisco International Airport",
+					"iata": "SFO",
+					"icao": "KSFO",
+					"id": "9b0faf9d-6e26-44ce-88d6-f30a340ea2b7",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 37.615215,
+						"longitude": -122.389881
+					},
+					"name": "San Francisco Intl",
+					"region": "North America",
+					"relevance": 9987,
+					"timezone": "America/Los_Angeles"
+				},
+				"gate": "67",
+				"schedule": {
+					"gate": {
+						"estimated": 1570200000,
+						"original": 1570200000
+					},
+					"runway": {}
+				},
+				"terminal": "3"
+			},
+			"distance": 2417,
+			"equipment": {
+				"age": 21,
+				"cruising_speed": 851,
+				"features": ["WIDEBODY"],
+				"first_flight": 900115200,
+				"model_iata": "7S8",
+				"model_icao": "B738",
+				"model_name": "Boeing 737-800",
+				"range": 3704,
+				"tail_number": "N26215"
+			},
+			"flight_number": "258",
+			"id": "42a8568a-a348-4973-9361-b0bafadff99d",
+			"last_updated": 1570102882,
+			"operating_airline": {
+				"active": true,
+				"alliance": "Star Alliance",
+				"callsign": "UNITED",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "199504650087085",
+				"iata": "UA",
+				"icao": "UAL",
+				"id": "b57b4c86-4724-48f1-80be-d7de4036004a",
+				"last_updated": 1569952763,
+				"name": "United",
+				"phone": "18002416522",
+				"relevance": 7346,
+				"twitter": "united",
+				"website": "united.com"
+			},
+			"status": "SCHEDULED"
+		},
+		{
+			"airline": {
+				"active": true,
+				"callsign": "ALASKA",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "28488837485",
+				"iata": "AS",
+				"icao": "ASA",
+				"id": "45411282-5411-46ac-89ce-720ab9efe700",
+				"last_updated": 1569952763,
+				"name": "Alaska",
+				"phone": "18004260333",
+				"relevance": 1648,
+				"twitter": "AlaskaAir",
+				"website": "alaskaair.com"
+			},
+			"archived": false,
+			"arrival": {
+				"actual_airport": {
+					"city": "Austin",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Austin Bergstrom International Airport",
+					"iata": "AUS",
+					"icao": "KAUS",
+					"id": "d63b6bd2-9ed4-447e-914f-ca4d96f28653",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 30.202545,
+						"longitude": -97.667064
+					},
+					"name": "Austin Bergstrom Intl",
+					"region": "North America",
+					"relevance": 9895,
+					"timezone": "America/Chicago"
+				},
+				"baggage_belt": "2",
+				"gate": "34",
+				"schedule": {
+					"gate": {
+						"estimated": 1570215300,
+						"original": 1570215300
+					},
+					"runway": {}
+				},
+				"scheduled_airport": {
+					"city": "Austin",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Austin Bergstrom International Airport",
+					"iata": "AUS",
+					"icao": "KAUS",
+					"id": "d63b6bd2-9ed4-447e-914f-ca4d96f28653",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 30.202545,
+						"longitude": -97.667064
+					},
+					"name": "Austin Bergstrom Intl",
+					"region": "North America",
+					"relevance": 9895,
+					"timezone": "America/Chicago"
+				},
+				"terminal": "Main",
+				"weather": {
+					"condition": 801,
+					"night": false,
+					"temperature": 31
+				}
+			},
+			"changes": [
+				{
+					"model_name": "Boeing 737-900",
+					"timestamp": 1569963621,
+					"type": "EQUIPMENT"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1570200300,
+					"timestamp": 1569963621,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1570215300,
+					"timestamp": 1569963621,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "15",
+					"phase": "DEPARTURE",
+					"timestamp": 1570074528,
+					"type": "GATE"
+				},
+				{
+					"gate": "15",
+					"phase": "DEPARTURE",
+					"terminal": "C",
+					"timestamp": 1570074528,
+					"type": "GATE"
+				},
+				{
+					"gate": "34",
+					"phase": "ARRIVAL",
+					"timestamp": 1570074528,
+					"type": "GATE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1570200300,
+					"timestamp": 1570074528,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1570215300,
+					"timestamp": 1570074528,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "1",
+					"phase": "DEPARTURE",
+					"terminal": "C",
+					"timestamp": 1570074588,
+					"type": "GATE"
+				},
+				{
+					"gate": "1",
+					"phase": "DEPARTURE",
+					"terminal": "D",
+					"timestamp": 1570074588,
+					"type": "GATE"
+				},
+				{
+					"gate": "15",
+					"phase": "DEPARTURE",
+					"terminal": "D",
+					"timestamp": 1570075308,
+					"type": "GATE"
+				},
+				{
+					"gate": "15",
+					"phase": "DEPARTURE",
+					"terminal": "C",
+					"timestamp": 1570075308,
+					"type": "GATE"
+				},
+				{
+					"gate": "1",
+					"phase": "DEPARTURE",
+					"terminal": "C",
+					"timestamp": 1570079273,
+					"type": "GATE"
+				},
+				{
+					"gate": "1",
+					"phase": "DEPARTURE",
+					"terminal": "D",
+					"timestamp": 1570079273,
+					"type": "GATE"
+				},
+				{
+					"gate": "15",
+					"phase": "DEPARTURE",
+					"terminal": "D",
+					"timestamp": 1570079573,
+					"type": "GATE"
+				},
+				{
+					"gate": "15",
+					"phase": "DEPARTURE",
+					"terminal": "C",
+					"timestamp": 1570079573,
+					"type": "GATE"
+				}
+			],
+			"codeshares": [
+				{
+					"airline": {
+						"active": true,
+						"callsign": "ALASKA",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "28488837485",
+						"iata": "AS",
+						"icao": "ASA",
+						"id": "45411282-5411-46ac-89ce-720ab9efe700",
+						"last_updated": 1569952763,
+						"name": "Alaska",
+						"phone": "18004260333",
+						"relevance": 1648,
+						"twitter": "AlaskaAir",
+						"website": "alaskaair.com"
+					},
+					"flight_number": "166",
+					"operates_aircraft": true
+				}
+			],
+			"content_type": "FLIGHT",
+			"created": 1570102870,
+			"departure": {
+				"airport": {
+					"city": "Seattle",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Seattle Tacoma International Airport",
+					"iata": "SEA",
+					"icao": "KSEA",
+					"id": "b3f217fd-4bc7-4806-9efe-abe9446a74df",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 47.443839,
+						"longitude": -122.301732
+					},
+					"name": "Seattle Tacoma Intl",
+					"region": "North America",
+					"relevance": 9981,
+					"timezone": "America/Los_Angeles"
+				},
+				"gate": "15",
+				"schedule": {
+					"gate": {
+						"estimated": 1570200300,
+						"original": 1570200300
+					},
+					"runway": {}
+				},
+				"terminal": "C"
+			},
+			"distance": 2846,
+			"equipment": {
+				"cruising_speed": 851,
+				"features": ["WIDEBODY"],
+				"model_iata": "73J",
+				"model_icao": "B739",
+				"model_name": "Boeing 737-900",
+				"range": 5083
+			},
+			"flight_number": "166",
+			"id": "864cb445-a476-47d6-bca0-48cbb7280919",
+			"last_updated": 1570102870,
+			"operating_airline": {
+				"active": true,
+				"callsign": "ALASKA",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "28488837485",
+				"iata": "AS",
+				"icao": "ASA",
+				"id": "45411282-5411-46ac-89ce-720ab9efe700",
+				"last_updated": 1569952763,
+				"name": "Alaska",
+				"phone": "18004260333",
+				"relevance": 1648,
+				"twitter": "AlaskaAir",
+				"website": "alaskaair.com"
+			},
+			"status": "SCHEDULED"
+		},
+		{
+			"airline": {
+				"active": true,
+				"callsign": "ALASKA",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "28488837485",
+				"iata": "AS",
+				"icao": "ASA",
+				"id": "45411282-5411-46ac-89ce-720ab9efe700",
+				"last_updated": 1569952763,
+				"name": "Alaska",
+				"phone": "18004260333",
+				"relevance": 1648,
+				"twitter": "AlaskaAir",
+				"website": "alaskaair.com"
+			},
+			"archived": false,
+			"arrival": {
+				"actual_airport": {
+					"city": "Seattle",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Seattle Tacoma International Airport",
+					"iata": "SEA",
+					"icao": "KSEA",
+					"id": "b3f217fd-4bc7-4806-9efe-abe9446a74df",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 47.443839,
+						"longitude": -122.301732
+					},
+					"name": "Seattle Tacoma Intl",
+					"region": "North America",
+					"relevance": 9981,
+					"timezone": "America/Los_Angeles"
+				},
+				"gate": "20",
+				"schedule": {
+					"gate": {
+						"estimated": 1570166400,
+						"original": 1570166400
+					},
+					"runway": {
+						"original": 1570163520
+					}
+				},
+				"scheduled_airport": {
+					"city": "Seattle",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Seattle Tacoma International Airport",
+					"iata": "SEA",
+					"icao": "KSEA",
+					"id": "b3f217fd-4bc7-4806-9efe-abe9446a74df",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 47.443839,
+						"longitude": -122.301732
+					},
+					"name": "Seattle Tacoma Intl",
+					"region": "North America",
+					"relevance": 9981,
+					"timezone": "America/Los_Angeles"
+				},
+				"terminal": "C",
+				"weather": {
+					"condition": 802,
+					"night": true,
+					"temperature": 10
+				}
+			},
+			"changes": [
+				{
+					"model_name": "Boeing 737-900",
+					"timestamp": 1569874431,
+					"type": "EQUIPMENT"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1570149900,
+					"timestamp": 1569874431,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1570166400,
+					"timestamp": 1569874431,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "34",
+					"phase": "DEPARTURE",
+					"timestamp": 1570013900,
+					"type": "GATE"
+				},
+				{
+					"gate": "3",
+					"phase": "ARRIVAL",
+					"timestamp": 1570013900,
+					"type": "GATE"
+				},
+				{
+					"gate": "3",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570013900,
+					"type": "GATE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1570149900,
+					"timestamp": 1570013900,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1570166400,
+					"timestamp": 1570013900,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "9",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570019186,
+					"type": "GATE"
+				},
+				{
+					"gate": "11",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570034383,
+					"type": "GATE"
+				},
+				{
+					"gate": "20",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570036184,
+					"type": "GATE"
+				},
+				{
+					"gate": "20",
+					"phase": "ARRIVAL",
+					"terminal": "N",
+					"timestamp": 1570036184,
+					"type": "GATE"
+				},
+				{
+					"gate": "11",
+					"phase": "ARRIVAL",
+					"terminal": "N",
+					"timestamp": 1570036665,
+					"type": "GATE"
+				},
+				{
+					"gate": "11",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570036665,
+					"type": "GATE"
+				},
+				{
+					"gate": "9",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570040470,
+					"type": "GATE"
+				},
+				{
+					"gate": "11",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570042693,
+					"type": "GATE"
+				},
+				{
+					"gate": "18",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570043654,
+					"type": "GATE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1570150440,
+					"timestamp": 1570063589,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1570163520,
+					"timestamp": 1570063589,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "11",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570065518,
+					"type": "GATE"
+				},
+				{
+					"gate": "18",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570071584,
+					"type": "GATE"
+				},
+				{
+					"gate": "20",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570076089,
+					"type": "GATE"
+				},
+				{
+					"gate": "20",
+					"phase": "ARRIVAL",
+					"terminal": "N",
+					"timestamp": 1570076089,
+					"type": "GATE"
+				},
+				{
+					"gate": "20",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570076510,
+					"type": "GATE"
+				},
+				{
+					"gate": "11",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570076870,
+					"type": "GATE"
+				},
+				{
+					"gate": "15",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570081315,
+					"type": "GATE"
+				},
+				{
+					"gate": "9",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570081675,
+					"type": "GATE"
+				},
+				{
+					"gate": "14",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570083657,
+					"type": "GATE"
+				},
+				{
+					"gate": "14",
+					"phase": "ARRIVAL",
+					"terminal": "N",
+					"timestamp": 1570083657,
+					"type": "GATE"
+				},
+				{
+					"gate": "15",
+					"phase": "ARRIVAL",
+					"terminal": "N",
+					"timestamp": 1570084078,
+					"type": "GATE"
+				},
+				{
+					"gate": "15",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570084078,
+					"type": "GATE"
+				},
+				{
+					"gate": "20",
+					"phase": "ARRIVAL",
+					"terminal": "C",
+					"timestamp": 1570085639,
+					"type": "GATE"
+				}
+			],
+			"codeshares": [
+				{
+					"airline": {
+						"active": true,
+						"callsign": "ALASKA",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "28488837485",
+						"iata": "AS",
+						"icao": "ASA",
+						"id": "45411282-5411-46ac-89ce-720ab9efe700",
+						"last_updated": 1569952763,
+						"name": "Alaska",
+						"phone": "18004260333",
+						"relevance": 1648,
+						"twitter": "AlaskaAir",
+						"website": "alaskaair.com"
+					},
+					"flight_number": "621",
+					"operates_aircraft": true
+				}
+			],
+			"content_type": "FLIGHT",
+			"created": 1570102855,
+			"departure": {
+				"airport": {
+					"city": "Austin",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Austin Bergstrom International Airport",
+					"iata": "AUS",
+					"icao": "KAUS",
+					"id": "d63b6bd2-9ed4-447e-914f-ca4d96f28653",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 30.202545,
+						"longitude": -97.667064
+					},
+					"name": "Austin Bergstrom Intl",
+					"region": "North America",
+					"relevance": 9895,
+					"timezone": "America/Chicago"
+				},
+				"gate": "34",
+				"schedule": {
+					"gate": {
+						"estimated": 1570149900,
+						"original": 1570149900
+					},
+					"runway": {
+						"original": 1570150440
+					}
+				},
+				"terminal": "Main"
+			},
+			"distance": 2846,
+			"equipment": {
+				"age": 3,
+				"cruising_speed": 851,
+				"features": ["WIDEBODY"],
+				"first_flight": 1449446400,
+				"model_iata": "73J",
+				"model_icao": "B739",
+				"model_name": "Boeing 737-900",
+				"range": 5083,
+				"tail_number": "N492AS"
+			},
+			"flight_number": "621",
+			"id": "8f0ba108-b4ea-413d-88f4-e0e61fa800bd",
+			"last_updated": 1570102855,
+			"operating_airline": {
+				"active": true,
+				"callsign": "ALASKA",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "28488837485",
+				"iata": "AS",
+				"icao": "ASA",
+				"id": "45411282-5411-46ac-89ce-720ab9efe700",
+				"last_updated": 1569952763,
+				"name": "Alaska",
+				"phone": "18004260333",
+				"relevance": 1648,
+				"twitter": "AlaskaAir",
+				"website": "alaskaair.com"
+			},
+			"status": "SCHEDULED"
+		},
+		{
+			"airline": {
+				"active": true,
+				"alliance": "Star Alliance",
+				"callsign": "UNITED",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "199504650087085",
+				"iata": "UA",
+				"icao": "UAL",
+				"id": "b57b4c86-4724-48f1-80be-d7de4036004a",
+				"last_updated": 1569952763,
+				"name": "United",
+				"phone": "18002416522",
+				"relevance": 7346,
+				"twitter": "united",
+				"website": "united.com"
+			},
+			"archived": false,
+			"arrival": {
+				"actual_airport": {
+					"city": "San Francisco",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "San Francisco International Airport",
+					"iata": "SFO",
+					"icao": "KSFO",
+					"id": "9b0faf9d-6e26-44ce-88d6-f30a340ea2b7",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 37.615215,
+						"longitude": -122.389881
+					},
+					"name": "San Francisco Intl",
+					"region": "North America",
+					"relevance": 9987,
+					"timezone": "America/Los_Angeles"
+				},
+				"gate": "61",
+				"schedule": {
+					"gate": {
+						"estimated": 1570157760,
+						"original": 1570157760
+					},
+					"runway": {
+						"original": 1570157460
+					}
+				},
+				"scheduled_airport": {
+					"city": "San Francisco",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "San Francisco International Airport",
+					"iata": "SFO",
+					"icao": "KSFO",
+					"id": "9b0faf9d-6e26-44ce-88d6-f30a340ea2b7",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 37.615215,
+						"longitude": -122.389881
+					},
+					"name": "San Francisco Intl",
+					"region": "North America",
+					"relevance": 9987,
+					"timezone": "America/Los_Angeles"
+				},
+				"terminal": "3",
+				"weather": {
+					"condition": 802,
+					"night": true,
+					"temperature": 11
+				}
+			},
+			"changes": [
+				{
+					"phase": "ARRIVAL",
+					"terminal": "3",
+					"timestamp": 1569876509,
+					"type": "GATE"
+				},
+				{
+					"model_name": "Boeing 737-800",
+					"timestamp": 1569876509,
+					"type": "EQUIPMENT"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1570144140,
+					"timestamp": 1569876509,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1570157760,
+					"timestamp": 1569876509,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "27",
+					"phase": "DEPARTURE",
+					"timestamp": 1570011735,
+					"type": "GATE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1570144140,
+					"timestamp": 1570011735,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1570157760,
+					"timestamp": 1570011735,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1570144440,
+					"timestamp": 1570057896,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1570156440,
+					"timestamp": 1570057896,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "61",
+					"phase": "ARRIVAL",
+					"terminal": "3",
+					"timestamp": 1570071457,
+					"type": "GATE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1570144920,
+					"timestamp": 1570076242,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1570157460,
+					"timestamp": 1570076242,
+					"type": "SCHEDULE_CHANGE"
+				}
+			],
+			"codeshares": [
+				{
+					"airline": {
+						"active": true,
+						"alliance": "Star Alliance",
+						"callsign": "AIR CANADA",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "134146296633274",
+						"iata": "AC",
+						"icao": "ACA",
+						"id": "e01c58da-cfd8-4db7-9078-f950d668ba1a",
+						"last_updated": 1569952763,
+						"name": "Air Canada",
+						"phone": "18882472262",
+						"relevance": 2618,
+						"twitter": "AirCanada",
+						"website": "aircanada.com"
+					},
+					"flight_number": "5336",
+					"operates_aircraft": false
+				},
+				{
+					"airline": {
+						"active": true,
+						"alliance": "Star Alliance",
+						"callsign": "ASIANA",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"iata": "OZ",
+						"icao": "AAR",
+						"id": "3c484b30-2d33-4171-9aa8-5496efac3560",
+						"last_updated": 1569952763,
+						"name": "Asiana",
+						"phone": "18002274262",
+						"relevance": 448,
+						"twitter": "Flyasiana",
+						"website": "us.flyasiana.com"
+					},
+					"flight_number": "6404",
+					"operates_aircraft": false
+				},
+				{
+					"airline": {
+						"active": true,
+						"alliance": "Star Alliance",
+						"callsign": "UNITED",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "199504650087085",
+						"iata": "UA",
+						"icao": "UAL",
+						"id": "b57b4c86-4724-48f1-80be-d7de4036004a",
+						"last_updated": 1569952763,
+						"name": "United",
+						"phone": "18002416522",
+						"relevance": 7346,
+						"twitter": "united",
+						"website": "united.com"
+					},
+					"flight_number": "455",
+					"operates_aircraft": true
+				}
+			],
+			"content_type": "FLIGHT",
+			"created": 1570101093,
+			"departure": {
+				"airport": {
+					"city": "Austin",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Austin Bergstrom International Airport",
+					"iata": "AUS",
+					"icao": "KAUS",
+					"id": "d63b6bd2-9ed4-447e-914f-ca4d96f28653",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 30.202545,
+						"longitude": -97.667064
+					},
+					"name": "Austin Bergstrom Intl",
+					"region": "North America",
+					"relevance": 9895,
+					"timezone": "America/Chicago"
+				},
+				"gate": "27",
+				"schedule": {
+					"gate": {
+						"estimated": 1570144140,
+						"original": 1570144140
+					},
+					"runway": {
+						"original": 1570144920
+					}
+				},
+				"terminal": "Main"
+			},
+			"distance": 2417,
+			"equipment": {
+				"age": 20,
+				"cruising_speed": 851,
+				"features": ["WIDEBODY"],
+				"first_flight": 928281600,
+				"model_iata": "7S8",
+				"model_icao": "B738",
+				"model_name": "Boeing 737-800",
+				"range": 3704,
+				"tail_number": "N14231"
+			},
+			"flight_number": "455",
+			"id": "e403536e-4c24-4688-aed7-0208d1b5724a",
+			"last_updated": 1570101903,
+			"operating_airline": {
+				"active": true,
+				"alliance": "Star Alliance",
+				"callsign": "UNITED",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "199504650087085",
+				"iata": "UA",
+				"icao": "UAL",
+				"id": "b57b4c86-4724-48f1-80be-d7de4036004a",
+				"last_updated": 1569952763,
+				"name": "United",
+				"phone": "18002416522",
+				"relevance": 7346,
+				"twitter": "united",
+				"website": "united.com"
+			},
+			"status": "SCHEDULED"
+		},
+		{
+			"airline": {
+				"active": true,
+				"callsign": "ALASKA",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "28488837485",
+				"iata": "AS",
+				"icao": "ASA",
+				"id": "45411282-5411-46ac-89ce-720ab9efe700",
+				"last_updated": 1569952763,
+				"name": "Alaska",
+				"phone": "18004260333",
+				"relevance": 1648,
+				"twitter": "AlaskaAir",
+				"website": "alaskaair.com"
+			},
+			"archived": false,
+			"arrival": {
+				"actual_airport": {
+					"city": "San Francisco",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "San Francisco International Airport",
+					"iata": "SFO",
+					"icao": "KSFO",
+					"id": "9b0faf9d-6e26-44ce-88d6-f30a340ea2b7",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 37.615215,
+						"longitude": -122.389881
+					},
+					"name": "San Francisco Intl",
+					"region": "North America",
+					"relevance": 9987,
+					"timezone": "America/Los_Angeles"
+				},
+				"baggage_belt": "4",
+				"gate": "47",
+				"schedule": {
+					"gate": {
+						"estimated": 1570117500,
+						"original": 1570117500
+					},
+					"runway": {}
+				},
+				"scheduled_airport": {
+					"city": "San Francisco",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "San Francisco International Airport",
+					"iata": "SFO",
+					"icao": "KSFO",
+					"id": "9b0faf9d-6e26-44ce-88d6-f30a340ea2b7",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 37.615215,
+						"longitude": -122.389881
+					},
+					"name": "San Francisco Intl",
+					"region": "North America",
+					"relevance": 9987,
+					"timezone": "America/Los_Angeles"
+				},
+				"terminal": "1",
+				"weather": {
+					"condition": 803,
+					"night": false,
+					"temperature": 11
+				}
+			},
+			"changes": [
+				{
+					"phase": "ARRIVAL",
+					"terminal": "2",
+					"timestamp": 1569874400,
+					"type": "GATE"
+				},
+				{
+					"model_name": "Airbus A320",
+					"timestamp": 1569874400,
+					"type": "EQUIPMENT"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1570104000,
+					"timestamp": 1569874400,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1570117500,
+					"timestamp": 1569874400,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "22",
+					"phase": "DEPARTURE",
+					"timestamp": 1570044675,
+					"type": "GATE"
+				},
+				{
+					"gate": "52",
+					"phase": "ARRIVAL",
+					"terminal": "2",
+					"timestamp": 1570044675,
+					"type": "GATE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1570104000,
+					"timestamp": 1570044675,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1570117500,
+					"timestamp": 1570044675,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "2",
+					"phase": "DEPARTURE",
+					"timestamp": 1570056148,
+					"type": "GATE"
+				},
+				{
+					"gate": "53",
+					"phase": "ARRIVAL",
+					"terminal": "2",
+					"timestamp": 1570082275,
+					"type": "GATE"
+				},
+				{
+					"gate": "51B",
+					"phase": "ARRIVAL",
+					"terminal": "2",
+					"timestamp": 1570082456,
+					"type": "GATE"
+				},
+				{
+					"gate": "53",
+					"phase": "ARRIVAL",
+					"terminal": "2",
+					"timestamp": 1570082696,
+					"type": "GATE"
+				},
+				{
+					"gate": "51B",
+					"phase": "ARRIVAL",
+					"terminal": "2",
+					"timestamp": 1570082756,
+					"type": "GATE"
+				},
+				{
+					"gate": "53",
+					"phase": "ARRIVAL",
+					"terminal": "2",
+					"timestamp": 1570083703,
+					"type": "GATE"
+				},
+				{
+					"gate": "51B",
+					"phase": "ARRIVAL",
+					"terminal": "2",
+					"timestamp": 1570084605,
+					"type": "GATE"
+				},
+				{
+					"gate": "47",
+					"phase": "ARRIVAL",
+					"terminal": "2",
+					"timestamp": 1570098852,
+					"type": "GATE"
+				},
+				{
+					"gate": "47",
+					"phase": "ARRIVAL",
+					"terminal": "1",
+					"timestamp": 1570098852,
+					"type": "GATE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1570104600,
+					"timestamp": 1570100831,
+					"type": "SCHEDULE_CHANGE"
+				}
+			],
+			"codeshares": [
+				{
+					"airline": {
+						"active": true,
+						"callsign": "EMIRATES",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "158307244279033",
+						"iata": "EK",
+						"icao": "UAE",
+						"id": "daa8b561-0aed-4a16-ace4-f13fa6c6ea21",
+						"last_updated": 1569952763,
+						"name": "Emirates",
+						"phone": "971600555555",
+						"relevance": 865,
+						"twitter": "emirates",
+						"website": "emirates.com"
+					},
+					"flight_number": "3063",
+					"operates_aircraft": false
+				},
+				{
+					"airline": {
+						"active": true,
+						"callsign": "PACIFIC",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "132911020105248",
+						"iata": "FJ",
+						"icao": "FJI",
+						"id": "21cd37aa-adda-4240-8f48-882ce463bab7",
+						"last_updated": 1569952763,
+						"name": "Fiji Airways",
+						"relevance": 114,
+						"twitter": "FijiAirways",
+						"website": "fijiairways.com"
+					},
+					"flight_number": "5845",
+					"operates_aircraft": false
+				},
+				{
+					"airline": {
+						"active": true,
+						"alliance": "Oneworld",
+						"callsign": "J-BIRD",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "195152223850783",
+						"iata": "JL",
+						"icao": "JAL",
+						"id": "646d4d03-db09-45ee-8330-6af7d6dc61cd",
+						"last_updated": 1569952763,
+						"name": "JAL",
+						"phone": "18005253663",
+						"relevance": 1329,
+						"twitter": "japan_airlines",
+						"website": "jal.co.jp"
+					},
+					"flight_number": "5445",
+					"operates_aircraft": false
+				},
+				{
+					"airline": {
+						"active": true,
+						"alliance": "Star Alliance",
+						"callsign": "SINGAPORE",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "6352578678",
+						"iata": "SQ",
+						"icao": "SIA",
+						"id": "30242dfb-68a4-4ee8-8055-f967ba273f38",
+						"last_updated": 1569952763,
+						"name": "Singapore Airlines",
+						"phone": "18007423333",
+						"relevance": 396,
+						"twitter": "SingaporeAir",
+						"website": "singaporeair.com"
+					},
+					"flight_number": "1423",
+					"operates_aircraft": false
+				},
+				{
+					"airline": {
+						"active": true,
+						"callsign": "ALASKA",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "28488837485",
+						"iata": "AS",
+						"icao": "ASA",
+						"id": "45411282-5411-46ac-89ce-720ab9efe700",
+						"last_updated": 1569952763,
+						"name": "Alaska",
+						"phone": "18004260333",
+						"relevance": 1648,
+						"twitter": "AlaskaAir",
+						"website": "alaskaair.com"
+					},
+					"flight_number": "1219",
+					"operates_aircraft": true
+				}
+			],
+			"content_type": "FLIGHT",
+			"created": 1570100999,
+			"deleted": 1570101062,
+			"departure": {
+				"airport": {
+					"city": "Austin",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Austin Bergstrom International Airport",
+					"iata": "AUS",
+					"icao": "KAUS",
+					"id": "d63b6bd2-9ed4-447e-914f-ca4d96f28653",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 30.202545,
+						"longitude": -97.667064
+					},
+					"name": "Austin Bergstrom Intl",
+					"region": "North America",
+					"relevance": 9895,
+					"timezone": "America/Chicago"
+				},
+				"gate": "2",
+				"schedule": {
+					"gate": {
+						"estimated": 1570104000,
+						"original": 1570104000
+					},
+					"runway": {
+						"estimated": 1570104600
+					}
+				},
+				"terminal": "Main"
+			},
+			"distance": 2417,
+			"equipment": {
+				"age": 4,
+				"features": ["WIDEBODY"],
+				"first_flight": 1436486400,
+				"model_iata": "32A",
+				"model_name": "Airbus A320",
+				"tail_number": "N281VA"
+			},
+			"flight_number": "1219",
+			"id": "cbb3bb65-fa87-499c-b7c7-c3f4a87b2ad9",
+			"last_updated": 1570101903,
+			"operating_airline": {
+				"active": true,
+				"callsign": "ALASKA",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "28488837485",
+				"iata": "AS",
+				"icao": "ASA",
+				"id": "45411282-5411-46ac-89ce-720ab9efe700",
+				"last_updated": 1569952763,
+				"name": "Alaska",
+				"phone": "18004260333",
+				"relevance": 1648,
+				"twitter": "AlaskaAir",
+				"website": "alaskaair.com"
+			},
+			"status": "SCHEDULED"
+		},
+		{
+			"airline": {
+				"active": true,
+				"alliance": "SkyTeam",
+				"callsign": "DELTA",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "125472670805257",
+				"iata": "DL",
+				"icao": "DAL",
+				"id": "a8765091-d043-44b1-936c-d217bb519e56",
+				"last_updated": 1569952763,
+				"name": "Delta",
+				"phone": "18002211212",
+				"relevance": 8107,
+				"twitter": "Delta",
+				"website": "delta.com"
+			},
+			"archived": true,
+			"arrival": {
+				"actual_airport": {
+					"city": "New York",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "John F Kennedy International Airport",
+					"iata": "JFK",
+					"icao": "KJFK",
+					"id": "fc332185-4dde-4791-b449-0de5e83e47b9",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 40.642335,
+						"longitude": -73.78817
+					},
+					"name": "John F Kennedy Intl",
+					"region": "North America",
+					"relevance": 9987,
+					"timezone": "America/New_York"
+				},
+				"baggage_belt": "T4",
+				"gate": "B33",
+				"schedule": {
+					"gate": {
+						"actual": 1569885360,
+						"estimated": 1569885360,
+						"original": 1569887460
+					},
+					"runway": {
+						"actual": 1569885000,
+						"estimated": 1569885000
+					}
+				},
+				"scheduled_airport": {
+					"city": "New York",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "John F Kennedy International Airport",
+					"iata": "JFK",
+					"icao": "KJFK",
+					"id": "fc332185-4dde-4791-b449-0de5e83e47b9",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 40.642335,
+						"longitude": -73.78817
+					},
+					"name": "John F Kennedy Intl",
+					"region": "North America",
+					"relevance": 9987,
+					"timezone": "America/New_York"
+				},
+				"terminal": "4"
+			},
+			"changes": [
+				{
+					"phase": "ARRIVAL",
+					"terminal": "4",
+					"timestamp": 1569615617,
+					"type": "GATE"
+				},
+				{
+					"model_name": "Boeing 757-200",
+					"timestamp": 1569615617,
+					"type": "EQUIPMENT"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1569867600,
+					"timestamp": 1569615617,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569887460,
+					"timestamp": 1569615617,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "13",
+					"phase": "DEPARTURE",
+					"timestamp": 1569722770,
+					"type": "GATE"
+				},
+				{
+					"gate": "13",
+					"phase": "DEPARTURE",
+					"terminal": "A",
+					"timestamp": 1569722770,
+					"type": "GATE"
+				},
+				{
+					"gate": "B22",
+					"phase": "ARRIVAL",
+					"terminal": "4",
+					"timestamp": 1569722770,
+					"type": "GATE"
+				},
+				{
+					"gate": "3",
+					"phase": "DEPARTURE",
+					"terminal": "A",
+					"timestamp": 1569753160,
+					"type": "GATE"
+				},
+				{
+					"gate": "B37",
+					"phase": "ARRIVAL",
+					"terminal": "4",
+					"timestamp": 1569828778,
+					"type": "GATE"
+				},
+				{
+					"gate": "5",
+					"phase": "DEPARTURE",
+					"terminal": "A",
+					"timestamp": 1569839529,
+					"type": "GATE"
+				},
+				{
+					"gate": "2",
+					"phase": "DEPARTURE",
+					"terminal": "A",
+					"timestamp": 1569839947,
+					"type": "GATE"
+				},
+				{
+					"gate": "C64",
+					"phase": "ARRIVAL",
+					"terminal": "4",
+					"timestamp": 1569843251,
+					"type": "GATE"
+				},
+				{
+					"gate": "C64",
+					"phase": "ARRIVAL",
+					"terminal": "2",
+					"timestamp": 1569843251,
+					"type": "GATE"
+				},
+				{
+					"gate": "4",
+					"phase": "DEPARTURE",
+					"terminal": "A",
+					"timestamp": 1569849439,
+					"type": "GATE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569886800,
+					"timestamp": 1569862352,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1569868500,
+					"timestamp": 1569864716,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1569868320,
+					"timestamp": 1569867496,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1569867420,
+					"timestamp": 1569867496,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1569867420,
+					"timestamp": 1569867496,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "DEPARTURE_TAXIING",
+					"time": 1569867420,
+					"timestamp": 1569867496,
+					"type": "STATUS_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1569868680,
+					"timestamp": 1569867499,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569886620,
+					"timestamp": 1569867518,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1569868380,
+					"timestamp": 1569868419,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1569868380,
+					"timestamp": 1569868419,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "EN_ROUTE",
+					"time": 1569868380,
+					"timestamp": 1569868419,
+					"type": "STATUS_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569886320,
+					"timestamp": 1569868419,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569884640,
+					"timestamp": 1569868431,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569886260,
+					"timestamp": 1569870101,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569885540,
+					"timestamp": 1569870341,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "B33",
+					"phase": "ARRIVAL",
+					"terminal": "2",
+					"timestamp": 1569871422,
+					"type": "GATE"
+				},
+				{
+					"gate": "B33",
+					"phase": "ARRIVAL",
+					"terminal": "4",
+					"timestamp": 1569871422,
+					"type": "GATE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569884880,
+					"timestamp": 1569880213,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569884460,
+					"timestamp": 1569883205,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569884400,
+					"timestamp": 1569883580,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569884340,
+					"timestamp": 1569883806,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569884280,
+					"timestamp": 1569883863,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569884340,
+					"timestamp": 1569884037,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569884280,
+					"timestamp": 1569884125,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569884460,
+					"timestamp": 1569884192,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569884640,
+					"timestamp": 1569884490,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569884820,
+					"timestamp": 1569884726,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569885600,
+					"timestamp": 1569884756,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569885420,
+					"timestamp": 1569884876,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569885000,
+					"timestamp": 1569884911,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569885060,
+					"timestamp": 1569885039,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569885000,
+					"timestamp": 1569885079,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569885000,
+					"timestamp": 1569885079,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "ARRIVAL_TAXIING",
+					"time": 1569885000,
+					"timestamp": 1569885079,
+					"type": "STATUS_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569885360,
+					"timestamp": 1569885629,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569885360,
+					"timestamp": 1569885629,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "LANDED",
+					"time": 1569885360,
+					"timestamp": 1569885629,
+					"type": "STATUS_CHANGE"
+				}
+			],
+			"codeshares": [
+				{
+					"airline": {
+						"active": true,
+						"alliance": "SkyTeam",
+						"callsign": "AIRFRANS",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "10150136746870526",
+						"iata": "AF",
+						"icao": "AFR",
+						"id": "ef3b3deb-e992-48e8-b4b6-ce96bb96be5c",
+						"last_updated": 1569952763,
+						"name": "Air France",
+						"phone": "18002372747",
+						"relevance": 1460,
+						"twitter": "afnewsroom",
+						"website": "airfrance.fr"
+					},
+					"flight_number": "6862",
+					"operates_aircraft": false
+				},
+				{
+					"airline": {
+						"active": true,
+						"alliance": "SkyTeam",
+						"callsign": "ALITALIA",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "1541846462734737",
+						"iata": "AZ",
+						"icao": "AZA",
+						"id": "38d3fcc3-4655-469a-993a-08cffbf29316",
+						"last_updated": 1569952763,
+						"name": "Alitalia",
+						"phone": "18002235730",
+						"relevance": 781,
+						"twitter": "Alitalia",
+						"website": "alitalia.it"
+					},
+					"flight_number": "2749",
+					"operates_aircraft": false
+				},
+				{
+					"airline": {
+						"active": true,
+						"alliance": "SkyTeam",
+						"callsign": "CHINA SOUTHERN",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"iata": "CZ",
+						"icao": "CSN",
+						"id": "255d4d33-d2aa-4a84-bc7d-0613c507151f",
+						"last_updated": 1569952763,
+						"name": "China Southern",
+						"relevance": 3526,
+						"twitter": "CSAIR_GLOBAL",
+						"website": "cs-air.com"
+					},
+					"flight_number": "1151",
+					"operates_aircraft": false
+				},
+				{
+					"airline": {
+						"active": true,
+						"callsign": "GOL TRANSPORTE",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "143262022382580",
+						"iata": "G3",
+						"icao": "GLO",
+						"id": "21293d78-931b-4027-96da-4aa08675827f",
+						"last_updated": 1569952763,
+						"name": "Gol",
+						"phone": "18558629190",
+						"relevance": 1149,
+						"twitter": "VoeGOLoficial",
+						"website": "voegol.com.br"
+					},
+					"flight_number": "8365",
+					"operates_aircraft": false
+				},
+				{
+					"airline": {
+						"active": true,
+						"alliance": "SkyTeam",
+						"callsign": "KLM",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "273795515772",
+						"iata": "KL",
+						"icao": "KLM",
+						"id": "23930f39-7220-4a4b-a01e-3ab5508ca9f0",
+						"last_updated": 1569952763,
+						"name": "KLM",
+						"phone": "18003747747",
+						"relevance": 1079,
+						"twitter": "KLM",
+						"website": "klm.com"
+					},
+					"flight_number": "5259",
+					"operates_aircraft": false
+				},
+				{
+					"airline": {
+						"active": true,
+						"alliance": "SkyTeam",
+						"callsign": "EUROPA",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "148508575203335",
+						"iata": "UX",
+						"icao": "AEA",
+						"id": "0b419039-a278-401e-941e-f192fa3358d6",
+						"last_updated": 1569952763,
+						"name": "Air Europa",
+						"phone": "18882387672",
+						"relevance": 387,
+						"twitter": "AirEuropa",
+						"website": "air-europa.com"
+					},
+					"flight_number": "3322",
+					"operates_aircraft": false
+				},
+				{
+					"airline": {
+						"active": true,
+						"callsign": "VIRGIN",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "6757437678",
+						"iata": "VS",
+						"icao": "VIR",
+						"id": "ae01a1b0-39d9-4221-a1c6-622d89154851",
+						"last_updated": 1569952763,
+						"name": "Virgin Atlantic",
+						"phone": "18008628621",
+						"relevance": 84,
+						"twitter": "VirginAtlantic",
+						"website": "virgin-atlantic.com"
+					},
+					"flight_number": "4764",
+					"operates_aircraft": false
+				},
+				{
+					"airline": {
+						"active": true,
+						"alliance": "SkyTeam",
+						"callsign": "DELTA",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "125472670805257",
+						"iata": "DL",
+						"icao": "DAL",
+						"id": "a8765091-d043-44b1-936c-d217bb519e56",
+						"last_updated": 1569952763,
+						"name": "Delta",
+						"phone": "18002211212",
+						"relevance": 8107,
+						"twitter": "Delta",
+						"website": "delta.com"
+					},
+					"flight_number": "182",
+					"operates_aircraft": true
+				}
+			],
+			"content_type": "FLIGHT",
+			"created": 1569923714,
+			"departure": {
+				"airport": {
+					"city": "Seattle",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Seattle Tacoma International Airport",
+					"iata": "SEA",
+					"icao": "KSEA",
+					"id": "b3f217fd-4bc7-4806-9efe-abe9446a74df",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 47.443839,
+						"longitude": -122.301732
+					},
+					"name": "Seattle Tacoma Intl",
+					"region": "North America",
+					"relevance": 9981,
+					"timezone": "America/Los_Angeles"
+				},
+				"gate": "4",
+				"schedule": {
+					"gate": {
+						"actual": 1569867420,
+						"estimated": 1569867420,
+						"original": 1569867600
+					},
+					"runway": {
+						"actual": 1569868380,
+						"estimated": 1569868380
+					}
+				},
+				"terminal": "A"
+			},
+			"distance": 3885,
+			"equipment": {
+				"age": 20,
+				"cruising_speed": 870,
+				"features": ["WIDEBODY"],
+				"first_flight": 929232000,
+				"model_iata": "75W",
+				"model_icao": "B752",
+				"model_name": "Boeing 757-200",
+				"range": 7222,
+				"tail_number": "N721TW"
+			},
+			"flight_number": "182",
+			"id": "4a76179c-5e8b-42fa-a64a-def375c279e2",
+			"last_updated": 1569923714,
+			"operating_airline": {
+				"active": true,
+				"alliance": "SkyTeam",
+				"callsign": "DELTA",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "125472670805257",
+				"iata": "DL",
+				"icao": "DAL",
+				"id": "a8765091-d043-44b1-936c-d217bb519e56",
+				"last_updated": 1569952763,
+				"name": "Delta",
+				"phone": "18002211212",
+				"relevance": 8107,
+				"twitter": "Delta",
+				"website": "delta.com"
+			},
+			"status": "LANDED"
+		},
+		{
+			"airline": {
+				"active": true,
+				"callsign": "SOUTHWEST",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "6806028948",
+				"iata": "WN",
+				"icao": "SWA",
+				"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+				"last_updated": 1569952763,
+				"name": "Southwest",
+				"phone": "18004359792",
+				"relevance": 5915,
+				"twitter": "SouthwestAir",
+				"website": "southwest.com"
+			},
+			"archived": true,
+			"arrival": {
+				"actual_airport": {
+					"city": "Chicago",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Chicago Midway International Airport",
+					"iata": "MDW",
+					"icao": "KMDW",
+					"id": "b1bccd34-3f11-416a-998f-65cc527ca2a0",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 41.788136,
+						"longitude": -87.740871
+					},
+					"name": "Chicago Midway Intl",
+					"region": "North America",
+					"relevance": 9923,
+					"timezone": "America/Chicago"
+				},
+				"gate": "B22",
+				"schedule": {
+					"gate": {
+						"actual": 1552500780,
+						"estimated": 1552500780,
+						"original": 1552502400
+					},
+					"runway": {
+						"actual": 1552500360,
+						"estimated": 1552500360,
+						"original": 1552500840
+					}
+				},
+				"scheduled_airport": {
+					"city": "Chicago",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Chicago Midway International Airport",
+					"iata": "MDW",
+					"icao": "KMDW",
+					"id": "b1bccd34-3f11-416a-998f-65cc527ca2a0",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 41.788136,
+						"longitude": -87.740871
+					},
+					"name": "Chicago Midway Intl",
+					"region": "North America",
+					"relevance": 9923,
+					"timezone": "America/Chicago"
+				},
+				"terminal": "Main"
+			},
+			"changes": [
+				{
+					"phase": "DEPARTURE",
+					"terminal": "B",
+					"timestamp": 1552251050,
+					"type": "GATE"
+				},
+				{
+					"model_name": "Boeing 737-700",
+					"timestamp": 1552251050,
+					"type": "EQUIPMENT"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1552492800,
+					"timestamp": 1552251050,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1552502400,
+					"timestamp": 1552251050,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1552493460,
+					"timestamp": 1552406493,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1552499820,
+					"timestamp": 1552406493,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "B24",
+					"phase": "ARRIVAL",
+					"timestamp": 1552407009,
+					"type": "GATE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1552492800,
+					"timestamp": 1552407009,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1552502400,
+					"timestamp": 1552407009,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "A17",
+					"phase": "ARRIVAL",
+					"timestamp": 1552464491,
+					"type": "GATE"
+				},
+				{
+					"gate": "53",
+					"phase": "DEPARTURE",
+					"terminal": "B",
+					"timestamp": 1552477596,
+					"type": "GATE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1552494180,
+					"timestamp": 1552486108,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1552500840,
+					"timestamp": 1552486108,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1552494180,
+					"timestamp": 1552486108,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "B14",
+					"phase": "ARRIVAL",
+					"timestamp": 1552493004,
+					"type": "GATE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1552492740,
+					"timestamp": 1552493004,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1552492740,
+					"timestamp": 1552493004,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "DEPARTURE_TAXIING",
+					"time": 1552492740,
+					"timestamp": 1552493004,
+					"type": "STATUS_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1552493580,
+					"timestamp": 1552493642,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1552493580,
+					"timestamp": 1552493657,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "EN_ROUTE",
+					"time": 1552493580,
+					"timestamp": 1552493657,
+					"type": "STATUS_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1552500180,
+					"timestamp": 1552493657,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1552493340,
+					"timestamp": 1552494368,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1552493340,
+					"timestamp": 1552494368,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1552501140,
+					"timestamp": 1552495951,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "B22",
+					"phase": "ARRIVAL",
+					"timestamp": 1552498697,
+					"type": "GATE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1552500240,
+					"timestamp": 1552498697,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1552500600,
+					"timestamp": 1552498697,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1552500300,
+					"timestamp": 1552498997,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1552500360,
+					"timestamp": 1552499434,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1552500300,
+					"timestamp": 1552499542,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1552500360,
+					"timestamp": 1552499598,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1552500300,
+					"timestamp": 1552499902,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1552500180,
+					"timestamp": 1552500035,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1552493580,
+					"timestamp": 1552500043,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1552493580,
+					"timestamp": 1552500043,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1552500660,
+					"timestamp": 1552500043,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1552501020,
+					"timestamp": 1552500043,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1552500840,
+					"timestamp": 1552500207,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1552501200,
+					"timestamp": 1552500207,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1552500420,
+					"timestamp": 1552500515,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1552500420,
+					"timestamp": 1552500515,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "ARRIVAL_TAXIING",
+					"time": 1552500420,
+					"timestamp": 1552500515,
+					"type": "STATUS_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1552500360,
+					"timestamp": 1552501083,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1552500360,
+					"timestamp": 1552501083,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1552500780,
+					"timestamp": 1552501240,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1552500780,
+					"timestamp": 1552501240,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "LANDED",
+					"time": 1552500780,
+					"timestamp": 1552501240,
+					"type": "STATUS_CHANGE"
+				}
+			],
+			"codeshares": [
+				{
+					"airline": {
+						"active": true,
+						"callsign": "SOUTHWEST",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "6806028948",
+						"iata": "WN",
+						"icao": "SWA",
+						"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+						"last_updated": 1569952763,
+						"name": "Southwest",
+						"phone": "18004359792",
+						"relevance": 5915,
+						"twitter": "SouthwestAir",
+						"website": "southwest.com"
+					},
+					"flight_number": "1165",
+					"operates_aircraft": true
+				}
+			],
+			"content_type": "FLIGHT",
+			"created": 1569923541,
+			"departure": {
+				"airport": {
+					"city": "New York",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "La Guardia Airport",
+					"iata": "LGA",
+					"icao": "KLGA",
+					"id": "dfeb8457-3376-49f8-b542-dbeb2ec9f719",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 40.774252,
+						"longitude": -73.871617
+					},
+					"name": "La Guardia",
+					"region": "North America",
+					"relevance": 9978,
+					"timezone": "America/New_York"
+				},
+				"gate": "53",
+				"schedule": {
+					"gate": {
+						"actual": 1552492740,
+						"estimated": 1552492740,
+						"original": 1552492800
+					},
+					"runway": {
+						"actual": 1552493580,
+						"estimated": 1552493580,
+						"original": 1552494180
+					}
+				},
+				"terminal": "B"
+			},
+			"distance": 1163,
+			"equipment": {
+				"age": 15,
+				"cruising_speed": 851,
+				"features": ["WIDEBODY"],
+				"first_flight": 1095811200,
+				"model_iata": "73W",
+				"model_icao": "B737",
+				"model_name": "Boeing 737-700",
+				"range": 4630,
+				"tail_number": "N487WN"
+			},
+			"flight_number": "1165",
+			"id": "5c0e6c21-c791-4b10-b64b-bbe936bad602",
+			"last_updated": 1569923541,
+			"operating_airline": {
+				"active": true,
+				"callsign": "SOUTHWEST",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "6806028948",
+				"iata": "WN",
+				"icao": "SWA",
+				"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+				"last_updated": 1569952763,
+				"name": "Southwest",
+				"phone": "18004359792",
+				"relevance": 5915,
+				"twitter": "SouthwestAir",
+				"website": "southwest.com"
+			},
+			"status": "LANDED"
+		},
+		{
+			"airline": {
+				"active": true,
+				"callsign": "SOUTHWEST",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "6806028948",
+				"iata": "WN",
+				"icao": "SWA",
+				"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+				"last_updated": 1569952763,
+				"name": "Southwest",
+				"phone": "18004359792",
+				"relevance": 5915,
+				"twitter": "SouthwestAir",
+				"website": "southwest.com"
+			},
+			"archived": true,
+			"arrival": {
+				"actual_airport": {
+					"city": "Chicago",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Chicago Midway International Airport",
+					"iata": "MDW",
+					"icao": "KMDW",
+					"id": "b1bccd34-3f11-416a-998f-65cc527ca2a0",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 41.788136,
+						"longitude": -87.740871
+					},
+					"name": "Chicago Midway Intl",
+					"region": "North America",
+					"relevance": 9923,
+					"timezone": "America/Chicago"
+				},
+				"gate": "B11",
+				"schedule": {
+					"gate": {
+						"actual": 1445904120,
+						"estimated": 1445904120,
+						"original": 1445905200
+					},
+					"runway": {
+						"actual": 1445903940,
+						"estimated": 1445903940,
+						"original": 1445903520
+					}
+				},
+				"scheduled_airport": {
+					"city": "Chicago",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Chicago Midway International Airport",
+					"iata": "MDW",
+					"icao": "KMDW",
+					"id": "b1bccd34-3f11-416a-998f-65cc527ca2a0",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 41.788136,
+						"longitude": -87.740871
+					},
+					"name": "Chicago Midway Intl",
+					"region": "North America",
+					"relevance": 9923,
+					"timezone": "America/Chicago"
+				},
+				"terminal": "Main"
+			},
+			"changes": [
+				{
+					"phase": "DEPARTURE",
+					"terminal": "B",
+					"timestamp": 1445645943,
+					"type": "GATE"
+				},
+				{
+					"model_name": "Boeing 737-700",
+					"timestamp": 1445645943,
+					"type": "EQUIPMENT"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1445896200,
+					"timestamp": 1445645943,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1445905200,
+					"timestamp": 1445645943,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "B8",
+					"phase": "DEPARTURE",
+					"terminal": "B",
+					"timestamp": 1445810108,
+					"type": "GATE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1445897040,
+					"timestamp": 1445810164,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1445897040,
+					"timestamp": 1445810164,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445903820,
+					"timestamp": 1445810164,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445903820,
+					"timestamp": 1445810164,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "B11",
+					"phase": "ARRIVAL",
+					"timestamp": 1445854151,
+					"type": "GATE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1445897460,
+					"timestamp": 1445888741,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1445897460,
+					"timestamp": 1445888741,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445904360,
+					"timestamp": 1445888741,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445904360,
+					"timestamp": 1445888741,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1445895960,
+					"timestamp": 1445896815,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1445895960,
+					"timestamp": 1445896815,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "DEPARTURE_TAXIING",
+					"time": 1445895960,
+					"timestamp": 1445896815,
+					"type": "STATUS_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1445896980,
+					"timestamp": 1445897319,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1445896980,
+					"timestamp": 1445897319,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1445896980,
+					"timestamp": 1445897319,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1445896980,
+					"timestamp": 1445897319,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445903520,
+					"timestamp": 1445897319,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445903520,
+					"timestamp": 1445897319,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1445897040,
+					"timestamp": 1445897396,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1445897040,
+					"timestamp": 1445897396,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "EN_ROUTE",
+					"time": 1445897040,
+					"timestamp": 1445897396,
+					"type": "STATUS_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1445896980,
+					"timestamp": 1445897590,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1445896980,
+					"timestamp": 1445897590,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1445897040,
+					"timestamp": 1445897908,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1445897040,
+					"timestamp": 1445897908,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445903460,
+					"timestamp": 1445898054,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445903640,
+					"timestamp": 1445899519,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445903700,
+					"timestamp": 1445901360,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445903760,
+					"timestamp": 1445901963,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445903820,
+					"timestamp": 1445902037,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1445904000,
+					"timestamp": 1445902159,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1445904000,
+					"timestamp": 1445902159,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "LANDED",
+					"time": 1445904000,
+					"timestamp": 1445902159,
+					"type": "STATUS_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445903760,
+					"timestamp": 1445902457,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445903820,
+					"timestamp": 1445902477,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445903880,
+					"timestamp": 1445902931,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445904000,
+					"timestamp": 1445904336,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445903940,
+					"timestamp": 1445904396,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445903940,
+					"timestamp": 1445904396,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "ARRIVAL_TAXIING",
+					"time": 1445903940,
+					"timestamp": 1445904396,
+					"type": "STATUS_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445903940,
+					"timestamp": 1445904461,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1445903940,
+					"timestamp": 1445904461,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1445904120,
+					"timestamp": 1445904805,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1445904120,
+					"timestamp": 1445904805,
+					"type": "SCHEDULE_CHANGE"
+				}
+			],
+			"codeshares": [
+				{
+					"airline": {
+						"active": true,
+						"callsign": "SOUTHWEST",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "6806028948",
+						"iata": "WN",
+						"icao": "SWA",
+						"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+						"last_updated": 1569952763,
+						"name": "Southwest",
+						"phone": "18004359792",
+						"relevance": 5915,
+						"twitter": "SouthwestAir",
+						"website": "southwest.com"
+					},
+					"flight_number": "2743",
+					"operates_aircraft": true
+				}
+			],
+			"content_type": "FLIGHT",
+			"created": 1569923467,
+			"departure": {
+				"airport": {
+					"city": "New York",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "La Guardia Airport",
+					"iata": "LGA",
+					"icao": "KLGA",
+					"id": "dfeb8457-3376-49f8-b542-dbeb2ec9f719",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 40.774252,
+						"longitude": -73.871617
+					},
+					"name": "La Guardia",
+					"region": "North America",
+					"relevance": 9978,
+					"timezone": "America/New_York"
+				},
+				"gate": "B8",
+				"schedule": {
+					"gate": {
+						"actual": 1445895960,
+						"estimated": 1445895960,
+						"original": 1445896200
+					},
+					"runway": {
+						"actual": 1445897040,
+						"estimated": 1445897040,
+						"original": 1445896980
+					}
+				},
+				"terminal": "B"
+			},
+			"distance": 1163,
+			"equipment": {
+				"features": []
+			},
+			"flight_number": "2743",
+			"id": "862dc3f2-45a1-42fe-900d-f136b9243a56",
+			"last_updated": 1569923467,
+			"operating_airline": {
+				"active": true,
+				"callsign": "SOUTHWEST",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "6806028948",
+				"iata": "WN",
+				"icao": "SWA",
+				"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+				"last_updated": 1569952763,
+				"name": "Southwest",
+				"phone": "18004359792",
+				"relevance": 5915,
+				"twitter": "SouthwestAir",
+				"website": "southwest.com"
+			},
+			"status": "LANDED"
+		},
+		{
+			"airline": {
+				"active": true,
+				"callsign": "SOUTHWEST",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "6806028948",
+				"iata": "WN",
+				"icao": "SWA",
+				"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+				"last_updated": 1569952763,
+				"name": "Southwest",
+				"phone": "18004359792",
+				"relevance": 5915,
+				"twitter": "SouthwestAir",
+				"website": "southwest.com"
+			},
+			"archived": true,
+			"arrival": {
+				"actual_airport": {
+					"city": "Chicago",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Chicago Midway International Airport",
+					"iata": "MDW",
+					"icao": "KMDW",
+					"id": "b1bccd34-3f11-416a-998f-65cc527ca2a0",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 41.788136,
+						"longitude": -87.740871
+					},
+					"name": "Chicago Midway Intl",
+					"region": "North America",
+					"relevance": 9923,
+					"timezone": "America/Chicago"
+				},
+				"gate": "B3",
+				"schedule": {
+					"gate": {
+						"actual": 1509236820,
+						"estimated": 1509236820,
+						"original": 1509237300
+					},
+					"runway": {
+						"actual": 1509234780,
+						"estimated": 1509234780,
+						"original": 1509236160
+					}
+				},
+				"scheduled_airport": {
+					"city": "Chicago",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Chicago Midway International Airport",
+					"iata": "MDW",
+					"icao": "KMDW",
+					"id": "b1bccd34-3f11-416a-998f-65cc527ca2a0",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 41.788136,
+						"longitude": -87.740871
+					},
+					"name": "Chicago Midway Intl",
+					"region": "North America",
+					"relevance": 9923,
+					"timezone": "America/Chicago"
+				},
+				"terminal": "Main"
+			},
+			"changes": [
+				{
+					"phase": "DEPARTURE",
+					"terminal": "B",
+					"timestamp": 1508964138,
+					"type": "GATE"
+				},
+				{
+					"model_name": "Boeing 737-700",
+					"timestamp": 1508964138,
+					"type": "EQUIPMENT"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1509228300,
+					"timestamp": 1508964138,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1509237300,
+					"timestamp": 1508964138,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1509228900,
+					"timestamp": 1509142033,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1509235140,
+					"timestamp": 1509142033,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "B8",
+					"phase": "DEPARTURE",
+					"terminal": "B",
+					"timestamp": 1509142426,
+					"type": "GATE"
+				},
+				{
+					"gate": "A18",
+					"phase": "ARRIVAL",
+					"timestamp": 1509142426,
+					"type": "GATE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1509228300,
+					"timestamp": 1509142426,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1509237300,
+					"timestamp": 1509142426,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "B5",
+					"phase": "DEPARTURE",
+					"terminal": "B",
+					"timestamp": 1509185593,
+					"type": "GATE"
+				},
+				{
+					"gate": "B3",
+					"phase": "ARRIVAL",
+					"timestamp": 1509185593,
+					"type": "GATE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1509229680,
+					"timestamp": 1509215453,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1509236160,
+					"timestamp": 1509215453,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1509229680,
+					"timestamp": 1509215453,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1509236160,
+					"timestamp": 1509215453,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1509228240,
+					"timestamp": 1509228641,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1509228240,
+					"timestamp": 1509228641,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "DEPARTURE_TAXIING",
+					"time": 1509228240,
+					"timestamp": 1509228641,
+					"type": "STATUS_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1509229800,
+					"timestamp": 1509229881,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1509229800,
+					"timestamp": 1509229881,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "EN_ROUTE",
+					"time": 1509229800,
+					"timestamp": 1509229881,
+					"type": "STATUS_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1509235980,
+					"timestamp": 1509229881,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1509236400,
+					"timestamp": 1509229980,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1509236160,
+					"timestamp": 1509230997,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1509236400,
+					"timestamp": 1509231209,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1509236700,
+					"timestamp": 1509231209,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1509236520,
+					"timestamp": 1509232811,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1509236820,
+					"timestamp": 1509232811,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1509236400,
+					"timestamp": 1509235079,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1509236700,
+					"timestamp": 1509235079,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1509236520,
+					"timestamp": 1509235958,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1509236820,
+					"timestamp": 1509235958,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1509236460,
+					"timestamp": 1509236536,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1509236760,
+					"timestamp": 1509236536,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1509236700,
+					"timestamp": 1509236536,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1509236700,
+					"timestamp": 1509236536,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "LANDED",
+					"time": 1509236700,
+					"timestamp": 1509236536,
+					"type": "STATUS_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1509236580,
+					"timestamp": 1509236656,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1509236580,
+					"timestamp": 1509236656,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "ARRIVAL_TAXIING",
+					"time": 1509236580,
+					"timestamp": 1509236656,
+					"type": "STATUS_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1509234780,
+					"timestamp": 1509237020,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1509234780,
+					"timestamp": 1509237020,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1509236820,
+					"timestamp": 1509237507,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1509236820,
+					"timestamp": 1509237507,
+					"type": "SCHEDULE_CHANGE"
+				}
+			],
+			"codeshares": [
+				{
+					"airline": {
+						"active": true,
+						"callsign": "SOUTHWEST",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "6806028948",
+						"iata": "WN",
+						"icao": "SWA",
+						"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+						"last_updated": 1569952763,
+						"name": "Southwest",
+						"phone": "18004359792",
+						"relevance": 5915,
+						"twitter": "SouthwestAir",
+						"website": "southwest.com"
+					},
+					"flight_number": "4624",
+					"operates_aircraft": true
+				}
+			],
+			"content_type": "FLIGHT",
+			"created": 1569923439,
+			"departure": {
+				"airport": {
+					"city": "New York",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "La Guardia Airport",
+					"iata": "LGA",
+					"icao": "KLGA",
+					"id": "dfeb8457-3376-49f8-b542-dbeb2ec9f719",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 40.774252,
+						"longitude": -73.871617
+					},
+					"name": "La Guardia",
+					"region": "North America",
+					"relevance": 9978,
+					"timezone": "America/New_York"
+				},
+				"gate": "B5",
+				"schedule": {
+					"gate": {
+						"actual": 1509228240,
+						"estimated": 1509228240,
+						"original": 1509228300
+					},
+					"runway": {
+						"actual": 1509229800,
+						"estimated": 1509229800,
+						"original": 1509229680
+					}
+				},
+				"terminal": "B"
+			},
+			"distance": 1163,
+			"equipment": {
+				"age": 13,
+				"cruising_speed": 851,
+				"features": ["WIDEBODY"],
+				"first_flight": 1150588800,
+				"model_iata": "73W",
+				"model_icao": "B737",
+				"model_name": "Boeing 737-700",
+				"range": 4630,
+				"tail_number": "N245WN"
+			},
+			"flight_number": "4624",
+			"id": "bd945008-e0e9-4416-b3ce-2eca19c12b1f",
+			"last_updated": 1569923439,
+			"operating_airline": {
+				"active": true,
+				"callsign": "SOUTHWEST",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "6806028948",
+				"iata": "WN",
+				"icao": "SWA",
+				"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+				"last_updated": 1569952763,
+				"name": "Southwest",
+				"phone": "18004359792",
+				"relevance": 5915,
+				"twitter": "SouthwestAir",
+				"website": "southwest.com"
+			},
+			"status": "LANDED"
+		},
+		{
+			"airline": {
+				"active": true,
+				"callsign": "ALASKA",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "28488837485",
+				"iata": "AS",
+				"icao": "ASA",
+				"id": "45411282-5411-46ac-89ce-720ab9efe700",
+				"last_updated": 1569952763,
+				"name": "Alaska",
+				"phone": "18004260333",
+				"relevance": 1648,
+				"twitter": "AlaskaAir",
+				"website": "alaskaair.com"
+			},
+			"archived": true,
+			"arrival": {
+				"actual_airport": {
+					"city": "New York",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "John F Kennedy International Airport",
+					"iata": "JFK",
+					"icao": "KJFK",
+					"id": "fc332185-4dde-4791-b449-0de5e83e47b9",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 40.642335,
+						"longitude": -73.78817
+					},
+					"name": "John F Kennedy Intl",
+					"region": "North America",
+					"relevance": 9987,
+					"timezone": "America/New_York"
+				},
+				"gate": "11",
+				"schedule": {
+					"gate": {
+						"actual": 1569699540,
+						"estimated": 1569699540,
+						"original": 1569700200
+					},
+					"runway": {
+						"actual": 1569699000,
+						"estimated": 1569699000
+					}
+				},
+				"scheduled_airport": {
+					"city": "New York",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "John F Kennedy International Airport",
+					"iata": "JFK",
+					"icao": "KJFK",
+					"id": "fc332185-4dde-4791-b449-0de5e83e47b9",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 40.642335,
+						"longitude": -73.78817
+					},
+					"name": "John F Kennedy Intl",
+					"region": "North America",
+					"relevance": 9987,
+					"timezone": "America/New_York"
+				},
+				"terminal": "7"
+			},
+			"changes": [
+				{
+					"phase": "ARRIVAL",
+					"terminal": "7",
+					"timestamp": 1569442380,
+					"type": "GATE"
+				},
+				{
+					"model_name": "Boeing 737-900",
+					"timestamp": 1569442380,
+					"type": "EQUIPMENT"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1569680700,
+					"timestamp": 1569442380,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ORIGINAL",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569700200,
+					"timestamp": 1569442380,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "15",
+					"phase": "DEPARTURE",
+					"timestamp": 1569630607,
+					"type": "GATE"
+				},
+				{
+					"gate": "15",
+					"phase": "DEPARTURE",
+					"terminal": "C",
+					"timestamp": 1569630607,
+					"type": "GATE"
+				},
+				{
+					"gate": "11",
+					"phase": "ARRIVAL",
+					"terminal": "7",
+					"timestamp": 1569630607,
+					"type": "GATE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1569680700,
+					"timestamp": 1569630607,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569700200,
+					"timestamp": 1569630607,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "7",
+					"phase": "DEPARTURE",
+					"terminal": "C",
+					"timestamp": 1569633490,
+					"type": "GATE"
+				},
+				{
+					"gate": "7",
+					"phase": "DEPARTURE",
+					"terminal": "D",
+					"timestamp": 1569633490,
+					"type": "GATE"
+				},
+				{
+					"gate": "16",
+					"phase": "DEPARTURE",
+					"terminal": "D",
+					"timestamp": 1569636734,
+					"type": "GATE"
+				},
+				{
+					"gate": "16",
+					"phase": "DEPARTURE",
+					"terminal": "N",
+					"timestamp": 1569636734,
+					"type": "GATE"
+				},
+				{
+					"gate": "18",
+					"phase": "DEPARTURE",
+					"terminal": "N",
+					"timestamp": 1569645624,
+					"type": "GATE"
+				},
+				{
+					"gate": "18",
+					"phase": "DEPARTURE",
+					"terminal": "C",
+					"timestamp": 1569645624,
+					"type": "GATE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569698580,
+					"timestamp": 1569660942,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"gate": "12",
+					"phase": "DEPARTURE",
+					"terminal": "C",
+					"timestamp": 1569669712,
+					"type": "GATE"
+				},
+				{
+					"gate": "12",
+					"phase": "DEPARTURE",
+					"terminal": "N",
+					"timestamp": 1569669712,
+					"type": "GATE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1569681780,
+					"timestamp": 1569677240,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1569680820,
+					"timestamp": 1569677401,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1569681900,
+					"timestamp": 1569677414,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1569682320,
+					"timestamp": 1569682379,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1569682320,
+					"timestamp": 1569682379,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "EN_ROUTE",
+					"time": 1569682320,
+					"timestamp": 1569682379,
+					"type": "STATUS_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569698640,
+					"timestamp": 1569682379,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569699000,
+					"timestamp": 1569682379,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1569682260,
+					"timestamp": 1569682438,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1569682260,
+					"timestamp": 1569682438,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1569680880,
+					"timestamp": 1569682447,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "DEPARTURE",
+					"schedule": "GATE",
+					"time": 1569680880,
+					"timestamp": 1569682447,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "DEPARTURE_TAXIING",
+					"time": 1569680880,
+					"timestamp": 1569682447,
+					"type": "STATUS_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569698940,
+					"timestamp": 1569682447,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569698820,
+					"timestamp": 1569693854,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569698820,
+					"timestamp": 1569695542,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569698400,
+					"timestamp": 1569697167,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569698340,
+					"timestamp": 1569697471,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569698280,
+					"timestamp": 1569697733,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569698220,
+					"timestamp": 1569697836,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1569682320,
+					"timestamp": 1569697959,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "DEPARTURE",
+					"schedule": "RUNWAY",
+					"time": 1569682320,
+					"timestamp": 1569697959,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569698160,
+					"timestamp": 1569698077,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569698340,
+					"timestamp": 1569698200,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569698460,
+					"timestamp": 1569698380,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569698700,
+					"timestamp": 1569698493,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569698880,
+					"timestamp": 1569698735,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569699240,
+					"timestamp": 1569698735,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569698460,
+					"timestamp": 1569698966,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569698820,
+					"timestamp": 1569698966,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569699000,
+					"timestamp": 1569699069,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "ARRIVAL",
+					"schedule": "RUNWAY",
+					"time": 1569699000,
+					"timestamp": 1569699069,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "ARRIVAL_TAXIING",
+					"time": 1569699000,
+					"timestamp": 1569699069,
+					"type": "STATUS_CHANGE"
+				},
+				{
+					"kind": "ESTIMATED",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569699540,
+					"timestamp": 1569699687,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"kind": "ACTUAL",
+					"phase": "ARRIVAL",
+					"schedule": "GATE",
+					"time": 1569699540,
+					"timestamp": 1569699687,
+					"type": "SCHEDULE_CHANGE"
+				},
+				{
+					"status": "LANDED",
+					"time": 1569699540,
+					"timestamp": 1569699687,
+					"type": "STATUS_CHANGE"
+				}
+			],
+			"codeshares": [
+				{
+					"airline": {
+						"active": true,
+						"alliance": "Star Alliance",
+						"callsign": "SINGAPORE",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "6352578678",
+						"iata": "SQ",
+						"icao": "SIA",
+						"id": "30242dfb-68a4-4ee8-8055-f967ba273f38",
+						"last_updated": 1569952763,
+						"name": "Singapore Airlines",
+						"phone": "18007423333",
+						"relevance": 396,
+						"twitter": "SingaporeAir",
+						"website": "singaporeair.com"
+					},
+					"flight_number": "1238",
+					"operates_aircraft": false
+				},
+				{
+					"airline": {
+						"active": true,
+						"callsign": "ALASKA",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "28488837485",
+						"iata": "AS",
+						"icao": "ASA",
+						"id": "45411282-5411-46ac-89ce-720ab9efe700",
+						"last_updated": 1569952763,
+						"name": "Alaska",
+						"phone": "18004260333",
+						"relevance": 1648,
+						"twitter": "AlaskaAir",
+						"website": "alaskaair.com"
+					},
+					"flight_number": "628",
+					"operates_aircraft": true
+				}
+			],
+			"content_type": "FLIGHT",
+			"created": 1569754997,
+			"departure": {
+				"airport": {
+					"city": "Seattle",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Seattle Tacoma International Airport",
+					"iata": "SEA",
+					"icao": "KSEA",
+					"id": "b3f217fd-4bc7-4806-9efe-abe9446a74df",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 47.443839,
+						"longitude": -122.301732
+					},
+					"name": "Seattle Tacoma Intl",
+					"region": "North America",
+					"relevance": 9981,
+					"timezone": "America/Los_Angeles"
+				},
+				"gate": "12",
+				"schedule": {
+					"gate": {
+						"actual": 1569680880,
+						"estimated": 1569680880,
+						"original": 1569680700
+					},
+					"runway": {
+						"actual": 1569682320,
+						"estimated": 1569682320
+					}
+				},
+				"terminal": "N"
+			},
+			"distance": 3885,
+			"equipment": {
+				"age": 3,
+				"cruising_speed": 851,
+				"features": ["WIDEBODY"],
+				"first_flight": 1471478400,
+				"model_iata": "73J",
+				"model_icao": "B739",
+				"model_name": "Boeing 737-900",
+				"range": 5083,
+				"tail_number": "N260AK"
+			},
+			"flight_number": "628",
+			"id": "9515ca52-b501-44a4-b7fe-1875c254481c",
+			"last_updated": 1569754997,
+			"operating_airline": {
+				"active": true,
+				"callsign": "ALASKA",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "28488837485",
+				"iata": "AS",
+				"icao": "ASA",
+				"id": "45411282-5411-46ac-89ce-720ab9efe700",
+				"last_updated": 1569952763,
+				"name": "Alaska",
+				"phone": "18004260333",
+				"relevance": 1648,
+				"twitter": "AlaskaAir",
+				"website": "alaskaair.com"
+			},
+			"status": "LANDED"
+		},
+		{
+			"airline": {
+				"active": true,
+				"callsign": "SOUTHWEST",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "6806028948",
+				"iata": "WN",
+				"icao": "SWA",
+				"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+				"last_updated": 1569952763,
+				"name": "Southwest",
+				"phone": "18004359792",
+				"relevance": 5915,
+				"twitter": "SouthwestAir",
+				"website": "southwest.com"
+			},
+			"archived": false,
+			"arrival": {
+				"actual_airport": {
+					"city": "Chicago",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Chicago Midway International Airport",
+					"iata": "MDW",
+					"icao": "KMDW",
+					"id": "b1bccd34-3f11-416a-998f-65cc527ca2a0",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 41.788136,
+						"longitude": -87.740871
+					},
+					"name": "Chicago Midway Intl",
+					"region": "North America",
+					"relevance": 9923,
+					"timezone": "America/Chicago"
+				},
+				"schedule": {
+					"gate": {
+						"original": 1571920200
+					},
+					"runway": {}
+				},
+				"scheduled_airport": {
+					"city": "Chicago",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "Chicago Midway International Airport",
+					"iata": "MDW",
+					"icao": "KMDW",
+					"id": "b1bccd34-3f11-416a-998f-65cc527ca2a0",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 41.788136,
+						"longitude": -87.740871
+					},
+					"name": "Chicago Midway Intl",
+					"region": "North America",
+					"relevance": 9923,
+					"timezone": "America/Chicago"
+				}
+			},
+			"changes": [],
+			"codeshares": [
+				{
+					"airline": {
+						"active": true,
+						"callsign": "SOUTHWEST",
+						"content_type": "AIRLINE",
+						"created": 1569952763,
+						"facebook": "6806028948",
+						"iata": "WN",
+						"icao": "SWA",
+						"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+						"last_updated": 1569952763,
+						"name": "Southwest",
+						"phone": "18004359792",
+						"relevance": 5915,
+						"twitter": "SouthwestAir",
+						"website": "southwest.com"
+					},
+					"flight_number": "1797",
+					"operates_aircraft": true
+				}
+			],
+			"content_type": "FLIGHT",
+			"created": 1569752898,
+			"deleted": 1569935359,
+			"departure": {
+				"airport": {
+					"city": "New York",
+					"content_type": "AIRPORT",
+					"country": "United States",
+					"countryCode": "US",
+					"created": 1564393837,
+					"full_name": "La Guardia Airport",
+					"iata": "LGA",
+					"icao": "KLGA",
+					"id": "dfeb8457-3376-49f8-b542-dbeb2ec9f719",
+					"last_updated": 1564393837,
+					"location": {
+						"latitude": 40.774252,
+						"longitude": -73.871617
+					},
+					"name": "La Guardia",
+					"region": "North America",
+					"relevance": 9978,
+					"timezone": "America/New_York"
+				},
+				"schedule": {
+					"gate": {
+						"original": 1571911500
+					},
+					"runway": {}
+				},
+				"terminal": "B"
+			},
+			"distance": 1163,
+			"equipment": {
+				"cruising_speed": 851,
+				"features": ["WIDEBODY"],
+				"model_iata": "73W",
+				"model_icao": "B737",
+				"model_name": "Boeing 737-700",
+				"range": 4630
+			},
+			"flight_number": "1797",
+			"id": "00fd395c-a492-4a81-8405-e7aada2d1bd5",
+			"last_updated": 1569935359,
+			"operating_airline": {
+				"active": true,
+				"callsign": "SOUTHWEST",
+				"content_type": "AIRLINE",
+				"created": 1569952763,
+				"facebook": "6806028948",
+				"iata": "WN",
+				"icao": "SWA",
+				"id": "be4c4286-2c02-4dca-86d4-56e19aa348f7",
+				"last_updated": 1569952763,
+				"name": "Southwest",
+				"phone": "18004359792",
+				"relevance": 5915,
+				"twitter": "SouthwestAir",
+				"website": "southwest.com"
+			},
+			"status": "SCHEDULED"
+		},
+		{
+			"content_type": "USER",
+			"created": 1569751740,
+			"id": "53185263-55d5-4d44-921e-cf0a6740b529",
+			"last_updated": 1569751740,
+			"token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI1MzE4NTI2My01NWQ1LTRkNDQtOTIxZS1jZjBhNjc0MGI1MjkiLCJpc3MiOiJmbGlnaHR5LWFwaSIsImlhdCI6MTUxNDc2NDgwMH0.T1r9r2CeA8bdWFaku30vLvesdow9bysR0ZG5DxR7BRQej7ZWjMzetOIMAi1FFOAUftaxbcLL2BJY7zJdzq-nLA",
+			"type": "ANONYMOUS"
+		},
+		{
+			"arriving_flight_id": "e92481f7-bd60-4f56-bc64-211eb7118425",
+			"content_type": "CONNECTION",
+			"created": 1570102963,
+			"departing_flight_id": "b1eb1037-c605-4cbd-abec-a2fa72ba05d3",
+			"id": "163f25fc-9b63-452a-af34-23e570d0821b",
+			"last_updated": 1570102963,
+			"waiting_airport": {
+				"city": "Austin",
+				"content_type": "AIRPORT",
+				"country": "United States",
+				"countryCode": "US",
+				"created": 1564393837,
+				"full_name": "Austin Bergstrom International Airport",
+				"iata": "AUS",
+				"icao": "KAUS",
+				"id": "d63b6bd2-9ed4-447e-914f-ca4d96f28653",
+				"last_updated": 1564393837,
+				"location": {
+					"latitude": 30.202545,
+					"longitude": -97.667064
+				},
+				"name": "Austin Bergstrom Intl",
+				"region": "North America",
+				"relevance": 9895,
+				"timezone": "America/Chicago"
+			}
+		},
+		{
+			"content_type": "FLIGHT_PLAN",
+			"created": 1570101903,
+			"flight_id": "cbb3bb65-fa87-499c-b7c7-c3f4a87b2ad9",
+			"id": "cbb3bb65-fa87-499c-b7c7-c3f4a87b2ad9",
+			"last_updated": 1570101903,
+			"route": [
+				{
+					"latitude": 30.19,
+					"longitude": -97.67
+				},
+				{
+					"latitude": 30.21,
+					"longitude": -97.78
+				},
+				{
+					"latitude": 30.22,
+					"longitude": -97.81
+				},
+				{
+					"latitude": 30.23,
+					"longitude": -97.86
+				},
+				{
+					"latitude": 30.24,
+					"longitude": -97.9
+				},
+				{
+					"latitude": 30.25,
+					"longitude": -97.95
+				},
+				{
+					"latitude": 30.28,
+					"longitude": -98.12
+				},
+				{
+					"latitude": 30.29,
+					"longitude": -98.2
+				},
+				{
+					"latitude": 30.29,
+					"longitude": -98.21
+				},
+				{
+					"latitude": 30.31,
+					"longitude": -98.31
+				},
+				{
+					"latitude": 30.32,
+					"longitude": -98.37
+				},
+				{
+					"latitude": 30.33,
+					"longitude": -98.43
+				},
+				{
+					"latitude": 30.37,
+					"longitude": -98.61
+				},
+				{
+					"latitude": 30.4,
+					"longitude": -98.76
+				},
+				{
+					"latitude": 30.42,
+					"longitude": -98.87
+				},
+				{
+					"latitude": 30.44,
+					"longitude": -98.99
+				},
+				{
+					"latitude": 30.48,
+					"longitude": -99.2
+				},
+				{
+					"latitude": 30.5,
+					"longitude": -99.3
+				},
+				{
+					"latitude": 30.5,
+					"longitude": -99.32
+				},
+				{
+					"latitude": 30.51,
+					"longitude": -99.36
+				},
+				{
+					"latitude": 30.57,
+					"longitude": -99.65
+				},
+				{
+					"latitude": 30.59,
+					"longitude": -99.78
+				},
+				{
+					"latitude": 30.6,
+					"longitude": -99.82
+				},
+				{
+					"latitude": 30.65,
+					"longitude": -100.04
+				},
+				{
+					"latitude": 30.71,
+					"longitude": -100.31
+				},
+				{
+					"latitude": 30.81,
+					"longitude": -100.72
+				},
+				{
+					"latitude": 30.87,
+					"longitude": -100.99
+				},
+				{
+					"latitude": 31.14,
+					"longitude": -102.19
+				},
+				{
+					"latitude": 31.19,
+					"longitude": -102.44
+				},
+				{
+					"latitude": 31.94,
+					"longitude": -106.23
+				},
+				{
+					"latitude": 31.95,
+					"longitude": -106.27
+				},
+				{
+					"latitude": 32.03,
+					"longitude": -106.48
+				},
+				{
+					"latitude": 32.56,
+					"longitude": -107.94
+				},
+				{
+					"latitude": 32.64,
+					"longitude": -108.16
+				},
+				{
+					"latitude": 33.5,
+					"longitude": -110.0
+				},
+				{
+					"latitude": 33.6,
+					"longitude": -110.19
+				},
+				{
+					"latitude": 33.95,
+					"longitude": -110.91
+				},
+				{
+					"latitude": 34.17,
+					"longitude": -111.36
+				},
+				{
+					"latitude": 34.7,
+					"longitude": -112.48
+				},
+				{
+					"latitude": 34.8,
+					"longitude": -112.67
+				},
+				{
+					"latitude": 34.9,
+					"longitude": -112.86
+				},
+				{
+					"latitude": 35.1,
+					"longitude": -113.24
+				},
+				{
+					"latitude": 35.51,
+					"longitude": -114.04
+				},
+				{
+					"latitude": 35.72,
+					"longitude": -114.44
+				},
+				{
+					"latitude": 36.08,
+					"longitude": -115.16
+				},
+				{
+					"latitude": 36.26,
+					"longitude": -115.55
+				},
+				{
+					"latitude": 36.8,
+					"longitude": -116.75
+				},
+				{
+					"latitude": 37.25,
+					"longitude": -117.24
+				},
+				{
+					"latitude": 37.49,
+					"longitude": -117.52
+				},
+				{
+					"latitude": 37.61,
+					"longitude": -119.05
+				},
+				{
+					"latitude": 37.63,
+					"longitude": -119.36
+				},
+				{
+					"latitude": 37.65,
+					"longitude": -119.65
+				},
+				{
+					"latitude": 37.68,
+					"longitude": -120.08
+				},
+				{
+					"latitude": 37.68,
+					"longitude": -120.14
+				},
+				{
+					"latitude": 37.69,
+					"longitude": -120.22
+				},
+				{
+					"latitude": 37.7,
+					"longitude": -120.4
+				},
+				{
+					"latitude": 37.69,
+					"longitude": -120.52
+				},
+				{
+					"latitude": 37.68,
+					"longitude": -120.58
+				},
+				{
+					"latitude": 37.67,
+					"longitude": -120.69
+				},
+				{
+					"latitude": 37.66,
+					"longitude": -120.75
+				},
+				{
+					"latitude": 37.65,
+					"longitude": -120.83
+				},
+				{
+					"latitude": 37.64,
+					"longitude": -120.88
+				},
+				{
+					"latitude": 37.63,
+					"longitude": -120.96
+				},
+				{
+					"latitude": 37.63,
+					"longitude": -121.0
+				},
+				{
+					"latitude": 37.61,
+					"longitude": -121.11
+				},
+				{
+					"latitude": 37.6,
+					"longitude": -121.19
+				},
+				{
+					"latitude": 37.59,
+					"longitude": -121.26
+				},
+				{
+					"latitude": 37.58,
+					"longitude": -121.39
+				},
+				{
+					"latitude": 37.58,
+					"longitude": -121.41
+				},
+				{
+					"latitude": 37.55,
+					"longitude": -121.6
+				},
+				{
+					"latitude": 37.55,
+					"longitude": -121.61
+				},
+				{
+					"latitude": 37.55,
+					"longitude": -121.62
+				},
+				{
+					"latitude": 37.54,
+					"longitude": -121.69
+				},
+				{
+					"latitude": 37.51,
+					"longitude": -121.8
+				},
+				{
+					"latitude": 37.51,
+					"longitude": -121.8
+				},
+				{
+					"latitude": 37.49,
+					"longitude": -121.88
+				},
+				{
+					"latitude": 37.54,
+					"longitude": -122.07
+				},
+				{
+					"latitude": 37.54,
+					"longitude": -122.08
+				},
+				{
+					"latitude": 37.57,
+					"longitude": -122.18
+				},
+				{
+					"latitude": 37.59,
+					"longitude": -122.28
+				},
+				{
+					"latitude": 37.61,
+					"longitude": -122.33
+				},
+				{
+					"latitude": 37.61,
+					"longitude": -122.36
+				},
+				{
+					"latitude": 37.62,
+					"longitude": -122.38
+				}
+			]
+		},
+		{
+			"content_type": "FLIGHT_PLAN",
+			"created": 1570101903,
+			"flight_id": "e403536e-4c24-4688-aed7-0208d1b5724a",
+			"id": "e403536e-4c24-4688-aed7-0208d1b5724a",
+			"last_updated": 1570101903,
+			"route": [
+				{
+					"latitude": 30.19,
+					"longitude": -97.67
+				},
+				{
+					"latitude": 30.21,
+					"longitude": -97.77
+				},
+				{
+					"latitude": 30.22,
+					"longitude": -97.8
+				},
+				{
+					"latitude": 30.23,
+					"longitude": -97.85
+				},
+				{
+					"latitude": 30.23,
+					"longitude": -97.88
+				},
+				{
+					"latitude": 30.24,
+					"longitude": -97.93
+				},
+				{
+					"latitude": 30.28,
+					"longitude": -98.13
+				},
+				{
+					"latitude": 30.29,
+					"longitude": -98.2
+				},
+				{
+					"latitude": 30.29,
+					"longitude": -98.21
+				},
+				{
+					"latitude": 30.31,
+					"longitude": -98.31
+				},
+				{
+					"latitude": 30.32,
+					"longitude": -98.35
+				},
+				{
+					"latitude": 30.33,
+					"longitude": -98.39
+				},
+				{
+					"latitude": 30.37,
+					"longitude": -98.61
+				},
+				{
+					"latitude": 30.39,
+					"longitude": -98.69
+				},
+				{
+					"latitude": 30.41,
+					"longitude": -98.84
+				},
+				{
+					"latitude": 30.42,
+					"longitude": -98.87
+				},
+				{
+					"latitude": 30.43,
+					"longitude": -98.9
+				},
+				{
+					"latitude": 30.47,
+					"longitude": -99.14
+				},
+				{
+					"latitude": 30.49,
+					"longitude": -99.22
+				},
+				{
+					"latitude": 30.51,
+					"longitude": -99.36
+				},
+				{
+					"latitude": 30.51,
+					"longitude": -99.36
+				},
+				{
+					"latitude": 30.52,
+					"longitude": -99.4
+				},
+				{
+					"latitude": 30.59,
+					"longitude": -99.78
+				},
+				{
+					"latitude": 30.6,
+					"longitude": -99.82
+				},
+				{
+					"latitude": 30.61,
+					"longitude": -99.89
+				},
+				{
+					"latitude": 30.72,
+					"longitude": -100.83
+				},
+				{
+					"latitude": 30.88,
+					"longitude": -102.26
+				},
+				{
+					"latitude": 30.95,
+					"longitude": -102.98
+				},
+				{
+					"latitude": 31.08,
+					"longitude": -103.45
+				},
+				{
+					"latitude": 31.59,
+					"longitude": -105.38
+				},
+				{
+					"latitude": 31.8,
+					"longitude": -106.23
+				},
+				{
+					"latitude": 31.82,
+					"longitude": -106.28
+				},
+				{
+					"latitude": 32.09,
+					"longitude": -108.2
+				},
+				{
+					"latitude": 32.29,
+					"longitude": -109.85
+				},
+				{
+					"latitude": 32.55,
+					"longitude": -110.72
+				},
+				{
+					"latitude": 33.06,
+					"longitude": -112.52
+				},
+				{
+					"latitude": 33.23,
+					"longitude": -113.12
+				},
+				{
+					"latitude": 33.29,
+					"longitude": -113.32
+				},
+				{
+					"latitude": 33.4,
+					"longitude": -113.72
+				},
+				{
+					"latitude": 33.47,
+					"longitude": -114.0
+				},
+				{
+					"latitude": 33.54,
+					"longitude": -114.27
+				},
+				{
+					"latitude": 33.74,
+					"longitude": -115.1
+				},
+				{
+					"latitude": 33.82,
+					"longitude": -115.46
+				},
+				{
+					"latitude": 34.0,
+					"longitude": -115.74
+				},
+				{
+					"latitude": 34.32,
+					"longitude": -116.28
+				},
+				{
+					"latitude": 34.66,
+					"longitude": -116.83
+				},
+				{
+					"latitude": 34.89,
+					"longitude": -117.23
+				},
+				{
+					"latitude": 34.9,
+					"longitude": -117.25
+				},
+				{
+					"latitude": 35.27,
+					"longitude": -118.58
+				},
+				{
+					"latitude": 35.5,
+					"longitude": -119.43
+				},
+				{
+					"latitude": 35.65,
+					"longitude": -119.98
+				},
+				{
+					"latitude": 35.68,
+					"longitude": -120.34
+				},
+				{
+					"latitude": 35.68,
+					"longitude": -120.34
+				},
+				{
+					"latitude": 35.76,
+					"longitude": -120.54
+				},
+				{
+					"latitude": 35.8,
+					"longitude": -120.64
+				},
+				{
+					"latitude": 35.98,
+					"longitude": -121.14
+				},
+				{
+					"latitude": 36.02,
+					"longitude": -121.23
+				},
+				{
+					"latitude": 36.05,
+					"longitude": -121.31
+				},
+				{
+					"latitude": 36.07,
+					"longitude": -121.36
+				},
+				{
+					"latitude": 36.09,
+					"longitude": -121.38
+				},
+				{
+					"latitude": 36.22,
+					"longitude": -121.48
+				},
+				{
+					"latitude": 36.27,
+					"longitude": -121.52
+				},
+				{
+					"latitude": 36.46,
+					"longitude": -121.67
+				},
+				{
+					"latitude": 36.5,
+					"longitude": -121.7
+				},
+				{
+					"latitude": 36.5,
+					"longitude": -121.7
+				},
+				{
+					"latitude": 36.57,
+					"longitude": -121.76
+				},
+				{
+					"latitude": 36.65,
+					"longitude": -121.82
+				},
+				{
+					"latitude": 36.67,
+					"longitude": -121.84
+				},
+				{
+					"latitude": 36.74,
+					"longitude": -121.89
+				},
+				{
+					"latitude": 36.76,
+					"longitude": -121.9
+				},
+				{
+					"latitude": 36.91,
+					"longitude": -121.94
+				},
+				{
+					"latitude": 36.95,
+					"longitude": -121.95
+				},
+				{
+					"latitude": 36.99,
+					"longitude": -121.97
+				},
+				{
+					"latitude": 37.07,
+					"longitude": -122.0
+				},
+				{
+					"latitude": 37.27,
+					"longitude": -122.08
+				},
+				{
+					"latitude": 37.28,
+					"longitude": -122.08
+				},
+				{
+					"latitude": 37.33,
+					"longitude": -122.1
+				},
+				{
+					"latitude": 37.37,
+					"longitude": -122.12
+				},
+				{
+					"latitude": 37.43,
+					"longitude": -122.17
+				},
+				{
+					"latitude": 37.47,
+					"longitude": -122.22
+				},
+				{
+					"latitude": 37.49,
+					"longitude": -122.24
+				},
+				{
+					"latitude": 37.56,
+					"longitude": -122.31
+				},
+				{
+					"latitude": 37.6,
+					"longitude": -122.36
+				},
+				{
+					"latitude": 37.61,
+					"longitude": -122.37
+				},
+				{
+					"latitude": 37.62,
+					"longitude": -122.38
+				}
+			]
+		}
+	],
+	"next_sync_after": 1570102988,
+	"pagination": {}
+}

@@ -1,0 +1,447 @@
+/* ============================================================
+   Flighty Design System for SkyTrace v2.0
+   基于 Flighty v2.9.2 IPA 逆向工程提取的 UI 规范
+   ============================================================ */
+
+/* ---------- 字体 ---------- */
+@font-face {
+    font-family: 'Noway';
+    src: url('/static/fonts/Noway-Light.otf') format('opentype');
+    font-weight: 300; font-style: normal;
+}
+@font-face {
+    font-family: 'Noway';
+    src: url('/static/fonts/Noway-Regular.otf') format('opentype');
+    font-weight: 400; font-style: normal;
+}
+@font-face {
+    font-family: 'Noway';
+    src: url('/static/fonts/Noway-Medium.otf') format('opentype');
+    font-weight: 500; font-style: normal;
+}
+@font-face {
+    font-family: 'Noway';
+    src: url('/static/fonts/Noway-Bold.otf') format('opentype');
+    font-weight: 700; font-style: normal;
+}
+
+/* ---------- CSS 变量 (设计令牌) ---------- */
+:root {
+    /* 字体系统 */
+    --font-primary: 'Noway', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'SF Mono', 'Menlo', monospace;
+
+    /* 字号层级 (从 Flighty NIB 推断) */
+    --text-3xl: 34px;
+    --text-2xl: 28px;
+    --text-xl:  22px;
+    --text-lg:  17px;
+    --text-base:15px;
+    --text-sm:  13px;
+    --text-xs:  11px;
+
+    /* 间距系统 (8px 基准) */
+    --space-1: 8px;
+    --space-2: 16px;
+    --space-3: 24px;
+    --space-4: 32px;
+
+    /* 圆角 */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-full: 9999px;
+
+    /* 阴影 */
+    --shadow-card: 0 2px 12px rgba(0,0,0,0.08);
+    --shadow-elevated: 0 8px 30px rgba(0,0,0,0.12);
+
+    /* 深色主题 (默认) */
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #14141f;
+    --bg-card: #1a1a2e;
+    --bg-card-hover: #222240;
+    --bg-input: #1e1e32;
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-tertiary: #64748b;
+    --border-color: #2a2a40;
+    --border-light: #3a3a55;
+
+    /* 语义色 */
+    --color-blue: #3b82f6;
+    --color-green: #10b981;
+    --color-yellow: #f59e0b;
+    --color-red: #ef4444;
+    --color-purple: #8b5cf6;
+
+    /* 动画缓动 */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --duration-fast: 150ms;
+    --duration-normal: 300ms;
+    --duration-slow: 500ms;
+}
+
+/* 浅色主题 */
+[data-theme="light"] {
+    --bg-primary: #f8fafc;
+    --bg-secondary: #f1f5f9;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f8fafc;
+    --bg-input: #f1f5f9;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #94a3b8;
+    --border-color: #e2e8f0;
+    --border-light: #f1f5f9;
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-elevated: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+/* ---------- 全局重置 ---------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: var(--font-primary);
+    font-size: var(--text-base);
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+}
+
+/* ---------- 航班卡片 (FlightListCell.nib) ---------- */
+.flight-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    animation: cardEnter 0.4s var(--ease-spring) both;
+}
+.flight-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-light);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card);
+}
+.flight-card:active { transform: scale(0.99); }
+.flight-card.past { opacity: 0.7; }
+.flight-card.past:hover { opacity: 0.9; }
+.flight-card.past .flight-number { font-weight: 500; }
+
+.flight-card .airline-logo {
+    width: 44px; height: 44px;
+    border-radius: var(--radius-sm);
+    background: #fff;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.flight-card .airline-logo img { width: 32px; height: 32px; object-fit: contain; }
+
+.flight-card .flight-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.flight-card .flight-number {
+    font-weight: 700;
+    font-size: var(--text-lg);
+    letter-spacing: 0.5px;
+    color: var(--text-primary);
+}
+.flight-card .flight-route {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    display: flex; align-items: center; gap: 6px;
+}
+.flight-card .flight-route .arrow { color: var(--color-blue); font-size: 12px; }
+
+.flight-card .flight-time { text-align: right; flex-shrink: 0; }
+.flight-card .flight-time .time {
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    font-size: var(--text-base);
+}
+.flight-card .flight-time .date { font-size: var(--text-xs); color: var(--text-tertiary); }
+
+/* 卡片入场动画 */
+.flight-card:nth-child(1) { animation-delay: 0.00s; }
+.flight-card:nth-child(2) { animation-delay: 0.05s; }
+.flight-card:nth-child(3) { animation-delay: 0.10s; }
+.flight-card:nth-child(4) { animation-delay: 0.15s; }
+.flight-card:nth-child(5) { animation-delay: 0.20s; }
+.flight-card:nth-child(n+6) { animation-delay: 0.25s; }
+
+@keyframes cardEnter {
+    from { opacity: 0; transform: translateY(16px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---------- 状态徽章 (StatusView.nib) ---------- */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: all var(--duration-normal) var(--ease-out);
+}
+.status-badge.on-time     { background: #10b98120; color: #10b981; }
+.status-badge.boarding    { background: #3b82f620; color: #3b82f6; }
+.status-badge.in-flight   { background: #8b5cf620; color: #8b5cf6; }
+.status-badge.landed      { background: #64748b20; color: #94a3b8; }
+.status-badge.delayed     { background: #f59e0b20; color: #f59e0b; }
+.status-badge.canceled    { background: #ef444420; color: #ef4444; }
+.status-badge.diverted    { background: #ef444420; color: #ef4444; }
+
+.status-badge .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse-dot 2s ease infinite;
+}
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ---------- 倒计时 (CountdownView.nib) ---------- */
+.countdown {
+    display: flex; flex-direction: column; align-items: center;
+    padding: var(--space-3);
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+.countdown .days {
+    font-family: var(--font-primary);
+    font-weight: 300;
+    font-size: var(--text-3xl);
+    line-height: 1;
+    letter-spacing: -2px;
+    color: var(--color-blue);
+    font-variant-numeric: tabular-nums;
+}
+.countdown .label {
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+}
+.countdown .sub { font-size: var(--text-sm); color: var(--text-secondary); margin-top: 2px; }
+
+/* ---------- 到达预测 ---------- */
+.arrival-forecast {
+    padding: var(--space-2);
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+.arrival-forecast .header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+}
+.arrival-forecast .header h3 {
+    font-size: var(--text-sm); font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 1px;
+}
+.arrival-forecast .eta {
+    font-family: var(--font-primary); font-weight: 300;
+    font-size: var(--text-2xl); color: var(--text-primary);
+}
+.arrival-forecast .probability-bars { display: flex; gap: 6px; margin-top: 12px; }
+.arrival-forecast .prob-bar {
+    flex: 1; height: 4px; border-radius: 2px;
+    background: var(--border-color);
+    transition: background var(--duration-normal);
+}
+.arrival-forecast .prob-bar.on-time  { background: var(--color-green); }
+.arrival-forecast .prob-bar.delayed { background: var(--color-yellow); }
+.arrival-forecast .prob-bar.early   { background: var(--color-blue); }
+
+/* ---------- 航司信息卡 (AirlineTile.nib) ---------- */
+.airline-card {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+.airline-card .logo {
+    width: 48px; height: 48px;
+    border-radius: 10px; background: #fff; padding: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    display: flex; align-items: center; justify-content: center;
+}
+.airline-card .logo img { width: 36px; height: 36px; object-fit: contain; }
+.airline-card .info .name { font-weight: 600; font-size: var(--text-base); }
+.airline-card .info .alliance { font-size: var(--text-xs); color: var(--text-tertiary); }
+
+/* ---------- 机型信息卡 (EquipmentTile.nib) ---------- */
+.aircraft-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    font-size: var(--text-sm);
+}
+.aircraft-card .icon { font-size: 20px; }
+.aircraft-card .model { font-weight: 500; }
+
+/* ---------- 预订信息 (BookingInfo.nib) ---------- */
+.booking-info {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    padding: 14px;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+.booking-info .item { display: flex; flex-direction: column; gap: 2px; }
+.booking-info .item .label {
+    font-size: var(--text-xs); color: var(--text-tertiary);
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+.booking-info .item .value { font-size: var(--text-base); font-weight: 500; }
+
+/* ---------- 空状态 ---------- */
+.empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 60px var(--space-3); text-align: center;
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+.empty-state h3 { font-size: var(--text-lg); color: var(--text-secondary); margin-bottom: 4px; }
+.empty-state p { font-size: var(--text-sm); color: var(--text-tertiary); }
+
+/* ---------- 按钮系统 ---------- */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px 20px;
+    border-radius: var(--radius-full);
+    font-family: var(--font-primary);
+    font-size: var(--text-sm); font-weight: 600;
+    border: none; cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-out);
+    text-decoration: none;
+}
+.btn-primary { background: var(--color-blue); color: #fff; }
+.btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.btn-primary:active { transform: scale(0.97); }
+.btn-secondary { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-color); }
+.btn-secondary:hover { border-color: var(--border-light); }
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { color: var(--text-primary); background: var(--bg-card); }
+.btn-danger { background: #ef444420; color: var(--color-red); }
+
+/* FAB */
+.fab {
+    position: fixed; bottom: 24px; right: 24px;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--color-blue); color: #fff;
+    border: none; font-size: 24px; cursor: pointer;
+    box-shadow: 0 4px 20px rgba(59,130,246,0.4);
+    transition: all var(--duration-fast) var(--ease-spring);
+    z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+}
+.fab:hover { transform: scale(1.1); }
+.fab:active { transform: scale(0.95); }
+
+/* ---------- 雷达动画叠加层 ---------- */
+.radar-overlay {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none; z-index: 1000;
+    display: none;
+}
+.radar-overlay.active { display: block; }
+
+/* ---------- 页面切换动画 ---------- */
+.page { display: none; animation: pageIn var(--duration-slow) var(--ease-out); }
+.page.active { display: block; }
+@keyframes pageIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+/* ---------- 导航栏 ---------- */
+.tab-bar {
+    position: fixed; bottom:0; left:0; right:0;
+    display: flex;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+    padding: 8px 0 env(safe-area-inset-bottom, 0);
+    z-index: 200;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+.tab-bar .tab {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 6px 0;
+    color: var(--text-tertiary); cursor: pointer;
+    transition: color var(--duration-fast);
+    border: none; background: none;
+    font-family: var(--font-primary); font-size: var(--text-xs);
+}
+.tab-bar .tab.active { color: var(--color-blue); }
+.tab-bar .tab .icon { font-size: 20px; }
+
+/* ---------- 设置行 ---------- */
+.settings-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px var(--space-2);
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background var(--duration-fast);
+}
+.settings-row:hover { background: var(--bg-card-hover); }
+.settings-row:first-child { border-radius: var(--radius-md) var(--radius-md) 0 0; }
+.settings-row:last-child { border-radius: 0 0 var(--radius-md) var(--radius-md); border-bottom:none; }
+.settings-row:only-child { border-radius: var(--radius-md); }
+
+/* ---------- 输入框 ---------- */
+.input {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-primary);
+    font-size: var(--text-base);
+    transition: border-color var(--duration-fast);
+}
+.input:focus { outline: none; border-color: var(--color-blue); }
+.input::placeholder { color: var(--text-tertiary); }
+
+/* ---------- 模态框 ---------- */
+.modal-overlay {
+    position: fixed; inset:0;
+    background: rgba(0,0,0,0.6); z-index:300;
+    display: flex; align-items: flex-end; justify-content: center;
+    animation: fadeIn 0.2s ease;
+}
+.modal-sheet {
+    width: 100%; max-width: 480px; max-height: 90vh;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding: var(--space-3); overflow-y: auto;
+    animation: slideUp 0.3s var(--ease-spring);
+}
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+/* ---------- 响应式 ---------- */
+@media (min-width: 768px) {
+    body { max-width: 480px; margin: 0 auto; }
+    .tab-bar { max-width: 480px; left: 50%; transform: translateX(-50%); }
+}

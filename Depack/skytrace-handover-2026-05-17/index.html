@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-CN" style="background:#0a0a0f">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>SkyTrace - 个人航旅管理</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="192x192" href="static/icons/icon-192.png">
+    <!-- PWA -->
+    <link rel="manifest" href="static/manifest.json">
+    <meta name="theme-color" content="#0a0a0f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SkyTrace">
+    <link rel="apple-touch-icon" href="static/icons/apple-touch-icon.png">
+    <script>
+window.SKYTRACE_VERSION = 50;
+    </script>
+    <!-- 版本更新: 版本不匹配时静默清除旧 SW 缓存（不做 reload，避免开屏死循环） -->
+    <script>
+    (function(){
+        var V = String(window.SKYTRACE_VERSION || '50');
+        // 页面加载频率防护: 10 秒内加载超过 2 次 → 可能是 SW 更新循环,
+        // 暂时禁用 SW 注册并清除所有 SW, 下一次正常访问时恢复
+        var _rlKey = '_skytrace_rl';
+        var now = Date.now();
+        var rlData = {};
+        try { rlData = JSON.parse(localStorage.getItem(_rlKey) || '{}'); } catch(e) {}
+        if (!rlData.times) rlData.times = [];
+        rlData.times.push(now);
+        // 只保留最近 10 秒的记录
+        rlData.times = rlData.times.filter(function(t) { return now - t < 10000; });
+        if (rlData.times.length > 2) {
+            // 检测到频繁加载, 可能是 SW 循环
+            console.warn('[SkyTrace] Frequent reload detected (' + rlData.times.length + 'x in 10s), clearing SW');
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(rs) {
+                    return Promise.all(rs.map(function(r) { return r.unregister(); }));
+                }).catch(function(){});
+            }
+            if ('caches' in window) {
+                caches.keys().then(function(ns) {
+                    return Promise.all(ns.map(function(n) { return caches.delete(n); }));
+                }).catch(function(){});
+            }
+            // 清空计数，等正常访问时恢复
+            localStorage.removeItem(_rlKey);
+        } else {
+            try { localStorage.setItem(_rlKey, JSON.stringify(rlData)); } catch(e) {}
+        }
+
+        if (localStorage.getItem('_stv') === V) return;
+        localStorage.setItem('_stv', V);
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(rs) {
+                return Promise.all(rs.map(function(r) { return r.unregister(); }));
+            }).then(function() {
+                return caches.keys();
+            }).then(function(ns) {
+                return Promise.all(ns.map(function(n) { return caches.delete(n); }));
+            }).catch(function(){});
+        }
+        // 不再 location.reload()，让页面正常加载，避免死锁
+    })();
+    </script>
+    <!-- Leaflet CSS (本地) -->
+    <link rel="stylesheet" href="static/lib/leaflet.css" />
+<link rel="stylesheet" href="static/css/style.css?v=50">
+    <!-- 🆕 Flighty 设计系统 -->
+    <link rel="stylesheet" href="static/css/flighty-theme.css?v=50">
+    <!-- 全局错误捕获 + 开屏动画 -->
+    <style>
+        #splash-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:#0a0a0f;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99998;overflow:hidden;transition:opacity 0.6s ease,transform 0.6s ease;}
+        #splash-screen.fade-out{opacity:0;transform:scale(1.05);pointer-events:none;}
+        .splash-logo{width:80px;height:80px;margin-bottom:20px;animation:splash-bounce 1.2s ease-in-out infinite alternate;filter:drop-shadow(0 4px 20px rgba(59,130,246,0.4));}
+        .splash-title{font-size:28px;font-weight:700;color:#fff;letter-spacing:2px;margin-bottom:8px;opacity:0;animation:splash-fade-in 0.6s ease 0.2s forwards;}
+        .splash-subtitle{font-size:13px;color:#64748b;opacity:0;animation:splash-fade-in 0.6s ease 0.4s forwards;}
+        .splash-progress{width:120px;height:3px;background:#1e293b;border-radius:2px;margin-top:24px;overflow:hidden;opacity:0;animation:splash-fade-in 0.6s ease 0.5s forwards;}
+        .splash-progress-bar{height:100%;width:30%;background:linear-gradient(90deg,transparent,#3b82f6,#60a5fa,transparent);border-radius:2px;animation:splash-shimmer 1.4s ease-in-out infinite;}
+        @keyframes splash-bounce{0%{transform:translateY(0)}100%{transform:translateY(-8px)}}
+        @keyframes splash-fade-in{to{opacity:1}}
+        @keyframes splash-shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+        #debug-banner{position:fixed;top:0;left:0;right:0;background:#dc2626;color:#fff;padding:8px 12px;font-size:12px;z-index:99999;display:none;max-height:120px;overflow:auto;font-family:monospace;}
+    </style>
+    <script>
+        window._skyErrors = [];
+        window.onerror = function(msg, url, line, col, err) {
+            window._skyErrors.push(msg + ' @ ' + (url||'').split('/').pop() + ':' + line);
+            var el = document.getElementById('debug-banner');
+            if (el) { el.style.display = 'block'; el.innerHTML = '&#10060; 加载错误:<br>' + window._skyErrors.join('<br>'); }
+        };
+    </script>
+    <script>
+        // 动态视口高度修复 + PWA standalone 检测
+        (function(){
+            var root = document.documentElement;
+            function isStandaloneMode(){
+                return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+            }
+            function getStandaloneScreenHeight(){
+                var portrait = window.matchMedia('(orientation: portrait)').matches;
+                return portrait
+                    ? Math.max(window.screen.height || 0, window.screen.availHeight || 0)
+                    : Math.max(window.screen.width || 0, window.screen.availWidth || 0);
+            }
+            function fix(){
+                var viewport = window.visualViewport;
+                var standalone = isStandaloneMode();
+                var viewportHeight = Math.max(
+                    window.innerHeight || 0,
+                    root.clientHeight || 0,
+                    viewport ? (viewport.height + (viewport.offsetTop || 0)) : 0
+                );
+                var height = standalone
+                    ? Math.max(viewportHeight, getStandaloneScreenHeight())
+                    : viewportHeight;
+                root.style.setProperty('--app-height', Math.round(height) + 'px');
+                root.classList.toggle('standalone-mode', standalone);
+                if (document.body) {
+                    document.body.classList.toggle('is-standalone', standalone);
+                }
+            }
+            fix();
+            window.addEventListener('resize', fix);
+            window.addEventListener('orientationchange', function(){ setTimeout(fix, 180); });
+            document.addEventListener('DOMContentLoaded', fix);
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', fix);
+                window.visualViewport.addEventListener('scroll', fix);
+            }
+            // iOS PWA standalone / display-mode: standalone 检测
+        })();
+    </script>
+    <!-- i18n 多语言 (在 app.js 之前加载) -->
+<script src="static/js/i18n.js?v=50"></script>
+</head>
+<body>
+    <!-- 开屏动画 -->
+    <div id="splash-screen">
+        <img class="splash-logo" src="static/icons/icon-192.png" alt="SkyTrace">
+        <div class="splash-title">SkyTrace</div>
+        <div class="splash-subtitle" data-i18n="splashSubtitle">Personal Flight Tracker</div>
+        <div class="splash-progress"><div class="splash-progress-bar"></div></div>
+    </div>
+    <!-- 错误横幅 -->
+    <div id="debug-banner"></div>
+    <!-- 离线模式横幅 -->
+    <div id="offline-banner">
+        <span class="offline-icon">&#128225;</span>
+        <span id="offline-banner-text" data-i18n="offlineBanner">当前处于离线模式，部分功能不可用</span>
+    </div>
+    <!-- 顶部导航 -->
+    <div class="auth-gate" id="auth-gate" style="display:none;">
+        <div class="auth-card">
+            <div class="auth-brand">
+                <div class="auth-brand-logo">&#9992;&#65039;</div>
+                <div>
+                    <div class="auth-brand-title">SkyTrace</div>
+                    <div class="auth-brand-subtitle" data-i18n="authSubtitle">Secure multi-user flight hub</div>
+                </div>
+            </div>
+            <div class="auth-panel" id="auth-setup-panel" style="display:none;">
+                <h2 data-i18n="authSetupTitle">创建管理员账号</h2>
+                <p class="auth-panel-hint" data-i18n="authSetupHint">首次使用需要先创建管理员账号，系统会自动接管你当前的本地航班数据。</p>
+                <div class="auth-field">
+                    <label for="setup-display-name" data-i18n="authDisplayName">显示名称</label>
+                    <input type="text" id="setup-display-name" autocomplete="name" placeholder="SkyTrace Admin">
+                </div>
+                <div class="auth-field">
+                    <label for="setup-username" data-i18n="authUsername">用户名</label>
+                    <input type="text" id="setup-username" autocomplete="username" placeholder="admin">
+                </div>
+                <div class="auth-field">
+                    <label for="setup-password" data-i18n="authPassword">密码</label>
+                    <input type="password" id="setup-password" autocomplete="new-password" placeholder="At least 6 characters">
+                </div>
+                <button class="btn-primary auth-submit" type="button" onclick="submitInitialSetup()" data-i18n="authCreateAdmin">创建管理员</button>
+            </div>
+            <div class="auth-panel" id="auth-login-panel" style="display:none;">
+                <h2 data-i18n="authLoginTitle">登录</h2>
+                <p class="auth-panel-hint" data-i18n="authLoginHint">登录后将自动加载你的专属行程、设置和 API 配置。</p>
+                <div class="auth-field">
+                    <label for="login-username" data-i18n="authUsername">用户名</label>
+                    <input type="text" id="login-username" autocomplete="username" placeholder="admin">
+                </div>
+                <div class="auth-field">
+                    <label for="login-password" data-i18n="authPassword">密码</label>
+                    <input type="password" id="login-password" autocomplete="current-password" placeholder="Password">
+                </div>
+                <button class="btn-primary auth-submit" type="button" onclick="submitLogin()" data-i18n="authLoginButton">登录</button>
+            </div>
+            <div class="auth-message" id="auth-message"></div>
+        </div>
+    </div>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">&#9992;&#65039;</span>
+                <span class="logo-text">SkyTrace</span>
+            </div>
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="home"><span class="nav-tab-icon">&#127968;</span><span data-i18n="navHome">首页</span></button>
+                <button class="nav-tab" data-tab="flights"><span class="nav-tab-icon">&#128203;</span><span data-i18n="navFlights">行程</span></button>
+                <button class="nav-tab" data-tab="calendar"><span class="nav-tab-icon">&#128197;</span><span data-i18n="navCalendar">日历</span></button>
+            </nav>
+            <div class="header-actions">
+                <span class="header-user-badge" id="header-user-badge" style="display:none;"></span>
+                <button class="btn-settings" onclick="openSettings()" data-i18n-title="settingsTooltip" title="设置">&#9881;&#65039;</button>
+            </div>
+        </div>
+    </header>
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <!-- ==================== 首页: 仅待出行航线 ==================== -->
+        <section id="home-view" class="view active view-enter">
+            <div id="home-map"></div>
+            <div class="home-flights-overlay" id="home-flights-overlay">
+                <div class="home-overlay-handle"></div>
+                <div class="home-overlay-header">
+                    <span class="home-overlay-title" data-i18n="nearestTrip">最近出行</span>
+                    <div class="home-overlay-right">
+                        <span class="home-overlay-count" id="home-overlay-count">0</span>
+                        <span class="home-overlay-expand-hint" id="ho-expand-hint">&#9650;</span>
+                    </div>
+                </div>
+                <div class="home-nearest-card" id="home-nearest-card"></div>
+                <div class="home-overlay-list" id="home-overlay-list"></div>
+            </div>
+        </section>
+        <!-- ==================== 行程 (子标签: 列表/地图/统计) ==================== -->
+        <section id="flights-view" class="view">
+            <div class="flights-container">
+                <div class="flights-sub-nav">
+                    <button class="flights-sub-tab active" data-subtab="list">&#128203; <span data-i18n="subList">列表</span></button>
+                    <button class="flights-sub-tab" data-subtab="fmap">&#128506;&#65039; <span data-i18n="subMap">地图</span></button>
+                    <button class="flights-sub-tab" data-subtab="fstats">&#128200; <span data-i18n="subStats">统计</span></button>
+                </div>
+                <!-- 列表子页 -->
+                <div class="flights-sub-view active view-enter" id="flights-list-subview">
+                    <div class="flights-header">
+                        <h2 data-i18n="myTrips">我的行程</h2>
+
+                        <div class="filter-tabs">
+                            <button class="filter-tab" data-filter="all" data-i18n="filterAll">全部</button>
+                            <button class="filter-tab active" data-filter="upcoming" data-i18n="filterUpcoming">待出行</button>
+                            <button class="filter-tab" data-filter="completed" data-i18n="filterCompleted">已完成</button>
+                        </div>
+                    </div>
+                    <div class="flights-toolbar">
+                        <button class="btn-advanced-filter" id="btn-advanced-filter" onclick="toggleAdvancedFilter()">
+                            &#128269; <span data-i18n="advancedFilter">高级筛选</span> <span class="af-arrow" id="af-arrow">&#9660;</span>
+                        </button>
+                        <span class="active-date-tag" id="active-date-tag" style="display:none">
+                            <span id="active-date-text"></span>
+                            <button onclick="resetTimeFilter()">&#10005;</button>
+                        </span>
+                    </div>
+                    <div class="advanced-filter-panel" id="advanced-filter-panel" style="display:none;">
+                        <div class="af-section">
+                            <div class="af-search-row">
+                                <div class="flights-search-box">
+                    <input type="text" id="flights-search-input" data-i18n-placeholder="searchCodePlaceholder" placeholder="&#128269; 搜索三字码..." maxlength="3" oninput="searchFlightsByAirport(this.value)" autocomplete="off">
+                                    <button class="flights-search-clear" id="flights-search-clear" onclick="clearFlightSearch()" style="display:none">&#10005;</button>
+                                    <div class="suggestions" id="flights-search-suggestions"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="af-section">
+                            <div class="af-date-row">
+                                <div class="time-filter-group">
+                                    <label data-i18n="startDate">开始日期</label>
+                                    <input type="date" id="filter-start-date" onchange="applyTimeFilter()">
+                                </div>
+                                <div class="time-filter-group">
+                                    <label data-i18n="endDate">结束日期</label>
+                                    <input type="date" id="filter-end-date" onchange="applyTimeFilter()">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="af-section af-actions-row">
+                    <button class="btn-sort-toggle" id="sort-toggle-btn" onclick="_allSortOrder = _allSortOrder === 'newest' ? 'oldest' : 'newest'; renderFlightsList('all');">↓ 最新优先</button>
+                            <button class="btn-filter-reset" onclick="resetTimeFilter()" data-i18n="reset">重置</button>
+                        </div>
+                    </div>
+                    <div class="flights-list" id="flights-list"></div>
+                </div>
+                <!-- 地图子页 -->
+                <div class="flights-sub-view" id="flights-map-subview">
+                <div class="fmap-wrapper" id="fmap-wrapper">
+                    <div id="flights-map" class="flights-full-map"></div>
+                    <button class="fmap-fullscreen-btn" id="fmap-fullscreen-btn" onclick="toggleFmapFullscreen()" data-i18n-title="fullscreen" title="全屏">⛶</button>
+                    <button class="fmap-heatmap-btn" id="fmap-heatmap-btn" onclick="toggleFmapHeatmap()" data-i18n-title="heatmap" title="热力图">🌡️</button>
+                    <button class="fmap-toggle-filter" id="fmap-toggle-filter" onclick="toggleFmapFilter()" data-i18n="fmapShowFilter">&#128269; 筛选</button>
+                        <div class="fmap-filter-bar hidden" id="fmap-filter-bar">
+                            <div class="fmap-status-pills">
+                                <button class="fmap-pill active" data-fmap-status="all" data-i18n="filterAll">全部</button>
+                                <button class="fmap-pill" data-fmap-status="upcoming" data-i18n="filterUpcoming">待出行</button>
+                                <button class="fmap-pill" data-fmap-status="completed" data-i18n="filterCompleted">已完成</button>
+                            </div>
+                            <div class="fmap-right-controls">
+                                <div class="fmap-year-pills" id="fmap-year-pills"></div>
+                                <div class="fmap-date-range">
+                                    <input type="date" id="fmap-start" onchange="applyFlightsMapFilter()">
+                                    <span data-i18n="to">至</span>
+                                    <input type="date" id="fmap-end" onchange="applyFlightsMapFilter()">
+                                    <button class="fmap-reset-btn" onclick="resetFlightsMapFilter()" data-i18n="reset">重置</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fmap-stats-card">
+                            <div class="stat-item">
+                                <span class="stat-value" id="fmap-stat-flights">0</span>
+                                <span class="stat-label" data-i18n="flights">航班</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="fmap-stat-distance">0</span>
+                                <span class="stat-label" data-i18n="km">公里</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="fmap-stat-airports">0</span>
+                                <span class="stat-label" data-i18n="airports">机场</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 统计子页 -->
+                <div class="flights-sub-view" id="flights-stats-subview">
+                    <div class="stats-container">
+                        <div class="stats-header-row">
+                            <h2 data-i18n="flightStats">飞行统计</h2>
+                            <div class="stats-header-controls">
+                                <div class="year-selector" id="year-selector"></div>
+                                <button class="btn-share-stats" onclick="exportAnnualReport()" data-i18n-title="shareReport">
+                                    &#128228; <span data-i18n="shareReport">生成飞行报告</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stats-card large">
+                                <div class="stats-icon">&#128747;</div>
+                                <div class="stats-info">
+                                    <span class="stats-value" id="total-flights">0</span>
+                                    <span class="stats-label" data-i18n="totalFlights">总航班数</span>
+                                </div>
+                            </div>
+                            <div class="stats-card large">
+                                <div class="stats-icon">&#127757;</div>
+                                <div class="stats-info">
+                                    <span class="stats-value" id="total-distance">0</span>
+                                    <span class="stats-label" data-i18n="totalDistance">总飞行里程 (km)</span>
+                                </div>
+                            </div>
+                            <div class="stats-card">
+                                <div class="stats-icon">&#9201;&#65039;</div>
+                                <div class="stats-info">
+                                    <span class="stats-value" id="total-hours">0</span>
+                                    <span class="stats-label" data-i18n="totalHours">飞行时长 (h)</span>
+                                </div>
+                            </div>
+                            <div class="stats-card">
+                                <div class="stats-icon">&#127970;</div>
+                                <div class="stats-info">
+                                    <span class="stats-value" id="visited-airports">0</span>
+                                    <span class="stats-label" data-i18n="visitedAirports">到访机场</span>
+                                </div>
+                            </div>
+                            <div class="stats-card">
+                                <div class="stats-icon">&#127760;</div>
+                                <div class="stats-info">
+                                    <span class="stats-value" id="visited-countries">0</span>
+                                    <span class="stats-label" data-i18n="visitedCountries">到访国家/地区</span>
+                                </div>
+                            </div>
+                            <div class="stats-card">
+                                <div class="stats-icon">&#127769;</div>
+                                <div class="stats-info">
+                                    <span class="stats-value" id="earth-rounds">0</span>
+                                    <span class="stats-label" data-i18n="earthRounds">绕地球圈数</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fun-stats-section" id="fun-stats-section">
+                            <h3 class="fun-stats-title">&#10024; <span data-i18n="funInsights">趣味洞察</span></h3>
+                            <div class="fun-stats-grid" id="fun-stats-grid"></div>
+                        </div>
+                        <div class="rankings-section" id="rankings-section">
+                            <div class="ranking-card">
+                                <h4 data-i18n="topRoutes">最常飞航线</h4>
+                                <div class="ranking-list" id="top-routes-list"></div>
+                            </div>
+                            <div class="ranking-card">
+                                <h4 data-i18n="topAirlines">常用航空公司</h4>
+                                <div class="ranking-list" id="top-airlines-list"></div>
+                            </div>
+                        </div>
+                        <div class="chart-section" id="chart-section">
+                            <h3>&#128200; <span data-i18n="monthlyChart">月度飞行</span></h3>
+                            <div class="month-selector" id="month-selector"></div>
+                            <div class="monthly-chart" id="monthly-chart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- ==================== 日历视图 ==================== -->
+        <section id="calendar-view" class="view">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <h2 data-i18n="navCalendar">&#128197; 日历</h2>
+                    <div class="calendar-nav">
+                <button class="btn-cal-nav btn-cal-year" onclick="changeCalendarYear(-1)" data-i18n-title="prevYear" title="上一年">&laquo;</button>
+                        <button class="btn-cal-nav" onclick="changeCalendarMonth(-1)">&#9664;</button>
+                        <span class="calendar-month-label" id="calendar-month-label" onclick="showYearPicker()"></span>
+                        <div class="year-picker-dropdown" id="year-picker-dropdown"></div>
+                        <button class="btn-cal-nav" onclick="changeCalendarMonth(1)">&#9654;</button>
+                <button class="btn-cal-nav btn-cal-year" onclick="changeCalendarYear(1)" data-i18n-title="nextYear" title="下一年">&raquo;</button>
+                        <button class="btn-cal-today" onclick="goCalendarToday()" data-i18n="calToday">今天</button>
+                    </div>
+                </div>
+                <div class="calendar-weekdays" id="calendar-weekdays"></div>
+                <div class="calendar-grid" id="calendar-grid"></div>
+                <div class="calendar-flight-detail" id="calendar-flight-detail"></div>
+            </div>
+        </section>
+    </main>
+    <!-- 添加/编辑航班模态框 -->
+    <div class="modal-overlay" id="flight-modal" onclick="if(event.target===this)closeModal()">
+        <div class="modal">
+            <div class="modal-header">
+                <button class="modal-back" onclick="closeModal()">&#8592;</button>
+                <h3 id="modal-title" data-i18n="addTripTitle">添加行程</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="flight-form" onsubmit="saveFlight(event)">
+                <input type="hidden" id="flight-id">
+                <div class="smart-lookup">
+                    <div class="smart-lookup-header">
+                        <span class="smart-lookup-icon">&#9992;&#65039;</span>
+                        <span data-i18n="smartLookupHint">输入航班号自动识别航线信息</span>
+                        <span class="api-badge" id="api-badge" style="display:none" data-i18n="apiBadgeConnected">API已连接</span>
+                    </div>
+                    <div class="smart-lookup-row">
+                        <div class="form-group">
+                            <label data-i18n="flightNo">航班号 *</label>
+                            <input type="text" id="flight-no" data-i18n-placeholder="flightNoPlaceholder" placeholder="如 CA1301" required autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="smart-lookup-row" style="margin-top:10px;">
+                        <div class="form-group">
+                            <label data-i18n="departureDate">出发日期 *</label>
+                            <input type="date" id="flight-date" required>
+                        </div>
+                        <button type="button" class="btn-lookup" onclick="lookupFlight()">
+                            <span class="btn-lookup-text" data-i18n="lookup">查询</span>
+                            <span class="btn-lookup-loading" style="display:none;"><span class="spinner"></span> <span data-i18n="lookupLoading">查询中</span></span>
+                        </button>
+                    </div>
+                    <div class="lookup-status" id="lookup-status"></div>
+                </div>
+                <div class="form-divider"></div>
+                <div class="form-row">
+                    <div class="form-group"><label data-i18n="airline">航空公司</label><input type="text" id="airline" data-i18n-placeholder="autoDetect" placeholder="自动识别"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label data-i18n="depAirport">出发机场 *</label><input type="text" id="departure" placeholder="PEK" required oninput="searchAirport(this, 'dep-suggestions')" onchange="_showAirportHint('departure')"><div class="suggestions" id="dep-suggestions"></div><span class="airport-hint" id="departure-hint"></span></div>
+                    <div class="form-group"><label data-i18n="arrAirport">到达机场 *</label><input type="text" id="arrival" placeholder="SHA" required oninput="searchAirport(this, 'arr-suggestions')" onchange="_showAirportHint('arrival')"><div class="suggestions" id="arr-suggestions"></div><span class="airport-hint" id="arrival-hint"></span></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label data-i18n="depTime">出发时间 *</label><input type="time" id="dep-time" required></div>
+                    <div class="form-group"><label data-i18n="arrTime">到达时间 *</label>
+                        <div class="arr-time-row">
+                            <input type="time" id="arr-time" required>
+                                <label class="day-offset-toggle" data-i18n-title="arrivesNextDay" title="跨日到达" onclick="_cycleDayOffset()">
+                                <select id="arr-day-offset" class="day-offset-select" style="display:none;">
+                                    <option value="0">+0</option>
+                                    <option value="1">+1</option>
+                                    <option value="2">+2</option>
+                                    <option value="-1">-1</option>
+                                </select>
+                                <span class="day-offset-badge" id="day-offset-badge">+0</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label data-i18n="cabin">舱位</label>
+                        <select id="cabin-class">
+                            <option value="economy" data-i18n="cabinEconomy">经济舱</option>
+                            <option value="premium_economy" data-i18n="cabinPremiumEconomy">超级经济舱</option>
+                            <option value="business" data-i18n="cabinBusiness">公务舱</option>
+                            <option value="first" data-i18n="cabinFirst">头等舱</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- 可选高级字段 -->
+                <div class="advanced-fields-toggle">
+                    <label class="advanced-toggle-label">
+                        <input type="checkbox" id="show-advanced-fields" onchange="_toggleAdvancedFields(this.checked)">
+                        <span data-i18n="advancedFields">更多选项（机型/座位/经停/航站楼/登机口）</span>
+                        <span class="advanced-toggle-arrow" id="advanced-toggle-arrow">▼</span>
+                    </label>
+                </div>
+                <div class="advanced-fields" id="advanced-fields" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group"><label data-i18n="aircraftType">机型</label><input type="text" id="aircraft" placeholder="A350-900"></div>
+                        <div class="form-group"><label data-i18n="seat">座位</label><input type="text" id="seat" placeholder="32A"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label data-i18n="depTerminal">出发航站楼</label><input type="text" id="dep-terminal" placeholder="T2"></div>
+                        <div class="form-group"><label data-i18n="arrTerminal">到达航站楼</label><input type="text" id="arr-terminal" placeholder="T1"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label data-i18n="stopoverAirport">经停机场</label><input type="text" id="stopover" placeholder="KMG" oninput="searchAirport(this, 'stopover-suggestions')" onchange="_showAirportHint('stopover')"><div class="suggestions" id="stopover-suggestions"></div><span class="airport-hint" id="stopover-hint"></span></div>
+                        <div class="form-group"><label data-i18n="depGate">出发登机口</label><input type="text" id="dep-gate" placeholder="A12"></div>
+                    </div>
+                </div>
+                <div class="form-group"><label data-i18n="notes">备注</label><textarea id="notes" data-i18n-placeholder="notesPlaceholder" placeholder="添加备注..."></textarea></div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal()" data-i18n="cancel">取消</button>
+                    <button type="submit" class="btn-primary" data-i18n="save">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- 航班详情模态框 -->
+    <div class="modal-overlay" id="detail-modal" onclick="if(event.target===this)closeDetailModal()">
+        <div class="modal modal-detail">
+            <div class="modal-header">
+                <button class="modal-back" onclick="closeDetailModal()">&#8592;</button>
+                <h3 data-i18n="flightDetail">航班详情</h3>
+                <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+            </div>
+            <div class="detail-content" id="detail-content"></div>
+            <div class="detail-actions">
+                <button class="btn-secondary" onclick="editFlight()">&#9999;&#65039; <span data-i18n="edit">编辑</span></button>
+                <button class="btn-share" onclick="shareFlightCard()" data-i18n-title="shareCard">&#128228;</button>
+                <button class="btn-primary" onclick="closeDetailModal()" data-i18n="close">关闭</button>
+            </div>
+        </div>
+    </div>
+    <!-- 设置模态框 -->
+    <div class="modal-overlay" id="settings-modal" onclick="if(event.target===this)closeSettings()">
+        <div class="modal modal-settings">
+            <div class="modal-header">
+                <button class="modal-back" onclick="closeSettings()">&#8592;</button>
+                <h3 data-i18n="settingsTitle">&#9881;&#65039; 设置</h3>
+                <button class="modal-close" onclick="closeSettings()">&times;</button>
+            </div>
+            <div class="settings-content">
+                <div class="settings-section" id="settings-account-section">
+                    <h4 class="settings-section-title" data-i18n="accountSection">&#128100; 账户</h4>
+                    <div class="settings-row">
+                        <div class="settings-row-label" data-i18n="currentUserLabel">当前账号</div>
+                        <div class="settings-account-value" id="settings-current-user">-</div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-label" data-i18n="storageModeLabel">存储模式</div>
+                        <div class="settings-account-value" id="settings-storage-mode">Server</div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-label" data-i18n="currentVersionLabel">当前版本</div>
+                        <div class="settings-account-value" id="settings-current-version">v49</div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-label" data-i18n="passwordLabel">密码</div>
+                        <button class="btn-secondary btn-sm" onclick="changeOwnPassword()" data-i18n="changePassword">修改密码</button>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-label" data-i18n="accountActions">账户操作</div>
+                        <button class="settings-action-btn" onclick="logoutUser()" id="logout-btn">
+                            <span>&#128682;</span>
+                            <span data-i18n="authLogout">退出登录</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="settings-section" id="settings-user-admin-section" style="display:none;">
+                    <h4 class="settings-section-title" data-i18n="manageUsersTitle">&#128101; 用户管理</h4>
+                    <div class="settings-intro">
+                        <p data-i18n="manageUsersHint">管理员可以创建独立用户账号。每个账号都会拥有自己的航班、设置和 API 数据。</p>
+                    </div>
+                    <div class="settings-row settings-row-col">
+                        <div class="settings-row-label" data-i18n="authDisplayName">显示名称</div>
+                        <input type="text" id="new-user-display-name" placeholder="Alice">
+                    </div>
+                    <div class="settings-row settings-row-col">
+                        <div class="settings-row-label" data-i18n="authUsername">用户名</div>
+                        <input type="text" id="new-user-username" placeholder="alice">
+                    </div>
+                    <div class="settings-row settings-row-col">
+                        <div class="settings-row-label" data-i18n="authPassword">密码</div>
+                        <input type="password" id="new-user-password" placeholder="At least 6 characters">
+                    </div>
+                    <div class="sync-actions">
+                        <button class="btn-sync" onclick="createManagedUser()" id="create-user-btn">
+                            <span>&#10133;</span> <span data-i18n="createUserButton">创建账号</span>
+                        </button>
+                    </div>
+                    <div class="api-test-result" id="user-admin-result"></div>
+                    <div class="managed-users-list" id="managed-users-list"></div>
+                </div>
+                <div class="settings-section">
+                    <h4 class="settings-section-title" data-i18n="settingsGeneral">&#127912; 通用设置</h4>
+                    <div class="settings-row">
+                        <div class="settings-row-label" data-i18n="settingsLanguage">语言</div>
+                        <div class="settings-lang-options" id="settings-lang-options">
+                            <button class="settings-lang-btn active" data-lang="zh" onclick="switchLangFromSettings('zh')">中文</button>
+                            <button class="settings-lang-btn" data-lang="en" onclick="switchLangFromSettings('en')">EN</button>
+                            <button class="settings-lang-btn" data-lang="ja" onclick="switchLangFromSettings('ja')">日本語</button>
+                            <button class="settings-lang-btn" data-lang="ko" onclick="switchLangFromSettings('ko')">한국어</button>
+                            <button class="settings-lang-btn" data-lang="es" onclick="switchLangFromSettings('es')">ES</button>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-label" data-i18n="settingsTheme">外观</div>
+                        <button class="settings-theme-btn" onclick="toggleTheme()" id="settings-theme-btn">
+                            <span class="settings-theme-icon" id="settings-theme-icon">&#127769;</span>
+                            <span class="settings-theme-text" id="settings-theme-text" data-i18n="themeDark">深色模式</span>
+                        </button>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-label" data-i18n="settingsRefresh">检查更新</div>
+                        <button class="settings-action-btn" onclick="forceRefreshApp()" id="settings-refresh-btn">
+                            <span>&#128260;</span>
+                            <span data-i18n="refreshNow">立即刷新</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="settings-section" id="settings-sync-section">
+                    <h4 class="settings-section-title" data-i18n="settingsSync">&#128268; 数据同步</h4>
+                    <div class="settings-intro">
+                        <p data-i18n="syncIntro">配置 GitHub Token 后，手机上的航班数据修改可同步回仓库。</p>
+                    </div>
+                    <div class="settings-row settings-row-col">
+                        <div class="settings-row-label">GitHub Token</div>
+                        <div class="sync-input-row">
+                            <input type="password" id="github-token" placeholder="ghp_xxxx..." autocomplete="off">
+                            <button class="btn-test" onclick="testGithubSync()" data-i18n="testConnection">测试连接</button>
+                        </div>
+                    </div>
+                    <div class="settings-row settings-row-col">
+                        <div class="settings-row-label" data-i18n="syncRepo">仓库路径</div>
+                        <input type="text" id="github-repo" placeholder="LeeLe1001/SkyTrace" value="LeeLe1001/SkyTrace">
+                    </div>
+                    <div class="api-test-result" id="sync-result"></div>
+                    <div class="sync-actions">
+                        <button class="btn-sync" onclick="syncToGithub()" id="sync-push-btn">
+                            <span>&#128640;</span> <span data-i18n="syncPush">推送到 GitHub</span>
+                        </button>
+                        <button class="btn-sync btn-sync-pull" onclick="syncFromGithub()" id="sync-pull-btn">
+                            <span>&#128229;</span> <span data-i18n="syncPull">从 GitHub 拉取</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4 class="settings-section-title" data-i18n="settingsApi">&#9992;&#65039; API 设置</h4>
+                    <div class="settings-intro">
+                        <p data-i18n="settingsIntro">配置航班数据API后，输入航班号即可<strong>自动识别</strong>出发/到达机场、时间、机型等信息。</p>
+                        <p class="settings-hint" data-i18n="settingsHint">支持以下免费API（任选一个即可）：</p>
+                    </div>
+                </div>
+                <div class="api-card">
+                    <div class="api-card-header"><div class="api-info"><span class="api-name">AviationStack</span><span class="api-tier" data-i18n="apiTierAvstack">免费 500次/月</span></div><span class="api-status" id="avstack-status" data-i18n="apiNotConfigured">未配置</span></div>
+                    <div class="api-card-body"><input type="text" id="aviationstack-key" placeholder="Access Key" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><div class="api-actions"><a href="https://aviationstack.com/signup/free" target="_blank" class="api-link" data-i18n="getApiKey">获取免费Key &#8594;</a><button class="btn-test" onclick="testApi('aviationstack')" data-i18n="testConnection">测试连接</button></div></div>
+                    <div class="api-test-result" id="avstack-result"></div>
+                </div>
+                <div class="api-card">
+                    <div class="api-card-header"><div class="api-info"><span class="api-name">AirLabs</span><span class="api-tier" data-i18n="apiTierAirlabs">免费 1000次/月</span></div><span class="api-status" id="airlabs-status" data-i18n="apiNotConfigured">未配置</span></div>
+                    <div class="api-card-body"><input type="text" id="airlabs-key" placeholder="API Key" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><div class="api-actions"><a href="https://airlabs.co/signup" target="_blank" class="api-link" data-i18n="getApiKey">获取免费Key &#8594;</a><button class="btn-test" onclick="testApi('airlabs')" data-i18n="testConnection">测试连接</button></div></div>
+                    <div class="api-test-result" id="airlabs-result"></div>
+                </div>
+                <div class="api-card">
+                    <div class="api-card-header"><div class="api-info"><span class="api-name">AeroDataBox</span><span class="api-tier" data-i18n="apiTierAerodata">RapidAPI 免费版</span></div><span class="api-status" id="aerodata-status" data-i18n="apiNotConfigured">未配置</span></div>
+                    <div class="api-card-body"><input type="text" id="aerodata-key" placeholder="RapidAPI Key" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"><div class="api-actions"><a href="https://rapidapi.com/aedbx-aedbx/api/aerodatabox" target="_blank" class="api-link" data-i18n="getApiKey">获取免费Key &#8594;</a><button class="btn-test" onclick="testApi('aerodata')" data-i18n="testConnection">测试连接</button></div></div>
+                    <div class="api-test-result" id="aerodata-result"></div>
+                </div>
+                <div class="settings-footer">
+                    <div class="cache-info"><span><span data-i18n="localCache">&#128230; 本地缓存:</span> <strong id="cache-count">0</strong> <span data-i18n="cacheUnit">条航班数据</span></span></div>
+                    <div class="settings-actions"><button class="btn-secondary" onclick="closeSettings()" data-i18n="cancel">取消</button><button class="btn-primary" onclick="saveSettings()" data-i18n="saveSettings">保存设置</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 分享卡片模态框 -->
+    <div class="modal-overlay" id="share-modal" onclick="if(event.target===this)closeShareModal()">
+        <div class="modal modal-share">
+            <div class="modal-header">
+                <button class="modal-back" onclick="closeShareModal()">&#8592;</button>
+                <h3 data-i18n="shareCard">飞行卡片</h3>
+                <button class="modal-close" onclick="closeShareModal()">&times;</button>
+            </div>
+            <div class="share-content" id="share-content"><div class="share-card" id="share-card"></div></div>
+            <div class="share-actions">
+                <button class="btn-primary" onclick="downloadShareCard()" data-i18n="downloadImage">&#128190; 保存图片</button>
+            </div>
+        </div>
+    </div>
+    <!-- 浮动添加按钮 (全局定位，不受 view transform 影响) -->
+    <!-- FAB 浮动按钮菜单 -->
+    <div class="fab-container" id="fab-container">
+        <div class="fab-menu" id="fab-menu">
+            <button class="fab-menu-item" onclick="closeFabMenu(); openAddModal()" data-i18n-title="addTrip">
+                <span class="fab-menu-icon">&#9992;&#65039;</span>
+                <span class="fab-menu-label" data-i18n="addTrip">添加行程</span>
+            </button>
+            <button class="fab-menu-item" onclick="closeFabMenu(); toggleConnectMode()">
+                <span class="fab-menu-icon">&#9745;</span>
+                <span class="fab-menu-label" data-i18n="multiSelect">多选</span>
+            </button>
+        </div>
+        <button class="btn-add-float" id="fab-add" onclick="toggleFabMenu()" data-i18n-title="addTrip" title="添加行程">+</button>
+    </div>
+    <!-- 移动端底部导航 -->
+    <nav class="mobile-nav">
+        <button class="mobile-nav-tab active" data-tab="home"><span class="mobile-nav-icon">&#127968;</span><span data-i18n="navHome">首页</span></button>
+        <button class="mobile-nav-tab" data-tab="flights"><span class="mobile-nav-icon">&#128203;</span><span data-i18n="navFlights">行程</span></button>
+        <button class="mobile-nav-tab" data-tab="calendar"><span class="mobile-nav-icon">&#128197;</span><span data-i18n="navCalendar">日历</span></button>
+    </nav>
+    <!-- JS 依赖 (全部本地化，无CDN依赖) -->
+    <script src="static/lib/leaflet.js"></script>
+    <script src="static/lib/leaflet-heat.js"></script>
+    <script src="static/lib/arc.js"></script>
+    <script src="static/lib/html2canvas.min.js"></script>
+    <!-- 静态模式: 无后端时自动接管 API 调用 (必须在 app.js 之前加载) -->
+<script src="static/js/time-utils.js?v=50"></script>
+<script src="static/js/static-mode.js?v=50"></script>
+    <!-- 🆕 Flighty JS 架构层 -->
+    <script src="static/js/lib/store.js?v=50"></script>
+    <script src="static/js/lib/component.js?v=50"></script>
+    <script src="static/js/lib/sound-manager.js?v=50"></script>
+    <script src="static/js/lib/lottie-utils.js?v=50"></script>
+<script src="static/js/app.js?v=50"></script>
+    <script>
+        // 注册 Service Worker (PWA 离线缓存)
+        // 注意: 不调用 reg.update() — 浏览器会自动在后续导航时检查更新,
+        // 避免首次加载时 SW update + skipWaiting + claim 触发隐性页面重载循环
+        if ('serviceWorker' in navigator) {
+            var _swInstalling = false;
+            navigator.serviceWorker.register('sw.js?v=' + window.SKYTRACE_VERSION, { scope: '/' })
+                .then(function(reg) {
+                    console.log('[SW] registered, scope:', reg.scope);
+                    // 监听 SW 更新: 如果有新的 waiting SW, 延迟后通知用户而非立即刷新
+                    reg.addEventListener('updatefound', function() {
+                        var newWorker = reg.installing;
+                        if (!newWorker) return;
+                        newWorker.addEventListener('statechange', function() {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('[SW] New version waiting; will activate on next visit.');
+                                // 不主动 reload, 让用户下次访问时获得新版本
+                            }
+                        });
+                    });
+                })
+                .catch(function(err) { console.log('[SW] reg failed:', err); });
+
+            // 防止 SW controllerchange 触发的意外重载
+            var _swReloadGuard = 0;
+            navigator.serviceWorker.addEventListener('controllerchange', function() {
+                _swReloadGuard++;
+                if (_swReloadGuard > 2) {
+                    console.warn('[SW] Too many controller changes, stopping reloads');
+                    return;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

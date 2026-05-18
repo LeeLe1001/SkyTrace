@@ -1,0 +1,676 @@
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<style>
+			:root {
+				--main-background-color: ##main_background_color##;
+				--divider-color: ##divider_color##;
+				--main-text-color: ##main_text_color##;
+				--secondary-text-color: ##secondary_text_color##;
+			}
+
+			* {
+				margin-block-start: 0;
+				margin-block-end: 0;
+			}
+
+			body {
+				background-color: var(--main-background-color);
+				color: var(--main-text-color);
+				font-family: 'system-ui';
+				font-weight: normal;
+				font-size: ##font_size##;
+				line-height: 150%;
+				margin: 16px;
+			}
+
+			header {
+				color: var(--secondary-text-color);
+				margin-bottom: 3em;
+			}
+
+			h1 {
+				font-size: 26px;
+				margin-top: 1em;
+				margin-bottom: 1em;
+			}
+
+			h2 {
+				font-size: 18px;
+				font-weight: 600;
+				margin-bottom: 0.25em;
+				margin-top: 1em;
+			}
+
+			ul {
+				list-style: none;
+				padding-inline-start: 0;
+			}
+
+			ul > li:first-child {
+				border-top-style: none;
+			}
+
+			li {
+				border-block-start: 1em;
+				border-block-end: 1em;
+				border-top-style: solid;
+				border-top-width: 1px;
+				border-top-color: var(--divider-color);
+				padding-bottom: 1em;
+				padding-top: 1.5em;
+			}
+
+			/* Inner list for bug fixes */
+			ul li ul {
+				padding-inline-start: 1.1em;
+			}
+
+			ul li ul li {
+				padding: 0;
+				border-top: none;
+				padding-top: 0.1em;
+				padding-bottom: 0.1em;
+			}
+
+			ul li ul li:before {
+				content: '•';
+				position: absolute;
+				left: 1.1em;
+			}
+
+			@media (-webkit-min-device-pixel-ratio: 2) {
+				li {
+					border-top-width: 0.5px;
+				}
+			}
+
+			@media (-webkit-min-device-pixel-ratio: 3) {
+				li {
+					border-top-width: 0.33px;
+				}
+			}
+
+			aside {
+				margin-top: 0.5em;
+				font-size: 70%;
+				color: var(--secondary-text-color);
+				text-transform: uppercase;
+			}
+
+			span {
+				font-family: SFMono-Regular, Menlo, monospace;
+			}
+		</style>
+		<title>What’s New</title>
+	</head>
+
+	<body>
+		<header>
+			We are constantly improving Flighty and your subscription. View past updates here.
+		</header>
+		<main>
+			<ul>
+				<li>
+					<aside>October 2022 • v2.6</aside>
+					<h2>Introducing Live Activities & Dynamic Island</h2>
+					<p>Imagine personal flight status boards throughout your home screen and lock screen.</p>
+					<p>Critical alerts won’t get buried in your notifications, when using other apps flight updates peacefully animate in, and live data is still visible even when your screen is off.</p>
+				</li>
+
+				<li>
+					<aside>September 2022 • v2.5</aside>
+					<h2>Introducing iOS 16 Lock Screen Widgets & Shared With You</h2>
+					<p>On the launch of iOS 16 we are introducing 3 new features to making flight tracking even easier.</p>
+					<p>First, lock screen widgets allow viewing your live flight status without even unlocking your device. Second, flight links shared in iMessage automatically appear in your Friends' Flights tab. And finally, all weather forecasts have been extended to 10 days via Apple Weather.</p>
+				</li>
+
+				<li>
+					<aside>April 2022 • v2.4</aside>
+					<h2>Introducing Friends’ Flights Map & Tab</h2>
+					<p>Your Friend's Flights now have a separate map and tab. Also choose to included or excluded them from Calendar Sync in Settings.</p>
+				</li>
+
+				<li>
+					<aside>February 2022 • v2.3</aside>
+					<h2>Introducing Calendar Import</h2>
+					<p>When flights are added or removed from your calendar, Flighty stays in sync tracking them. No more manually adding flights! And if Siri or Gmail suggest flights to your calendar, it's even more automatic, everything just flows into Flighty. Also handy for migrating from other apps, finding and adding all your past flights, and for Pilots and Crew to sync their constantly changing schedules.</p>
+				</li>
+				
+				<li>
+					<aside>December 2021 • v2.2</aside>
+					<h2>Introducing Year In Review</h2>
+					<p>
+					Get your 2021 Year in Review… actually any year or your total lifetime! Creative images tell the story of your flight map, hours in the air, total miles, longest stretch without a flight, and more. Share and compare with friends. Check it out today in My Flight Log.
+					</p>
+				</li>
+				<li>
+					<aside>November 2021 • v2.1</aside>
+					<h2>Introducing Friend's Flights</h2>
+					<p>
+					Track your friend's flights with the same great alerts and data, but without messing up your personal stats! Each flight has its own setting in the row of quick actions (default is My Flight). Friend's flights are deleted upon arrival and not sync'ed to your calendar.<br><br>
+					</p>
+					<h2>Introducing Family Sharing</h2>
+					<p>
+					Save big by sharing one Flighty Pro subscription with the whole family. Share with up to 6 people for the price of just 2 individual memberships! Start today in settings or upgrade from your current plan and only pay the difference.<br><br>
+					</p>
+				</li>
+				<li>
+					<aside>September 2021 • v2.0</aside>
+					<h2>Introducing Flighty v2.0</h2>
+					<p>
+					Even more features you need, in the design you love. The first time these features have been included in a fully-featured flight tracker – no more app switching. Flighty has it all.<br><br>
+
+					3D Globe - In satellite mode, with new light and dark themes too. First flight tracker to have a 3D globe.<br><br>
+
+					Ground Radar - 40% of taxiing includes a delay, so we have built the first-ever live ground tracking into a flight tracker.<br><br>
+
+					Proximity Radar - See the planes around you at anytime, with where they are headed.<br><br>
+
+					Live-Streaming Locations - all plane positions are live-streamed, coverage is worldwide<br><br>
+
+					We're still just getting started. :)<br><br>
+					</p>
+				</li>
+				<li>
+					<aside>June 2021 • v1.11</aside>
+					<h2>Introducing Inbound Plane HUD</h2>
+					<p>
+					The first thing seasoned flyers learn is that an inbound plane can really screw you. That's why we are adding it directly to your flight map – no extra taps required like those other apps. Plus a new heads-up display (HUD) provides its exact status at a glance (taxiing? at gate?). And just tap the HUD to dig even deeper.<br><br>
+					</p>
+				</li>
+				<li>
+					<aside>Apr 2021 • v1.10</aside>
+					<h2>Introducing Social Sharing</h2>
+					<p>
+					Beautifully share your travels on social media.<br><br>
+
+					• Flight Map – Customize it with countdown, boarding pass, or your own text.<br><br>
+
+					• Boarding Pass Sticker – Stick it on any travel photo. Don't forget your seat and class!<br><br>
+
+					• Status Board Sticker – Realistic airport flight board sticker. Try it on your airport selfies or first vacay photos.<br><br>
+
+					Check them in the share icon.<br><br>
+					</p>
+				</li>
+				<li>
+					<aside>Jan 2021 • v1.9</aside>
+					<h2>Introducing Live Sharing</h2>
+					<p>
+						Family monitoring your flight? Friend picking you up? 
+						Now you can keep them updated with the press of a button – all in real-time and free.<br><br>
+
+						• Free and no download for friends and family.<br><br>
+
+						Share months in advance, or as you walk down the jetway.<br><br>
+
+						Tap the share icon today, and keep loved ones updated the easy way.
+					</p>
+				</li>
+				<li>
+					<aside>Dec 2020 • v1.8.2</aside>
+					<h2>Updates</h2>
+					<ul>
+						<li>
+							Added widget for countries visited, airlines flown, total routes, aircraft models flown, and total airports
+						</li>
+						<li>
+							Fixed truncated widgets on smaller screens
+						</li>
+					</ul>
+				</li>
+
+				<li>
+					<aside>Nov 2020 ·• v1.8.1</aside>
+					<h2>Introducing Memories Widgets</h2>
+					<p>
+						Reminisce or compare with friends as we cycle through
+						your top flight memories and stats.
+					</p>
+					<h2>Improvements</h2>
+					<ul>
+						<li>
+							New status icons on My Flights page for taxiing,
+						taking off, in air, and landing.
+						</li>
+					</ul>
+				</li>
+				<li>
+					<aside>Oct 2020 • v1.7.4</aside>
+
+					<p>
+						Flighty works on your new iPhone 12.
+					</p>
+				</li>
+				<li>
+					<aside>Oct 2020 • v1.7.3</aside>
+					<h2>Introducing Lifetime Membership</h2>
+					<p>
+						Get Flighty Pro for life
+						with a one-time payment (no subscription). Go to
+						Settings &gt; Flighty Pro to view.
+					</p>
+				</li>
+				<li>
+					<aside>Sep 2020 • v1.7.1</aside>
+
+					<h2>Improvements</h2>
+					<ul>
+						<li>
+							Use covidentrycheck.com for travel restrictions
+							instead of the IATA website
+						</li>
+					</ul>
+					<h2>Improvements</h2>
+					<ul>
+						<li>
+							Widget behavior for connections
+						</li>
+						<li>
+							Long city names in Where is my Plane
+						</li>
+						<li>
+							Layout of Good to Know card on small screens
+						</li>
+					</ul>
+				</li>
+
+				<li>
+					<aside>Sep 2020 • v1.7</aside>
+					<h2>Introducing Widgets</h2>
+					<p>
+						Happy iOS release 14 day! Countdown to your next trip. Then see your gate, flight times, and
+						confirmation number right on your home screen. Includes light/dark mode and airline logos.
+					</p>
+				</li>
+
+				<li>
+					<aside>Sep 2020 • v1.6.2</aside>
+
+					<h2>Improvements</h2>
+					<ul>
+						<li>Sync performance</li>
+						<li>
+							Past flight list on devices with a
+							home button
+						</li>
+						<li>
+							Manually deleting past flights
+						</li>
+					</ul>
+				</li>
+
+				<li>
+					<aside>Aug 2020 • v1.6</aside>
+					<h2>Introducing Booking Code & Seat Number</h2>
+					<p>
+						Breeze through check in and boarding with everything you need in Flighty. Booking Code and Seat Number can be manually entered or are automatically imported when you use TripIt
+						or Email Forwarding. It's also sync'ed to your calendar entry and included in relevant Notifications.
+					</p>
+
+					<h2>Improvements</h2>
+					<ul>
+						<li>Tail number and aircraft change handling</li>
+						<li>Flight number search performance</li>
+						<li>Grace conditions of free flights</li>
+						<li>Codeshare search performance</li>
+						<li>Weather forecast data</li>
+					</ul>
+				</li>
+
+				<li>
+					<aside>Jul 2020 • v1.5</aside>
+					<h2>Introducing (Actually) Free Trial</h2>
+					<p>
+						Try Flighty Pro risk-free, with no credit card or trial required. Everyone now gets 1 free flight with Flighty Pro. That's how confident we are that you'll love the benefits. No trial, no credit card, no forgetting to unsubscribe. Just free.
+					</p>
+					<h2>New</h2>
+					<ul>
+						<li>Free Pro on your first flight</li>
+						<li>
+							Shake to view a random flight (Random flights always include Flighty Pro, so you can always explore the beenfits. Random flights are auto-deleted upon
+							completion.)
+						</li>
+						<li>Search airports by name (Ex. John F Kennedy)</li>
+						<li>
+							Added +/-1 day on flight times in flight details
+						</li>
+						<li>Comparison table for Free vs Pro</li>
+						<li>Shorten onboarding to 1 page</li>
+						<li>Re-install performance improvement</li>
+						<li>Support methods</li>
+					</ul>
+
+					<h2>Improvements</h2>
+					<ul>
+						<li>Background sync performance</li>
+						<li>Standard shae button</li>
+						<li>Clarified details of Calendar Sync</li>
+						<li>Total flight time counted in days</li>
+						<li>Map centering behaviour</li>
+					</ul>
+
+					<h2>New aircrafts images</h2>
+					<ul>
+						<li>A220-100</li>
+						<li>A220-300</li>
+						<li>B777X</li>
+						<li>CRJ-700</li>
+					</ul>
+					<aside>Apr 2020 • v1.4.4</aside>
+					<ul>
+						<li>
+							COVID-19 Travel Restrictions – Tap the banner in
+							Settings to view the latest up-to-date restrictions.
+						</li>
+						<li>
+							Instant TripIt Sync – Updates in TripIt are now
+							instantly pushed to your device. No more waiting for
+							sync. (Pro Required)
+						</li>
+						<li>More clear paywall buttons and terms</li>
+					</ul>
+				</li>
+				<li>
+					<aside>Jan 2020 · Version 1.4</aside>
+					<h2>Introducing Layover Times</h2>
+					<ul>
+						<li>Shown in My Flights when &lt;24h</li>
+						<li>Added to Good to Know when &lt;1h</li>
+					</ul>
+					<h2>Improvements to Email Import</h2>
+					<ul>
+						<li>PDF ticket support</li>
+						<li>Multiple recipient support</li>
+					</ul>
+					<h2>Fixed</h2>
+					<ul>
+						<li>Negative total flight time in stats</li>
+						<li>
+							Long Haul definition changed to greater than 3,950
+							km (Hi Cortex!)
+						</li>
+					</ul>
+				</li>
+				<li>
+					<aside>Dec 2019 • v1.3.1</aside>
+					<ul>
+						<li>
+							Massive sync performance improvements
+						</li>
+						<li>
+							Fix calendar sync when multiple calenders with the
+							same name in the same account are present
+						</li>
+					</ul>
+				</li>
+				<li>
+					<aside>Nov 2019 • v1.3</aside>
+					<h1>Accuracy</h1>
+					<h2>Where’s My Plane Upgrade</h2>
+					<p>
+						Huge upgrade to Southwest, Air Canada, Lufthansa,
+						JetBlue, British Airways, Cathay, and 35 more airlines.
+					</p>
+
+					<h2>7,000 New Tail Numbers</h2>
+					<p>Aircraft details for many new planes have been added</p>
+
+					<h2>Improved Email Parsing</h2>
+					<p>30% faster parsing with 10% higher success rate</p>
+
+					<h2>Improvements</h2>
+					<ul>
+						<li>
+							Faster sync & uses less battery
+						</li>
+						<li>
+							Properly use curly apostrophes (Hi JG)
+						</li>
+						<li>
+							Newsletter sign-up in dark mode
+						</li>
+						<li>
+							Departure/Arrival icons when offline
+						</li>
+						<li>
+							Date entry when leaving Flighty
+							mid-search
+						</li>
+						<li>Removed duplicates in airline filter</li>
+						<li>
+							Re-adding deleted flights
+						</li>
+					</ul>
+				</li>
+				<li>
+					<aside>Oct 2019 • v1.2.5</aside>
+					<ul>
+						<li>Add mini plane(s) on main map</li>
+						<li>47 new airline logos</li>
+						<li>
+							Flight number search instructions
+						</li>
+						<li>Search performance while sync is running</li>
+						<li>
+							Date caculations with daylight savings
+						</li>
+						<li>Stop profile reloading when deleting a flight</li>
+						<li>
+							Missing flights from “My History on This Route”
+						</li>
+					</ul>
+				</li>
+				<li>
+					<aside>Oct 2019 • v1.2.3</aside>
+					<ul>
+						<li>Sending feedback via Gmail</li>
+						<li>Calendar sync on Exchange</li>
+					</ul>
+				</li>
+				<li>
+					<aside>Oct 2019 • v1.2.2</aside>
+					<ul>
+						<li>Add dark variants for airline logos</li>
+						<li>Add skip button to onboarding</li>
+						<li>Fix elevation labels for smaller mountains</li>
+						<li>
+							Fix gate departure in timeline tile in free mode
+						</li>
+						<li>Fix flight status colors in offline mode</li>
+						<li>
+							Fix 1 hours shown instead of 23h in upcoming list
+						</li>
+						<li>
+							Fix negative times when departure & arrival runway
+							times are present
+						</li>
+						<li>Fix color for lapsed view in dark mode</li>
+						<li>
+							Fix map reloading when upcoming list is empty, also
+							fixes when returning from profile
+						</li>
+						<li>
+							Fix map route colors when switching between light &
+							dark mode
+						</li>
+					</ul>
+				</li>
+				<li>
+					<aside>Sep 2019 • v1.2.1</aside>
+					<ul>
+						<li>
+							Fixed an issue where colors on the paywall would
+							render wrong on iOS 12.
+						</li>
+					</ul>
+				</li>
+				<li>
+					<aside>Sep 2019 • v1.2</aside>
+					<h1>Introducting Dark Mode</h1>
+					<p>
+						We have a cool new look, detailed bolder maps, and many
+						refinements.
+					</p>
+
+					<h2>Dark Mode</h2>
+					<p>
+						Dark Mode introduces a dramatic new look to match your
+						device setting (iOS 13 only)
+					</p>
+
+					<h2>Map Themes</h2>
+					<p>
+						Bolder map themes, clear airport labels, in-flight
+						landmarks, and better performance
+					</p>
+
+					<h2>More</h2>
+					<ul>
+						<li>Allow manual archive after Estimated Arrival</li>
+						<li>Add divider line to flight detail header</li>
+						<li>Add more clear ⅹ on paywall</li>
+						<li>
+							Fix notification bug after a restore to a new device
+						</li>
+						<li>Fix Tail Changes missing from Record of Changes</li>
+						<li>Fix selected color in search results</li>
+						<li>
+							Fix missing flights that occurred Dec 31 in profile
+							view
+						</li>
+					</ul>
+				</li>
+				<li>
+					<aside>Sep 2019 • v1.1.5</aside>
+					<ul>
+						<li>
+							Fixed colors for some areas where late flights were
+							shown in green instead of red.
+						</li>
+					</ul>
+				</li>
+				<li>
+					<aside>Sep 2019 • v1.1.4</aside>
+					<ul>
+						<li>
+							Fixed an issue where notifications stopped working
+							after restoring a backup to a new device.
+						</li>
+					</ul>
+				</li>
+				<li>
+					<aside>Sep 2019 • v1.1.3</aside>
+					<ul>
+						<li>
+							Fixed instant crash when tapping flight details
+							introduced in 1.1.2
+						</li>
+					</ul>
+				</li>
+				<li>
+					<aside>Sep 2019 • v1.1.2</aside>
+					<ul>
+						<li>
+							Fixed a long standing issue where search crashes
+							instantly for certain users.
+						</li>
+					</ul>
+				</li>
+				<li>
+					<aside>Sep 2019 • v1.1.1</aside>
+					<ul>
+						<li>
+							Restored the ability to attach debug log files to
+							feedback emails.
+						</li>
+					</ul>
+				</li>
+				<li>
+					<aside>Aug 2019 • v1.1</aside>
+					<h1>Introducing Powerful Search</h1>
+					<p>
+						With this update, Flighty’s search is now even faster,
+						more powerful, and works the way you work. It also
+						learned a few new tricks:
+					</p>
+
+					<h2>Hide Codeshares</h2>
+					<p>
+						Easily toggle codeshares on & off without leaving your
+						results. Flighty will remember your preference for
+						future searches.
+					</p>
+
+					<h2>Filter By Airline</h2>
+					<p>
+						Narrow down your route searches by showing only the
+						airline you are interested in.
+					</p>
+
+					<h2>Instant Refresh</h2>
+					<p>
+						All users now have Background App Refresh. Additionally,
+						Flighty Pro users have instant refresh with every
+						notification. When you get a notification, Flighty makes
+						sure the in-app state matches the new notification
+						information instantly.
+					</p>
+
+					<h2>More</h2>
+					<ul>
+						<li>Faster initial TripIt sync</li>
+						<li>Added “Recently Used” date suggestion in search</li>
+						<li>
+							Added full changelog & release history in settings
+						</li>
+						<li>Added a visual indication when adding a flight</li>
+						<li>
+							Added a copy airline phone number action in our
+							airline tile
+						</li>
+						<li>Added a share Flighty button in settings</li>
+						<li>Added the logo for Air Atlanta Icelandic</li>
+						<li>Updated the logo for Cathay Dragon</li>
+						<li>
+							Updated the contact photo for the Flighty import
+							email to our actual app icon
+						</li>
+						<li>Fixed a crash when tapping share from profile</li>
+					</ul>
+				</li>
+				<li>
+					<p>
+						Our third update this week! Improved TripIt, Email
+						import, and Calendar Sync instructions. Fixed restoring
+						purchases.
+					</p>
+					<aside>Aug 2019 • v1.0.3</aside>
+				</li>
+				<li>
+					<aside>Jul 2019 • v1.0.2</aside>
+					<ul>
+						<li>
+							Improved TripIt sync and search UI. Fixed Search
+							erroneously showing "No Results" and excessive
+							calendar notifications on shared calendars.
+						</li>
+					</ul>
+				</li>
+				<li>
+					<aside>Jul 2019 • v1.0.1</aside>
+					<ul>
+						<li>Bug fix for purchasing Flighty Pro.</li>
+					</ul>
+				</li>
+				<li>
+					<aside>Jul 2019 • v1.0</aside>
+					<p>Flighty Launch 🥳</p>
+				</li>
+			</ul>
+		</main>
+	</body>
+</html>

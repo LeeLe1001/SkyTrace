@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Database
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+data/secret_key.txt
+data/encryption_key.txt
+
+# Depack (binary analysis - large files)
+Depack/Flighty.ipa
+Depack/Flighty_unpacked/
