@@ -4185,8 +4185,11 @@ html.standalone-mode body.is-standalone {
     padding-bottom: 0;
     margin: 0;
 }
-.home-nearest-card .flight-card {
+.home-nearest-card .flight-card,
+.home-overlay-list .flight-card {
     margin-bottom: 8px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* 首页待出行列表用 nearest 风格 */
@@ -4268,9 +4271,7 @@ html.standalone-mode body.is-standalone {
     pointer-events: none;
     transition: max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.25s ease, padding 0.35s ease;
 }
-.home-overlay-list .flight-card {
-    margin-bottom: 8px;
-}
+
 .home-flights-overlay.expanded .home-overlay-list {
     max-height: 60vh;
     opacity: 1;
@@ -4281,9 +4282,7 @@ html.standalone-mode body.is-standalone {
 .home-overlay-list::-webkit-scrollbar {
     display: none;
 }
-.home-overlay-list .flight-card {
-    margin-bottom: 10px;
-}
+
 .home-overlay-list .flights-date-header {
     padding-top: 12px;
 }
