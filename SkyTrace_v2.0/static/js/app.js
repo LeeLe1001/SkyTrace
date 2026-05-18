@@ -1116,20 +1116,21 @@ let _hoCarouselIdx = 0;
 function initHomeOverlayDrag() {
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
-    // Always re-attach drag if overlay HTML was replaced
     if (el._dragInited) return;
     el._dragInited = true;
     const handle = el.querySelector('.home-overlay-handle');
     const header = el.querySelector('.home-overlay-header');
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
 
-    // Click header or handle to cycle: hidden → peek (最近出行) → expanded (全部待出行) → hidden
+    // 桌面端: peek ↔ expanded; 手机端: hidden → peek → expanded → hidden
     const toggleClick = () => {
-        if (_hoState === 'hidden') {
-            peekHomeOverlay();
-        } else if (_hoState === 'peek') {
-            expandHomeOverlay();
+        if (isDesktop) {
+            if (_hoState === 'expanded') peekHomeOverlay();
+            else expandHomeOverlay();
         } else {
-            minimizeHomeOverlay();
+            if (_hoState === 'hidden') peekHomeOverlay();
+            else if (_hoState === 'peek') expandHomeOverlay();
+            else minimizeHomeOverlay();
         }
     };
     if (header) header.addEventListener('click', toggleClick);
@@ -1165,8 +1166,12 @@ function initHomeOverlayDrag() {
             }
         });
     }
-    // Start at minimized/hidden state (just the handle bar above nav)
-    minimizeHomeOverlay();
+    // 桌面端常驻 peek, 手机端 minimized
+    if (window.matchMedia('(min-width: 768px)').matches) {
+        peekHomeOverlay();
+    } else {
+        minimizeHomeOverlay();
+    }
 }
 
 function _getMobileNavH() {
