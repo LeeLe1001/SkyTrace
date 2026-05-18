@@ -51,7 +51,26 @@ def weather():
         return jsonify({'error': str(e)}), 500
 
 
+@system_bp.route('/api/events')
+def sse_stream():
+    """SSE 实时事件流 (需要认证)"""
+    from flask import Response, g
+    from services.sse_broker import generate_sse_events
+    user_id = g.current_user['id'] if g.get('current_user') else None
+    if not user_id:
+        # 允许未认证连接，但只发送心跳
+        def noop():
+            import time
+            while True:
+                yield f': keepalive {int(time.time())}
+
+'
+        return Response(noop(), mimetype='text/event-stream')
+    return Response(generate_sse_events(user_id), mimetype='text/event-stream',
+                    headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+
 @system_bp.route('/api/logo-proxy')
+
 def logo_proxy():
     url = request.args.get('url', '')
     if not url or not url.startswith('http'):
