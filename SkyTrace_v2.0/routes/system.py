@@ -1,16 +1,13 @@
 """
-SkyTrace v2.0 — 系统路由 (/api/health, /api/version, /api/weather, /api/logo-proxy)
+SkyTrace v2.0 — System routes
 """
 import hashlib
 import os
 import urllib.request
-from flask import Blueprint, jsonify, request, send_from_directory, current_app
+from flask import Blueprint, jsonify, request, send_from_directory, Response, g
 
 system_bp = Blueprint('system', __name__)
-
-APP_VERSION = 50
 LOGO_CACHE_DIR = os.path.join('static', 'img', 'airlines', 'cache')
-
 
 @system_bp.route('/api/health')
 def health():
@@ -20,18 +17,11 @@ def health():
         db_ok = True
     except Exception:
         db_ok = False
-
-    return jsonify({
-        'status': 'ok' if db_ok else 'degraded',
-        'version': APP_VERSION,
-        'database': 'connected' if db_ok else 'error',
-    })
-
+    return jsonify({'status': 'ok' if db_ok else 'degraded', 'version': 50, 'database': 'connected' if db_ok else 'error'})
 
 @system_bp.route('/api/version')
 def version():
-    return jsonify({'version': APP_VERSION})
-
+    return jsonify({'version': 50})
 
 @system_bp.route('/api/weather')
 def weather():
@@ -40,50 +30,39 @@ def weather():
     if not lat or not lon:
         return jsonify({'error': 'lat and lon required'}), 400
     try:
-        url = f'https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true'
+        url = 'https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current_weather=true' % (lat, lon)
         req = urllib.request.Request(url)
         req.add_header('User-Agent', 'SkyTrace/2.0')
         with urllib.request.urlopen(req, timeout=10) as resp:
             import json as _json
-            data = _json.loads(resp.read().decode())
-            return jsonify(data)
+            return jsonify(_json.loads(resp.read().decode()))
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 @system_bp.route('/api/events')
 def sse_stream():
-    """SSE 实时事件流 (需要认证)"""
-    from flask import Response, g
     from services.sse_broker import generate_sse_events
     user_id = g.current_user['id'] if g.get('current_user') else None
     if not user_id:
-        # 允许未认证连接，但只发送心跳
         def noop():
             import time
             while True:
-                yield f': keepalive {int(time.time())}
-
-'
+                yield ': keepalive %d\n\n' % int(time.time())
         return Response(noop(), mimetype='text/event-stream')
     return Response(generate_sse_events(user_id), mimetype='text/event-stream',
                     headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
 
 @system_bp.route('/api/logo-proxy')
-
 def logo_proxy():
     url = request.args.get('url', '')
     if not url or not url.startswith('http'):
         return '', 400
-
     ext = '.svg' if '.svg' in url else '.png'
     filename = hashlib.md5(url.encode()).hexdigest() + ext
     cache_path = os.path.join(LOGO_CACHE_DIR, filename)
     mimetype = 'image/svg+xml' if ext == '.svg' else 'image/png'
-
     if os.path.exists(cache_path):
         return send_from_directory(LOGO_CACHE_DIR, filename, mimetype=mimetype)
-
     try:
         os.makedirs(LOGO_CACHE_DIR, exist_ok=True)
         req = urllib.request.Request(url)

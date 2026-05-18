@@ -50,6 +50,14 @@ def create_app(config_name='development'):
     # ---- 静态文件 (绝对路径, 安全认证门控) ----
     _base_dir = os.path.dirname(os.path.abspath(__file__))
 
+    @app.route('/static/<path:filename>')
+    def static_files(filename):
+        return send_from_directory(os.path.join(_base_dir, 'static'), filename)
+
+    @app.route('/data/<path:filename>')
+    def data_files(filename):
+        return send_from_directory(os.path.join(_base_dir, 'data'), filename)
+
     @app.route('/')
     def index():
         from flask import session

@@ -32,7 +32,7 @@ class DevelopmentConfig(Config):
     SESSION_COOKIE_SECURE = False
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         'SKYTRACE_DATABASE_URL',
-        'sqlite:///data/skytrace.db'
+        'sqlite:////Users/leele/Documents/Flighty_Depack/SkyTrace_v2.0/data/skytrace.db'
     )
 
 
