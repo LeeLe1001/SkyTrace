@@ -1225,7 +1225,12 @@ function peekHomeOverlay() {
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
     el.style.transition = '';
-    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1)'; el.style.maxHeight = ''; el.style.removeProperty('max-height');
+    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1)';
+    // 计算实际内容高度: header + nearest card = ~240px
+    const nearestCard = el.querySelector('.home-nearest-card');
+    const headerH = el.querySelector('.home-overlay-header')?.offsetHeight || 50;
+    const cardH = nearestCard ? Math.min(nearestCard.scrollHeight, 200) : 0;
+    el.style.maxHeight = (headerH + cardH + 24) + 'px';
     el.classList.remove('expanded', 'minimized');
     const titleEl = el.querySelector('.home-overlay-title');
     if (titleEl) titleEl.textContent = t('nearestTrip') || '最近出行';
