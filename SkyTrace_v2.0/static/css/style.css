@@ -4096,6 +4096,7 @@ html.standalone-mode body.is-standalone {
     left: 0;
     right: 0;
     max-height: 320px;
+    transition: max-height 0.35s cubic-bezier(.4,0,.2,1);
     background: var(--header-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -4181,8 +4182,6 @@ html.standalone-mode body.is-standalone {
     flex-shrink: 0;
     max-height: 500px;
     overflow: hidden;
-    max-width: 95%;
-    margin: 0 auto;
     transition: max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.25s ease, padding 0.35s ease, margin 0.35s ease;
 }
 .home-nearest-card.collapsed {
@@ -4194,7 +4193,6 @@ html.standalone-mode body.is-standalone {
 }
 .home-nearest-card .flight-card {
     margin-bottom: 8px;
-    margin-right: 4px;
 }
 
 /* 首页待出行列表用 nearest 风格 */
@@ -4277,9 +4275,7 @@ html.standalone-mode body.is-standalone {
     transition: max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.25s ease, padding 0.35s ease;
 }
 .home-overlay-list .flight-card {
-    max-width: 95%;
-    margin: 0 auto;
-    width: 100%;
+    margin-bottom: 8px;
 }
 .home-flights-overlay.expanded .home-overlay-list {
     max-height: 60vh;
@@ -5789,6 +5785,7 @@ body.fmap-fullscreen-active .flights-sub-view {
         left: 8px;
         right: auto;
         width: 400px;
+        transition: width 0.35s cubic-bezier(.4,0,.2,1);
         max-width: 42vw;
         max-height: none !important;
         border-radius: 16px;
