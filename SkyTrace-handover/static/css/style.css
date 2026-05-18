@@ -5777,13 +5777,35 @@ body.fmap-fullscreen-active .flights-sub-view {
 
 
 
-/* ====== Desktop 宽屏: 仅居中内容 ====== */
+/* ====== Desktop 宽屏: overlay 左侧常驻 ====== */
 @media (min-width: 768px) {
     .flights-container { max-width: 960px; margin: 0 auto; }
     .calendar-container { max-width: 720px; margin: 0 auto; }
 
-    /* 桌面端 overlay 和手机一样在底部，不改变定位 */
-    /* 仅居中卡片内容，由 .home-overlay-list .flight-card 的 max-width:95% 控制 */
+    .home-flights-overlay {
+        position: absolute;
+        top: calc(var(--header-total-height) + 8px);
+        bottom: 12px;
+        left: 8px;
+        right: auto;
+        width: 400px;
+        max-width: 42vw;
+        max-height: none !important;
+        border-radius: 16px;
+        border: 1px solid var(--border-light);
+        box-shadow: 4px 0 30px var(--shadow-color);
+    }
+    .home-flights-overlay.expanded {
+        width: 440px;
+        max-width: 46vw;
+    }
+    .home-flights-overlay.minimized {
+        width: 200px;
+        left: 8px;
+    }
+    .home-overlay-header { padding: 12px 16px 8px; }
+    .home-nearest-card { padding: 0 12px 8px; }
+    .home-overlay-list { padding: 0 12px 16px; }
 }
 
 

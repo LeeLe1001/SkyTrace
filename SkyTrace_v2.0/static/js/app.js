@@ -1120,15 +1120,18 @@ function initHomeOverlayDrag() {
     el._dragInited = true;
     const handle = el.querySelector('.home-overlay-handle');
     const header = el.querySelector('.home-overlay-header');
+    var isDesktop = window.matchMedia('(min-width: 768px)').matches;
 
-    // 统一行为: hidden → peek → expanded → hidden
-    const toggleClick = () => {
-        if (_hoState === 'hidden') {
-            peekHomeOverlay();
-        } else if (_hoState === 'peek') {
-            expandHomeOverlay();
+    var toggleClick = function() {
+        if (isDesktop) {
+            // 桌面端: 只有 peek ↔ expanded
+            if (_hoState === 'expanded') peekHomeOverlay();
+            else expandHomeOverlay();
         } else {
-            minimizeHomeOverlay();
+            // 手机端: 三态
+            if (_hoState === 'hidden') peekHomeOverlay();
+            else if (_hoState === 'peek') expandHomeOverlay();
+            else minimizeHomeOverlay();
         }
     };
     if (header) header.addEventListener('click', toggleClick);
@@ -1160,11 +1163,19 @@ function initHomeOverlayDrag() {
             } else if (h > 100) {
                 peekHomeOverlay();
             } else {
-                minimizeHomeOverlay();
+                if (window.matchMedia('(min-width: 768px)').matches) {
+        peekHomeOverlay();
+    } else {
+        minimizeHomeOverlay();
+    }
             }
         });
     }
-    minimizeHomeOverlay();
+    if (window.matchMedia('(min-width: 768px)').matches) {
+        peekHomeOverlay();
+    } else {
+        minimizeHomeOverlay();
+    }
 }
 
 function _getMobileNavH() {
@@ -2600,7 +2611,11 @@ function initTabs() {
                 if (viewEl) viewEl.scrollTo({ top: 0, behavior: 'smooth' });
                 if (tab.dataset.tab === 'home') {
                     // 收起覆盖层到最小化（隐藏）状态
-                    minimizeHomeOverlay();
+                    if (window.matchMedia('(min-width: 768px)').matches) {
+        peekHomeOverlay();
+    } else {
+        minimizeHomeOverlay();
+    }
                     if (homeMap) {
                         homeMap.invalidateSize();
                         if (homeArcLayers.length > 0) {
