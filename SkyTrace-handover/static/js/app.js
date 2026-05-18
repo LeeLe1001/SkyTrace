@@ -1225,17 +1225,28 @@ function peekHomeOverlay() {
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
     el.style.transition = '';
-    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1)';
-    // 计算实际内容高度: header + nearest card = ~240px
-    const nearestCard = el.querySelector('.home-nearest-card');
-    const headerH = el.querySelector('.home-overlay-header')?.offsetHeight || 50;
-    const cardH = nearestCard ? Math.min(nearestCard.scrollHeight, 200) : 0;
-    el.style.maxHeight = (headerH + cardH + 24) + 'px';
+    // 先取消 expanded 让 nearest-card 恢复可见，再测量实际内容高度
     el.classList.remove('expanded', 'minimized');
-    const titleEl = el.querySelector('.home-overlay-title');
-    if (titleEl) titleEl.textContent = t('nearestTrip') || '最近出行';
     const nearest = el.querySelector('.home-nearest-card');
     if (nearest) nearest.classList.remove('collapsed');
+    // 等一帧让 collapsed class 移除生效，再测量
+    requestAnimationFrame(() => {
+        const headerEl = el.querySelector('.home-overlay-header');
+        const handleEl = el.querySelector('.home-overlay-handle');
+        const nearestCard = el.querySelector('.home-nearest-card');
+        const listEl = el.querySelector('.home-overlay-list');
+        // 精确测量: handle(margin-top + height) + header + nearestCard 完整高度
+        const handleH = handleEl ? (parseInt(getComputedStyle(handleEl).marginTop) + handleEl.offsetHeight) : 14;
+        const headerH = headerEl ? headerEl.offsetHeight : 52;
+        const cardH = nearestCard ? nearestCard.scrollHeight : 0;
+        // list 未展开但有 padding-bottom
+        const listPad = listEl ? parseInt(getComputedStyle(listEl).paddingBottom) || 0 : 0;
+        const totalH = handleH + headerH + cardH + listPad;
+        el.style.maxHeight = totalH + 'px';
+        el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1)';
+    });
+    const titleEl = el.querySelector('.home-overlay-title');
+    if (titleEl) titleEl.textContent = t('nearestTrip') || '最近出行';
     const hint = el.querySelector('.home-overlay-expand-hint');
     if (hint) hint.textContent = '▲';
     _updateHomeZoomPosition();

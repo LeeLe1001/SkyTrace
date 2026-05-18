@@ -4261,7 +4261,7 @@ html.standalone-mode body.is-standalone {
     flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 0 12px 16px;
+    padding: 0 12px 0;
     gap: 8px;
     scrollbar-width: none;
     flex: 0 0 auto;
@@ -4275,7 +4275,7 @@ html.standalone-mode body.is-standalone {
 .home-flights-overlay.expanded .home-overlay-list {
     max-height: 60vh;
     opacity: 1;
-    padding-top: 4px;
+    padding: 4px 12px 16px;
     pointer-events: auto;
     flex: 1 1 auto;
 }
