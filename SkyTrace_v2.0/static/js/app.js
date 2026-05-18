@@ -1225,7 +1225,7 @@ function peekHomeOverlay() {
     const el = document.getElementById('home-flights-overlay');
     if (!el) return;
     el.style.transition = '';
-    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1)'; el.style.maxHeight = '320px';
+    el.style.transition = 'max-height 0.35s cubic-bezier(.4,0,.2,1)'; el.style.maxHeight = ''; el.style.removeProperty('max-height');
     el.classList.remove('expanded', 'minimized');
     const titleEl = el.querySelector('.home-overlay-title');
     if (titleEl) titleEl.textContent = t('nearestTrip') || '最近出行';
