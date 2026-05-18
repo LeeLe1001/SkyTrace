@@ -5774,55 +5774,24 @@ body.fmap-fullscreen-active .flights-sub-view {
 
 
 
-/* Leaflet attribution 强制在 overlay 下方 */
-.leaflet-control-attribution {
-    z-index: 300 !important;
-    position: relative;
-}
-.leaflet-bottom.leaflet-left {
-    z-index: 300 !important;
-}
-.leaflet-bottom.leaflet-right {
-    z-index: 450 !important;
-}
 
 
-/* ====== Desktop 宽屏: overlay 居左常驻 + 卡片窄 ====== */
+
+/* ====== Desktop 宽屏: 仅居中内容 ====== */
 @media (min-width: 768px) {
     .flights-container { max-width: 960px; margin: 0 auto; }
     .calendar-container { max-width: 720px; margin: 0 auto; }
 
-    /* 桌面端始终显示 peek 状态, overlay 在左侧 */
-    .home-flights-overlay {
-        position: absolute;
-        top: calc(var(--header-total-height) + 8px);
-        bottom: 12px;
-        left: 8px;
-        right: auto;
-        width: 420px;
-        max-width: 45vw;
-        max-height: none !important;
-        border-radius: 16px;
-        border: 1px solid var(--border-light);
-        box-shadow: 4px 0 30px var(--shadow-color);
-    }
-    .home-flights-overlay.expanded {
-        width: 480px;
-        max-width: 48vw;
-    }
-    .home-flights-overlay.minimized {
-        width: 200px;
-        left: 8px;
-    }
-    .home-overlay-header { padding: 14px 18px 10px; }
-    .home-nearest-card { padding: 0 18px 8px; }
-    .home-overlay-list { padding: 0 18px 16px; }
+    /* 桌面端 overlay 和手机一样在底部，不改变定位 */
+    /* 仅居中卡片内容，由 .home-overlay-list .flight-card 的 max-width:95% 控制 */
+}
 
-    /* 地图控件不被左侧 overlay 遮挡 */
-    #home-map .leaflet-control-zoom {
-        margin-left: 0;
-    }
-    #home-map .leaflet-control-attribution {
-        margin-left: 0;
-    }
+
+/* Leaflet attribution: 地图右下角，z-index 在 overlay 下方 */
+.leaflet-bottom.leaflet-left {
+    z-index: 350 !important;
+    bottom: 0 !important;
+}
+.leaflet-control-attribution {
+    z-index: 350 !important;
 }

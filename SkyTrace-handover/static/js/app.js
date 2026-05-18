@@ -1120,17 +1120,15 @@ function initHomeOverlayDrag() {
     el._dragInited = true;
     const handle = el.querySelector('.home-overlay-handle');
     const header = el.querySelector('.home-overlay-header');
-    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
 
-    // 桌面端: peek ↔ expanded; 手机端: hidden → peek → expanded → hidden
+    // 统一行为: hidden → peek → expanded → hidden
     const toggleClick = () => {
-        if (isDesktop) {
-            if (_hoState === 'expanded') peekHomeOverlay();
-            else expandHomeOverlay();
+        if (_hoState === 'hidden') {
+            peekHomeOverlay();
+        } else if (_hoState === 'peek') {
+            expandHomeOverlay();
         } else {
-            if (_hoState === 'hidden') peekHomeOverlay();
-            else if (_hoState === 'peek') expandHomeOverlay();
-            else minimizeHomeOverlay();
+            minimizeHomeOverlay();
         }
     };
     if (header) header.addEventListener('click', toggleClick);
@@ -1166,12 +1164,7 @@ function initHomeOverlayDrag() {
             }
         });
     }
-    // 桌面端常驻 peek, 手机端 minimized
-    if (window.matchMedia('(min-width: 768px)').matches) {
-        peekHomeOverlay();
-    } else {
-        minimizeHomeOverlay();
-    }
+    minimizeHomeOverlay();
 }
 
 function _getMobileNavH() {
